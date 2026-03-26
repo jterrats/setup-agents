@@ -1,0 +1,207 @@
+---
+layout: default
+title: Profiles
+permalink: /profiles/
+description: Ten combinable role profiles for Salesforce development — Developer, Architect, BA, MuleSoft, UX, CGCloud, DevOps, QA, CRMA, and Data Cloud.
+---
+
+<header>
+  <h1>Role Profiles</h1>
+  <p class="tagline">Ten combinable profiles, each tailored to a specific Salesforce role.</p>
+</header>
+
+<!-- Intro -->
+<section class="hero-section" style="margin-top:0">
+  <h2>🎭 Role-Aware AI Rules</h2>
+  <p style="font-size:1.1rem; line-height:1.8; color:#333">
+    Each profile generates a dedicated <code>.mdc</code> rule file in <code>.cursor/rules/</code>
+    and contributes extensions to <code>.vscode/extensions.json</code>. Profiles are
+    <strong>combinable</strong> — stack multiple roles with a comma-separated list.
+    All rules use <code>alwaysApply: true</code> so every AI agent in the project has full context.
+  </p>
+  <pre style="margin-top:1.5rem"><code># Single profile
+sf setup-agents local --profile developer
+
+# Multiple combined profiles
+sf setup-agents local --profile developer,architect,cgcloud,qa</code></pre>
+</section>
+
+<!-- Profile Table -->
+<section>
+  <h2>📋 All Profiles</h2>
+  <table class="profile-table">
+    <thead>
+      <tr>
+        <th>Profile</th>
+        <th>Flag</th>
+        <th>Rule File</th>
+        <th>Auto-detect Signal</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Developer</strong></td>
+        <td><code>developer</code></td>
+        <td><code>developer-standards.mdc</code></td>
+        <td>Default (no signal needed)</td>
+      </tr>
+      <tr>
+        <td><strong>Architect</strong></td>
+        <td><code>architect</code></td>
+        <td><code>architect-standards.mdc</code></td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td><strong>Business Analyst</strong></td>
+        <td><code>ba</code></td>
+        <td><code>ba-standards.mdc</code></td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td><strong>MuleSoft</strong></td>
+        <td><code>mulesoft</code></td>
+        <td><code>mulesoft-standards.mdc</code></td>
+        <td><code>mule-artifact.json</code> · <code>pom.xml</code></td>
+      </tr>
+      <tr>
+        <td><strong>UX / UI</strong></td>
+        <td><code>ux</code></td>
+        <td><code>ux-standards.mdc</code></td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td><strong>CGCloud</strong></td>
+        <td><code>cgcloud</code></td>
+        <td><code>cgcloud-standards.mdc</code></td>
+        <td><code>cgcloud__</code> namespace in <code>package.xml</code></td>
+      </tr>
+      <tr>
+        <td><strong>DevOps / Release Manager</strong></td>
+        <td><code>devops</code></td>
+        <td><code>devops-standards.mdc</code></td>
+        <td><code>azure-pipelines.yml</code></td>
+      </tr>
+      <tr>
+        <td><strong>QA (Playwright)</strong></td>
+        <td><code>qa</code></td>
+        <td><code>qa-standards.mdc</code></td>
+        <td><code>playwright.config.ts</code> · <code>playwright.config.js</code></td>
+      </tr>
+      <tr>
+        <td><strong>CRM Analytics</strong></td>
+        <td><code>crma</code></td>
+        <td><code>analytics-standards.mdc</code></td>
+        <td><code>WaveDashboard</code> · <code>WaveDataflow</code> in <code>package.xml</code></td>
+      </tr>
+      <tr>
+        <td><strong>Data Cloud</strong></td>
+        <td><code>data360</code></td>
+        <td><code>data360-standards.mdc</code></td>
+        <td><code>DataStream</code> · <code>DataModelObject</code> in <code>package.xml</code></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- Profile details -->
+<section>
+  <h2>Profile Highlights</h2>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <h4>Developer</h4>
+      <p>Apex trigger strategy (Kevin O'Hara), <code>with sharing</code> enforcement, SOQL/DML bulkification, one Assert per test, 90% coverage target, semantic commits.</p>
+    </div>
+    <div class="feature-card">
+      <h4>Architect</h4>
+      <p>Architecture decision records (ADR), scalability patterns, sharing strategy analysis, async Apex design, integration architecture, unlocked package strategy.</p>
+    </div>
+    <div class="feature-card">
+      <h4>Business Analyst</h4>
+      <p>Requirements documentation, user story templates, Salesforce flow strategy (sub-flows), flow orchestration, acceptance criteria definition.</p>
+    </div>
+    <div class="feature-card">
+      <h4>MuleSoft</h4>
+      <p>API-led connectivity, Connected App patterns, Named Credentials, <code>without sharing</code> for REST endpoints, integration error handling.</p>
+    </div>
+    <div class="feature-card">
+      <h4>CGCloud</h4>
+      <p>Consumer Goods Cloud namespace conventions (<code>cgcloud__</code>), route planning constraints, visiting hours logic, territory management patterns.</p>
+    </div>
+    <div class="feature-card">
+      <h4>DevOps</h4>
+      <p>Branching naming strategy, scratch org pooling, deployment validation, package version management, CI/CD pipeline configuration.</p>
+    </div>
+    <div class="feature-card">
+      <h4>QA</h4>
+      <p>Playwright-based E2E automation, TestSetup + System.runAs for Apex, permission set group setup, accessibility (WCAG) test patterns.</p>
+    </div>
+    <div class="feature-card">
+      <h4>CRM Analytics</h4>
+      <p>WaveDashboard/WaveDataflow metadata strategy, SAQL query standards, recipe orchestration, Analytics Studio best practices.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Sub-agent protocol -->
+<section>
+  <h2>🤝 Sub-agent Protocol</h2>
+  <p>
+    When multiple profiles are active, <code>sf setup-agents local</code> generates
+    <code>.cursor/rules/sub-agent-protocol.mdc</code> — a routing manifest that maps
+    task types to the responsible role:
+  </p>
+
+  <pre><code>## Active Profiles
+| Role                          | Rule File                  |
+|-------------------------------|----------------------------|
+| Developer                     | developer-standards.mdc    |
+| Analytics Engineer (CRMA)     | analytics-standards.mdc    |
+| Data Cloud Engineer           | data360-standards.mdc      |
+
+## Task-to-Profile Routing
+| Task Type                              | Assigned Role       |
+|----------------------------------------|---------------------|
+| Apex / LWC / Triggers                  | Developer           |
+| Recipes / Dataflows / SAQL             | Analytics Engineer  |
+| Data Streams / Identity Resolution     | Data Cloud Engineer |</code></pre>
+</section>
+
+<!-- Agentforce Workflows -->
+<section>
+  <h2>⚙️ Agentforce Workflows by Profile</h2>
+  <p>
+    When using <code>--rules agentforce</code>, each profile contributes
+    workflow files to <code>.a4drules/workflows/</code>. Invoke them in chat
+    with <code>/[workflow-name.md]</code>.
+  </p>
+  <table class="profile-table">
+    <thead>
+      <tr>
+        <th>Workflow</th>
+        <th>Generated For</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><code>deploy.md</code></td><td>All Salesforce projects</td><td>Guided component deploy</td></tr>
+      <tr><td><code>run-tests.md</code></td><td>All Salesforce projects</td><td>Run Apex tests with coverage</td></tr>
+      <tr><td><code>validate.md</code></td><td>All Salesforce projects</td><td>Validate-only deploy (CI-safe)</td></tr>
+      <tr><td><code>create-apex-class.md</code></td><td>Developer</td><td>Create Apex class following project standards</td></tr>
+      <tr><td><code>create-lwc.md</code></td><td>Developer</td><td>Scaffold LWC with SLDS best practices</td></tr>
+      <tr><td><code>create-trigger.md</code></td><td>Developer</td><td>Create trigger using Kevin O'Hara pattern</td></tr>
+      <tr><td><code>adr.md</code></td><td>Architect</td><td>Architecture Decision Record template</td></tr>
+      <tr><td><code>release.md</code></td><td>DevOps</td><td>Release checklist and deployment plan</td></tr>
+      <tr><td><code>create-scratch-org.md</code></td><td>DevOps</td><td>Scratch org setup with permission sets</td></tr>
+      <tr><td><code>run-playwright.md</code></td><td>QA</td><td>Run Playwright tests and capture report</td></tr>
+      <tr><td><code>generate-test-report.md</code></td><td>QA</td><td>Generate test coverage report</td></tr>
+      <tr><td><code>deploy-analytics.md</code></td><td>CRMA</td><td>Deploy CRM Analytics dashboards</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<div class="cta-section">
+  <h2>Ready to configure your team?</h2>
+  <p>Pick your profiles and set up all AI tools with a single command.</p>
+  <a href="{{ site.baseurl }}/commands/" class="cta-button">View Commands</a>
+  <a href="{{ site.baseurl }}/edd/" class="cta-button secondary">EDD Methodology</a>
+</div>

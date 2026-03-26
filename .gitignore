@@ -22,9 +22,6 @@ lib
 coverage
 test_session*
 
-# generated docs
-docs
-
 # ignore sfdx-trust files
 *.tgz
 *.sig
@@ -47,3 +44,10 @@ node_modules
 # os specific files
 .DS_Store
 .idea
+
+# e2e test output (generated projects)
+tests/
+
+# sfdx local tooling artifacts
+.sfdx/
+.vscode/

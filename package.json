@@ -1,10 +1,11 @@
 {
-  "name": "@salesforce/plugin-template-sf",
-  "description": "A template repository for sf plugins",
-  "version": "1.1.76",
-  "author": "Salesforce",
-  "bugs": "https://github.com/forcedotcom/cli/issues",
+  "name": "@jterrats/plugin-setup-agents",
+  "description": "A Salesforce CLI plugin to configure agent rules for AI coding assistants (Cursor, VS Code, Codex, and more).",
+  "version": "0.1.0",
+  "author": "Jaime Terrats <jterrats@salesforce.com>",
+  "bugs": "https://github.com/jterrats/plugin-setup-agents/issues",
   "dependencies": {
+    "@inquirer/prompts": "^8.3.2",
     "@oclif/core": "^4",
     "@salesforce/core": "^8.24.0",
     "@salesforce/kit": "^3.2.4",
@@ -31,7 +32,7 @@
     "/oclif.manifest.json",
     "/schemas"
   ],
-  "homepage": "https://github.com/salesforcecli/plugin-template-sf",
+  "homepage": "https://github.com/jterrats/plugin-setup-agents",
   "keywords": [
     "force",
     "salesforce",
@@ -39,7 +40,13 @@
     "sf",
     "sf-plugin",
     "sfdx",
-    "sfdx-plugin"
+    "sfdx-plugin",
+    "agents",
+    "cursor",
+    "vscode",
+    "codex",
+    "ai",
+    "rules"
   ],
   "license": "Apache-2.0",
   "oclif": {
@@ -52,13 +59,13 @@
       "@salesforce/plugin-command-reference"
     ],
     "topics": {
-      "hello": {
-        "description": "Commands to say hello."
+      "setup-agents": {
+        "description": "Commands to set up local development environments and AI agent rules."
       }
     },
     "flexibleTaxonomy": true
   },
-  "repository": "salesforcecli/plugin-template-sf",
+  "repository": "jterrats/plugin-setup-agents",
   "scripts": {
     "build": "wireit",
     "clean": "sf-clean",
@@ -73,6 +80,7 @@
     "prepack": "sf-prepack",
     "prepare": "sf-install",
     "test": "wireit",
+    "test:e2e": "bash scripts/e2e-test.sh",
     "test:nuts": "nyc mocha \"**/*.nut.ts\" --slow 4500 --timeout 600000 --parallel",
     "test:only": "wireit",
     "version": "oclif readme"

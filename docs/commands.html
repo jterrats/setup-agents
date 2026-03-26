@@ -1,0 +1,241 @@
+---
+layout: default
+title: Commands
+permalink: /commands/
+description: Reference for all sf setup-agents commands — local, mcp, and update.
+---
+
+<header>
+  <h1>Commands</h1>
+  <p class="tagline">All commands live under the <code>sf setup-agents</code> topic.</p>
+</header>
+
+<!-- sf setup-agents local -->
+<section>
+  <div class="command-block">
+    <div class="command-block-header">
+      <h3>sf setup-agents local</h3>
+      <span class="cmd-badge">MAIN</span>
+    </div>
+    <div class="command-block-body">
+      <p>
+        Configures AI agent rule files for the current project directory.
+        Auto-detects installed tools and prompts for role profile selection.
+      </p>
+
+      <pre><code>sf setup-agents local [--rules cursor|vscode|codex|agentforce]
+                      [--profile &lt;value&gt;] [-f]</code></pre>
+
+      <h3>Flags</h3>
+      <table class="flags-table">
+        <thead>
+          <tr>
+            <th>Flag</th>
+            <th>Type</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>--rules</code></td>
+            <td>string</td>
+            <td>Target AI tool. Options: <code>cursor</code> · <code>vscode</code> · <code>codex</code> · <code>agentforce</code>. Omit to auto-detect.</td>
+          </tr>
+          <tr>
+            <td><code>--profile</code></td>
+            <td>string</td>
+            <td>Comma-separated role profiles. Omit for interactive multi-select. Non-TTY defaults to <code>developer</code>.</td>
+          </tr>
+          <tr>
+            <td><code>-f, --force</code></td>
+            <td>boolean</td>
+            <td>Overwrite existing rule files.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Tool Detection</h3>
+      <p>When <code>--rules</code> is omitted, the command checks for:</p>
+      <table class="flags-table">
+        <thead>
+          <tr><th>Indicator</th><th>Tool Configured</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>.cursor/</code> directory</td><td>cursor</td></tr>
+          <tr><td><code>.vscode/</code> directory</td><td>vscode</td></tr>
+          <tr><td><code>AGENTS.md</code> file</td><td>codex</td></tr>
+          <tr><td><code>.a4drules/</code> directory</td><td>agentforce</td></tr>
+          <tr><td><em>none detected</em></td><td>all four tools</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Examples</h3>
+      <pre><code># Auto-detect tools, interactive profile selection
+sf setup-agents local
+
+# Configure only Cursor
+sf setup-agents local --rules cursor
+
+# Configure with multiple combined profiles
+sf setup-agents local --profile developer,architect,cgcloud
+
+# Full Agentforce setup for a QA engineer
+sf setup-agents local --rules agentforce --profile qa
+
+# Force overwrite existing files
+sf setup-agents local --force</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- sf setup-agents mcp -->
+<section>
+  <div class="command-block">
+    <div class="command-block-header">
+      <h3>sf setup-agents mcp</h3>
+      <span class="cmd-badge">MCP</span>
+    </div>
+    <div class="command-block-body">
+      <p>
+        Writes a <a href="https://modelcontextprotocol.io" target="_blank" rel="noopener" style="color:#667eea">@salesforce/mcp</a>
+        server entry into <code>.cursor/mcp.json</code> (or <code>~/.cursor/mcp.json</code> with <code>--global</code>),
+        enabling Cursor AI to call Salesforce org tools directly.
+      </p>
+
+      <pre><code>sf setup-agents mcp [--target-org &lt;alias&gt;] [--profile &lt;value&gt;]
+                    [--all-toolsets] [-g]</code></pre>
+
+      <h3>Flags</h3>
+      <table class="flags-table">
+        <thead>
+          <tr>
+            <th>Flag</th>
+            <th>Type</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>--target-org</code></td>
+            <td>string</td>
+            <td>Org alias or username. Omit for interactive org picker (requires TTY).</td>
+          </tr>
+          <tr>
+            <td><code>--profile</code></td>
+            <td>string</td>
+            <td>Determines which MCP toolsets to activate. See toolset map below.</td>
+          </tr>
+          <tr>
+            <td><code>--all-toolsets</code></td>
+            <td>boolean</td>
+            <td>Force-enable all toolsets: <code>metadata</code>, <code>apex</code>, <code>sobjects</code>.</td>
+          </tr>
+          <tr>
+            <td><code>-g, --global</code></td>
+            <td>boolean</td>
+            <td>Write to <code>~/.cursor/mcp.json</code> (user-level) instead of project.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Toolsets by Profile</h3>
+      <table class="flags-table">
+        <thead>
+          <tr><th>Profile</th><th>Toolsets</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>developer</code> · <code>architect</code> · <code>qa</code> · <code>cgcloud</code></td><td>metadata · apex · sobjects</td></tr>
+          <tr><td><code>ba</code> · <code>ux</code> · <code>crma</code> · <code>data360</code></td><td>metadata · sobjects</td></tr>
+          <tr><td><code>devops</code> · <code>mulesoft</code></td><td>metadata</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Examples</h3>
+      <pre><code># Configure for a specific org
+sf setup-agents mcp --target-org myOrgAlias
+
+# Write to global ~/.cursor/mcp.json
+sf setup-agents mcp --target-org myOrg --global
+
+# Enable all toolsets
+sf setup-agents mcp --target-org myOrg --all-toolsets
+
+# Profile-aware toolset selection
+sf setup-agents mcp --target-org myOrg --profile developer</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- sf setup-agents update -->
+<section>
+  <div class="command-block">
+    <div class="command-block-header">
+      <h3>sf setup-agents update</h3>
+      <span class="cmd-badge">MAINTENANCE</span>
+    </div>
+    <div class="command-block-body">
+      <p>
+        Scans the project for rule files generated by an older version of the plugin
+        and regenerates only the stale ones. Active profiles are inferred from
+        existing <code>.cursor/rules/</code> profile files.
+      </p>
+
+      <pre><code>sf setup-agents update [--dry-run] [-y]</code></pre>
+
+      <h3>Flags</h3>
+      <table class="flags-table">
+        <thead>
+          <tr>
+            <th>Flag</th>
+            <th>Type</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>--dry-run</code></td>
+            <td>boolean</td>
+            <td>List stale files without modifying them.</td>
+          </tr>
+          <tr>
+            <td><code>-y, --yes</code></td>
+            <td>boolean</td>
+            <td>Skip confirmation prompt. Useful in CI.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Scanned Locations</h3>
+      <table class="flags-table">
+        <thead>
+          <tr><th>Location</th><th>Version Token</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>.cursor/rules/*.mdc</code></td><td><code>pluginVersion: "x.y.z"</code> in frontmatter</td></tr>
+          <tr><td><code>.github/copilot-instructions.md</code></td><td><code>&lt;!-- setup-agents: x.y.z --&gt;</code></td></tr>
+          <tr><td><code>AGENTS.md</code></td><td><code>&lt;!-- setup-agents: x.y.z --&gt;</code></td></tr>
+          <tr><td><code>.a4drules/*.md</code></td><td><code>&lt;!-- setup-agents: x.y.z --&gt;</code></td></tr>
+          <tr><td><code>.a4drules/workflows/*.md</code></td><td><code>&lt;!-- setup-agents: x.y.z --&gt;</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3>Examples</h3>
+      <pre><code># Preview what would be updated
+sf setup-agents update --dry-run
+
+# Update with confirmation
+sf setup-agents update
+
+# Update without prompting (CI)
+sf setup-agents update --yes</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-section">
+  <h2>Explore role profiles</h2>
+  <p>Each profile tailors the rules to the specific role — from Developer to Data Cloud Engineer.</p>
+  <a href="{{ site.baseurl }}/profiles/" class="cta-button">Browse Profiles</a>
+  <a href="{{ site.baseurl }}/architecture/" class="cta-button secondary">Architecture</a>
+</div>

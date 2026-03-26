@@ -1,0 +1,264 @@
+---
+layout: default
+title: EDD — Error-Driven Development
+permalink: /edd/
+description: Error-Driven Development methodology applied to setup-agents. Test errors first, let the happy path emerge naturally.
+---
+
+<header>
+  <h1>🧪 Error-Driven Development</h1>
+  <p class="tagline">Test errors first. Let the happy path emerge naturally.</p>
+</header>
+
+<!-- Stats -->
+<section style="margin-top:0">
+  <div class="status-grid">
+    <div class="status-item status-pass">
+      <h4>Unit Tests</h4>
+      <div class="number">105</div>
+      <p style="font-size:0.85rem;color:#999;margin-top:0.3rem">Passing</p>
+    </div>
+    <div class="status-item status-pass">
+      <h4>Error Scenarios</h4>
+      <div class="number">100%</div>
+      <p style="font-size:0.85rem;color:#999;margin-top:0.3rem">Catalogued before coding</p>
+    </div>
+    <div class="status-item status-pass">
+      <h4>Coverage Target</h4>
+      <div class="number">90%</div>
+      <p style="font-size:0.85rem;color:#999;margin-top:0.3rem">Per module</p>
+    </div>
+    <div class="status-item">
+      <h4>Test Layers</h4>
+      <div class="number">3</div>
+      <p style="font-size:0.85rem;color:#999;margin-top:0.3rem">Unit · Integration · E2E</p>
+    </div>
+  </div>
+</section>
+
+<!-- What is EDD -->
+<section>
+  <h2>What is EDD?</h2>
+  <p>
+    Error-Driven Development is a <strong>proactive</strong> testing philosophy that inverts the
+    conventional order: instead of writing the happy path first and adding error handling later,
+    you <strong>catalog all anticipated error scenarios before writing any implementation code</strong>.
+  </p>
+  <p>
+    This isn't just error handling — it's a design technique. When you think about what can go
+    wrong first, the correct structure for the happy path becomes obvious.
+  </p>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin:2rem 0">
+    <div style="background:#fff3f3; border:2px solid #ffcdd2; border-radius:12px; padding:1.5rem">
+      <h3 style="color:#d32f2f; margin-top:0">❌ Traditional Approach</h3>
+      <ol style="padding-left:1.25rem; color:#555; font-size:0.92rem; line-height:2">
+        <li>Write happy-path implementation</li>
+        <li>Manually test it works</li>
+        <li>Add error handling reactively</li>
+        <li>Write tests for what was built</li>
+        <li>Discover edge cases in production</li>
+      </ol>
+    </div>
+    <div style="background:#f1f8e9; border:2px solid #c5e1a5; border-radius:12px; padding:1.5rem">
+      <h3 style="color:#388e3c; margin-top:0">✅ EDD Approach</h3>
+      <ol style="padding-left:1.25rem; color:#555; font-size:0.92rem; line-height:2">
+        <li>Catalog all anticipated errors</li>
+        <li>Write tests for each error scenario</li>
+        <li>Write tests for the happy path</li>
+        <li>Implement until all tests pass</li>
+        <li>Edge cases were designed in, not discovered</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- EDD in setup-agents -->
+<section>
+  <h2>EDD in setup-agents</h2>
+  <p>
+    Every module in this plugin was built error-first. Below is the error catalog that
+    drove the test suite before a single line of implementation was written.
+  </p>
+
+  <h3>sf setup-agents local — Error Catalog</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>File Already Exists</h4>
+      <p>When a rule file exists and <code>--force</code> is not set, the write is skipped and a warning is emitted. The file is never silently overwritten.</p>
+    </div>
+    <div class="card">
+      <h4>No Tools Detected</h4>
+      <p>When no tool indicators (<code>.cursor/</code>, <code>.vscode/</code>, etc.) are found, all four tools are configured as a safe default. Never returns empty.</p>
+    </div>
+    <div class="card">
+      <h4>Non-interactive Mode</h4>
+      <p>When <code>process.stdin.isTTY</code> is false (CI, scripts), the profile defaults to <code>developer</code> with a warning instead of hanging on an interactive prompt.</p>
+    </div>
+    <div class="card">
+      <h4>Invalid Profile ID</h4>
+      <p>Unknown profile IDs in <code>--profile</code> are silently filtered. Valid profiles proceed; the command never throws on partial input.</p>
+    </div>
+    <div class="card">
+      <h4>Non-Salesforce Project</h4>
+      <p>Without <code>sfdx-project.json</code>, <code>salesforce-standards.mdc</code> and Agentforce workflows are not generated — no partial/incorrect output.</p>
+    </div>
+    <div class="card">
+      <h4>Cursor Scope User</h4>
+      <p>When user-level scope is selected, no files are written to <code>.cursor/rules/</code>. Content is printed to console for manual paste. Base files (<code>agent-guidelines.mdc</code>, <code>sub-agent-protocol.mdc</code>) are still written.</p>
+    </div>
+  </div>
+
+  <h3>sf setup-agents mcp — Error Catalog</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>No Org in Non-interactive Mode</h4>
+      <p>When <code>--target-org</code> is omitted and stdin is not a TTY, a warning is emitted and an empty result is returned. Never hangs.</p>
+    </div>
+    <div class="card">
+      <h4>Corrupt mcp.json</h4>
+      <p>If the existing <code>.cursor/mcp.json</code> cannot be parsed, a warning is emitted and the file is recreated from scratch rather than throwing.</p>
+    </div>
+    <div class="card">
+      <h4>sf org list Failure</h4>
+      <p>If <code>sf org list</code> fails (no CLI, no auths), the error is caught, a warning is emitted, and the command falls back to "no orgs" state cleanly.</p>
+    </div>
+    <div class="card">
+      <h4>Merging Existing Servers</h4>
+      <p>Adding a new org never overwrites existing <code>mcpServers</code> entries. The file is always read, merged, then written atomically.</p>
+    </div>
+  </div>
+
+  <h3>sf setup-agents update — Error Catalog</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>Nothing to Update</h4>
+      <p>When all files have the current version token, the command exits early with an informative message rather than running unnecessarily.</p>
+    </div>
+    <div class="card">
+      <h4>Missing Version Token</h4>
+      <p>Files with no version token (manually created, or very old) are treated as stale and included in the update set.</p>
+    </div>
+    <div class="card">
+      <h4>Stale Workflows</h4>
+      <p><code>.a4drules/workflows/*.md</code> are scanned separately from <code>.a4drules/*.md</code>. Forgetting the subdirectory would leave workflow files perpetually outdated.</p>
+    </div>
+    <div class="card">
+      <h4>No Profiles Inferable</h4>
+      <p>When no profile <code>.mdc</code> files exist in <code>.cursor/rules/</code>, the update defaults to <code>developer</code> profile rather than failing.</p>
+    </div>
+  </div>
+</section>
+
+<!-- EDD Process -->
+<section>
+  <h2>The EDD Process</h2>
+  <ol class="step-list">
+    <li>
+      <div class="step-content">
+        <h4>Catalog anticipated errors</h4>
+        <p>Before writing any implementation, list every edge case, invalid input, and failure mode for the module. Group by category (file I/O, user input, environment, integration).</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-content">
+        <h4>Write error scenario tests</h4>
+        <p>For each cataloged error, write a test that asserts the correct behaviour: warning emitted, empty result returned, file not modified, etc.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-content">
+        <h4>Write happy-path tests</h4>
+        <p>With error cases covered, the happy path tests are minimal and focused. They assert positive outcomes against an already-hardened design.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-content">
+        <h4>Implement until tests pass</h4>
+        <p>Write the implementation guided by the test suite. The error catalog ensures guard clauses and safe defaults are built in from the start.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-content">
+        <h4>One assertion per test</h4>
+        <p>Each test asserts exactly one observable outcome using Chai's <code>expect</code>. This makes failures immediately diagnosable without reading through multiple assertions.</p>
+      </div>
+    </li>
+  </ol>
+</section>
+
+<!-- Comparison -->
+<section>
+  <h2>Comparison with Other Methodologies</h2>
+  <table class="profile-table">
+    <thead>
+      <tr>
+        <th>Aspect</th>
+        <th>Traditional TDD</th>
+        <th>BDD</th>
+        <th>EDD (this project)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Test order</td>
+        <td>Happy path → edge cases</td>
+        <td>Behaviour scenarios</td>
+        <td><strong>Error catalog → happy path</strong></td>
+      </tr>
+      <tr>
+        <td>Error timing</td>
+        <td>After implementation</td>
+        <td>In scenario definition</td>
+        <td><strong>Before any code</strong></td>
+      </tr>
+      <tr>
+        <td>Coverage</td>
+        <td>Encountered errors only</td>
+        <td>Described behaviours</td>
+        <td><strong>All anticipated errors</strong></td>
+      </tr>
+      <tr>
+        <td>Design benefit</td>
+        <td>Forces small functions</td>
+        <td>Forces shared vocabulary</td>
+        <td><strong>Forces safe defaults from the start</strong></td>
+      </tr>
+      <tr>
+        <td>CI speed</td>
+        <td>Full suite always</td>
+        <td>Full suite always</td>
+        <td><strong>Error tests first (fast feedback loop)</strong></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- Test structure -->
+<section>
+  <h2>Test Structure</h2>
+  <pre><code>test/
+├── commands/
+│   └── setup-agents/
+│       ├── local.test.ts    ← 89 tests (detection, profiles, agentforce workflows)
+│       ├── mcp.test.ts      ← 12 tests (global flag, merge, non-interactive)
+│       └── update.test.ts   ← 11 tests (stale detection, workflows subdirectory)
+└── unit/
+    ├── generators/
+    │   ├── mdc-generator.test.ts
+    │   ├── workflow-generator.test.ts
+    │   └── shared.test.ts
+    └── setup/
+        └── cursor-setup.test.ts  ← 9 tests (user scope path)</code></pre>
+
+  <p>Run the full test suite:</p>
+  <pre><code>node --loader ts-node/esm --no-warnings=ExperimentalWarning \
+  ./node_modules/mocha/bin/mocha.js "test/**/*.test.ts" --timeout 30000</code></pre>
+</section>
+
+<div class="cta-section">
+  <h2>See the architecture that makes EDD tractable</h2>
+  <p>Pure generators and dependency injection make every error scenario testable without complex mocking.</p>
+  <a href="{{ site.baseurl }}/architecture/" class="cta-button">View Architecture</a>
+  <a href="https://github.com/{{ site.repository }}/tree/main/test" class="cta-button secondary" target="_blank" rel="noopener">Test Source ↗</a>
+</div>

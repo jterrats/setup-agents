@@ -1,0 +1,57 @@
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>
+  {% if page.title %}{{ page.title }} - {{ site.title }}{% else %}{{ site.title }} - AI Agent Rules for Salesforce{%
+  endif %}
+</title>
+
+<meta
+  name="description"
+  content="{% if page.description %}{{ page.description }}{% else %}{{ site.description }}{% endif %}"
+/>
+<meta
+  name="keywords"
+  content="Salesforce, CLI plugin, AI agents, Cursor, VS Code, Codex, Agentforce, developer rules, profiles, setup"
+/>
+<meta name="author" content="{{ site.author }}" />
+<meta name="robots" content="index, follow" />
+<meta name="theme-color" content="#667eea" />
+
+<link rel="canonical" href="{{ site.url }}{{ site.baseurl }}{{ page.url | replace: 'index.html', '' }}" />
+
+<!-- Open Graph -->
+<meta property="og:type" content="website" />
+<meta property="og:url" content="{{ site.url }}{{ site.baseurl }}{{ page.url | replace: 'index.html', '' }}" />
+<meta
+  property="og:title"
+  content="{% if page.title %}{{ page.title }} - {{ site.title }}{% else %}{{ site.title }} - AI Agent Rules for Salesforce{% endif %}"
+/>
+<meta
+  property="og:description"
+  content="{% if page.description %}{{ page.description }}{% else %}{{ site.description }}{% endif %}"
+/>
+<meta property="og:site_name" content="{{ site.title }}" />
+
+<!-- Structured Data -->
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "{{ site.title }}",
+    "applicationCategory": "DeveloperApplication",
+    "description": "{{ site.description }}",
+    "operatingSystem": "macOS, Linux, Windows",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "author": {
+      "@type": "Person",
+      "name": "{{ site.author }}",
+      "url": "https://github.com/{{ site.github_username }}"
+    },
+    "codeRepository": "https://github.com/{{ site.repository }}",
+    "programmingLanguage": ["TypeScript", "Bash"],
+    "license": "https://opensource.org/licenses/Apache-2.0",
+    "keywords": "Salesforce, CLI, AI agents, Cursor, VS Code, Codex, Agentforce, developer rules"
+  }
+</script>
+
+<link rel="stylesheet" href="{{ site.baseurl }}/css/main.css" />

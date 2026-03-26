@@ -1,0 +1,53 @@
+/*
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+export type { Profile, ProfileId } from './types.js';
+
+export { developerProfile } from './developer.js';
+export { architectProfile } from './architect.js';
+export { baProfile } from './ba.js';
+export { mulesoftProfile } from './mulesoft.js';
+export { uxProfile } from './ux.js';
+export { cgcloudProfile } from './cgcloud.js';
+export { devopsProfile } from './devops.js';
+export { qaProfile } from './qa.js';
+export { crmaProfile } from './crma.js';
+export { data360Profile } from './data360.js';
+
+import { developerProfile } from './developer.js';
+import { architectProfile } from './architect.js';
+import { baProfile } from './ba.js';
+import { mulesoftProfile } from './mulesoft.js';
+import { uxProfile } from './ux.js';
+import { cgcloudProfile } from './cgcloud.js';
+import { devopsProfile } from './devops.js';
+import { qaProfile } from './qa.js';
+import { crmaProfile } from './crma.js';
+import { data360Profile } from './data360.js';
+import type { Profile } from './types.js';
+
+export const ALL_PROFILES: Profile[] = [
+  developerProfile,
+  architectProfile,
+  baProfile,
+  mulesoftProfile,
+  uxProfile,
+  cgcloudProfile,
+  devopsProfile,
+  qaProfile,
+  crmaProfile,
+  data360Profile,
+];

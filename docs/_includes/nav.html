@@ -1,0 +1,14 @@
+<div class="top-nav">
+  <div class="top-nav-inner">
+    <a href="{{ site.baseurl }}/" class="nav-brand">⚡ setup-agents</a>
+    <nav class="nav-links">
+      <a href="{{ site.baseurl }}/" {% if page.url == '/' or page.url == '/index.html' %}class="active"{% endif %}>Home</a>
+      <a href="{{ site.baseurl }}/commands/" {% if page.url contains '/commands' %}class="active"{% endif %}>Commands</a>
+      <a href="{{ site.baseurl }}/profiles/" {% if page.url contains '/profiles' %}class="active"{% endif %}>Profiles</a>
+      <a href="{{ site.baseurl }}/architecture/" {% if page.url contains '/architecture' %}class="active"{% endif %}>Architecture</a>
+      <a href="{{ site.baseurl }}/edd/" {% if page.url contains '/edd' %}class="active"{% endif %}>EDD</a>
+      <a href="https://github.com/{{ site.repository }}" target="_blank" rel="noopener" class="nav-github">GitHub ↗</a>
+    </nav>
+    <button class="nav-toggle" aria-label="Toggle navigation" onclick="document.querySelector('.nav-links').classList.toggle('open')">☰</button>
+  </div>
+</div>

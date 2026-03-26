@@ -1,10 +1,26 @@
 [
   {
     "alias": [],
-    "command": "hello:world",
+    "command": "setup-agents:local",
     "flagAliases": [],
-    "flagChars": ["n"],
-    "flags": ["flags-dir", "json", "name"],
-    "plugin": "@salesforce/plugin-template-sf"
+    "flagChars": ["f"],
+    "flags": ["flags-dir", "force", "json", "profile", "rules"],
+    "plugin": "@jterrats/plugin-setup-agents"
+  },
+  {
+    "alias": [],
+    "command": "setup-agents:mcp",
+    "flagAliases": [],
+    "flagChars": ["g"],
+    "flags": ["all-toolsets", "flags-dir", "global", "json", "profile", "target-org"],
+    "plugin": "@jterrats/plugin-setup-agents"
+  },
+  {
+    "alias": [],
+    "command": "setup-agents:update",
+    "flagAliases": [],
+    "flagChars": ["y"],
+    "flags": ["dry-run", "flags-dir", "json", "yes"],
+    "plugin": "@jterrats/plugin-setup-agents"
   }
 ]

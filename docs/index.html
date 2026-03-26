@@ -1,0 +1,182 @@
+---
+layout: default
+title: Home
+permalink: /
+description: Salesforce CLI plugin to configure AI agent rules and role profiles for Cursor, VS Code, Codex, and Agentforce in seconds.
+---
+
+<!-- Hero -->
+<header>
+  <h1>⚡ setup-agents</h1>
+  <p class="tagline">Bootstrap AI agent rules for any Salesforce project in seconds.</p>
+
+  <div class="badges">
+    <img src="https://img.shields.io/npm/v/@jterrats/plugin-setup-agents.svg?logo=npm&label=version" alt="Version" style="height:20px" />
+    <img src="https://img.shields.io/github/actions/workflow/status/jterrats/plugin-setup-agents/ci.yml?branch=main&label=CI&logo=github" alt="CI" style="height:20px" />
+    <img src="https://img.shields.io/badge/tests-105%20passing-success.svg" alt="Tests" style="height:20px" />
+    <img src="https://img.shields.io/npm/l/@jterrats/plugin-setup-agents.svg?color=blue" alt="License" style="height:20px" />
+    <img src="https://img.shields.io/node/v/@jterrats/plugin-setup-agents.svg?logo=node.js" alt="Node.js" style="height:20px" />
+  </div>
+</header>
+
+<!-- Hero description -->
+<section class="hero-section" style="margin-top:0">
+  <h2>🤖 One command. Four AI tools. Ten role profiles.</h2>
+  <p style="font-size:1.15rem; line-height:1.8; color:#333; margin-bottom:1.5rem">
+    <strong>setup-agents</strong> configures <a href="https://cursor.sh" style="color:#667eea">Cursor</a>,
+    <a href="https://code.visualstudio.com/docs/copilot/overview" style="color:#667eea">GitHub Copilot</a>,
+    <a href="https://github.com/openai/codex" style="color:#667eea">OpenAI Codex</a>, and
+    <a href="https://developer.salesforce.com/docs/platform/einstein-for-devs/guide/devagent-rules.html" style="color:#667eea">Agentforce Vibes</a>
+    with role-aware rules so every AI assistant in your team has the same architectural context.
+  </p>
+
+  <pre><code>sf plugins install @jterrats/plugin-setup-agents
+cd my-salesforce-project
+sf setup-agents local</code></pre>
+</section>
+
+<!-- Stats -->
+<section>
+  <h2>📊 Project Status</h2>
+  <div class="status-grid">
+    <div class="status-item status-pass">
+      <h4>Unit Tests</h4>
+      <div class="number">105</div>
+      <p style="font-size:0.85rem;color:#999;margin-top:0.3rem">Passing</p>
+    </div>
+    <div class="status-item status-pass">
+      <h4>Role Profiles</h4>
+      <div class="number">10</div>
+      <p style="font-size:0.85rem;color:#999;margin-top:0.3rem">Combinable</p>
+    </div>
+    <div class="status-item">
+      <h4>AI Tools</h4>
+      <div class="number">4</div>
+      <p style="font-size:0.85rem;color:#999;margin-top:0.3rem">Cursor · VS Code · Codex · Agentforce</p>
+    </div>
+    <div class="status-item">
+      <h4>Commands</h4>
+      <div class="number">3</div>
+      <p style="font-size:0.85rem;color:#999;margin-top:0.3rem">local · mcp · update</p>
+    </div>
+    <div class="status-item status-pass">
+      <h4>A4D Workflows</h4>
+      <div class="number">12</div>
+      <p style="font-size:0.85rem;color:#999;margin-top:0.3rem">Auto-generated</p>
+    </div>
+    <div class="status-item status-pass">
+      <h4>EDD Coverage</h4>
+      <div class="number">100%</div>
+      <p style="font-size:0.85rem;color:#999;margin-top:0.3rem">Error-first tests</p>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section>
+  <h2>✨ Features</h2>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <h4>🔍 Auto-Detection</h4>
+      <p>Detects installed tools (.cursor, .vscode, AGENTS.md, .a4drules) and active profiles (cgcloud__, WaveDashboard, DataStream, Playwright) automatically.</p>
+    </div>
+    <div class="feature-card">
+      <h4>🎭 Role Profiles</h4>
+      <p>10 combinable profiles — Developer, Architect, BA, MuleSoft, UX, CGCloud, DevOps, QA, CRMA, Data Cloud. Each generates its own rule file.</p>
+    </div>
+    <div class="feature-card">
+      <h4>🤝 Sub-agent Protocol</h4>
+      <p>Generates sub-agent-protocol.mdc — a routing manifest mapping task types to responsible roles across your whole team.</p>
+    </div>
+    <div class="feature-card">
+      <h4>⚙️ Agentforce Workflows</h4>
+      <p>Creates .a4drules/workflows/ files invokable via /[workflow.md] in chat — deploy, run-tests, validate, create-apex-class, ADR, and more.</p>
+    </div>
+    <div class="feature-card">
+      <h4>🔌 MCP Integration</h4>
+      <p>sf setup-agents mcp wires @salesforce/mcp into Cursor for direct metadata, Apex, and sObject access from any org.</p>
+    </div>
+    <div class="feature-card">
+      <h4>🔄 Auto-update</h4>
+      <p>sf setup-agents update detects stale rule files (version mismatch) and regenerates only what's outdated — including workflow files.</p>
+    </div>
+    <div class="feature-card">
+      <h4>📦 Extension Recommendations</h4>
+      <p>Writes .vscode/extensions.json combining base Salesforce extensions with profile-specific tools for every team member.</p>
+    </div>
+    <div class="feature-card">
+      <h4>🛡️ Safe by Default</h4>
+      <p>Never overwrites existing files without --force. Every file embeds a version token enabling precise staleness detection.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Quick Start -->
+<section>
+  <h2>🚀 Quick Start</h2>
+
+  <div class="card-grid">
+    <div class="card">
+      <h4>1. Install</h4>
+      <pre><code>sf plugins install \
+  @jterrats/plugin-setup-agents</code></pre>
+    </div>
+    <div class="card">
+      <h4>2. Run in your project</h4>
+      <pre><code>cd my-salesforce-project
+sf setup-agents local</code></pre>
+    </div>
+    <div class="card">
+      <h4>3. Select profiles</h4>
+      <pre><code># Interactive multi-select prompt
+# or pass profiles directly:
+sf setup-agents local \
+  --profile developer,architect</code></pre>
+    </div>
+  </div>
+
+  <div style="background:#f0f4ff; border-radius:10px; border-left:4px solid #667eea; padding:1.25rem 1.5rem; margin:1.5rem 0">
+    <strong style="color:#667eea">Unsigned Plugin</strong> — You will be prompted the first time:<br>
+    <code>sf plugins install @jterrats/plugin-setup-agents --no-verify</code>
+  </div>
+</section>
+
+<!-- Files generated -->
+<section>
+  <h2>📂 Files Generated</h2>
+  <div class="card-grid">
+    <div class="card">
+      <h4>Cursor</h4>
+      <p><code>.cursor/rules/agent-guidelines.mdc</code><br>
+      <code>.cursor/rules/salesforce-standards.mdc</code><br>
+      <code>.cursor/rules/&lt;profile&gt;-standards.mdc</code><br>
+      <code>.cursor/rules/sub-agent-protocol.mdc</code></p>
+    </div>
+    <div class="card">
+      <h4>VS Code</h4>
+      <p><code>.github/copilot-instructions.md</code><br>
+      <code>.vscode/extensions.json</code></p>
+    </div>
+    <div class="card">
+      <h4>Codex</h4>
+      <p><code>AGENTS.md</code></p>
+    </div>
+    <div class="card">
+      <h4>Agentforce</h4>
+      <p><code>.a4drules/00-base-guidelines.md</code><br>
+      <code>.a4drules/01-salesforce-standards.md</code><br>
+      <code>.a4drules/&lt;N&gt;-&lt;profile&gt;.md</code><br>
+      <code>.a4drules/99-sub-agent-protocol.md</code><br>
+      <code>.a4drules/workflows/*.md</code></p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-section">
+  <h2>Ready to set up your AI agents?</h2>
+  <p>One command configures all your tools with role-specific rules.</p>
+  <a href="{{ site.baseurl }}/commands/" class="cta-button">View Commands</a>
+  <a href="{{ site.baseurl }}/profiles/" class="cta-button secondary">Browse Profiles</a>
+  <a href="https://github.com/{{ site.repository }}" class="cta-button secondary" target="_blank" rel="noopener">GitHub ↗</a>
+</div>

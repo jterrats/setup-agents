@@ -1,0 +1,31 @@
+title: setup-agents
+description: Salesforce CLI plugin to configure AI agent rules and role profiles for any project in seconds.
+author: Jaime Terrats
+email: jaime.terrats@gmail.com
+url: https://jterrats.github.io
+baseurl: /setup-agents
+
+markdown: kramdown
+theme: null
+plugins: []
+
+exclude:
+  - node_modules/
+  - vendor/
+  - README.md
+  - development/
+  - project/
+  - user-guide/
+
+permalink: pretty
+
+defaults:
+  - scope:
+      path: ''
+    values:
+      layout: 'default'
+
+version: 0.1.0
+repository: jterrats/plugin-setup-agents
+github_username: jterrats
+license: Apache-2.0

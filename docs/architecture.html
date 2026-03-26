@@ -1,0 +1,208 @@
+---
+layout: default
+title: Architecture
+permalink: /architecture/
+description: Layered architecture of the setup-agents plugin — commands, setup layer, generators, services, and profiles.
+---
+
+<header>
+  <h1>Architecture</h1>
+  <p class="tagline">Thin commands. Clear layers. Testable by design.</p>
+</header>
+
+<!-- Philosophy -->
+<section class="hero-section" style="margin-top:0">
+  <h2>🏗️ Design Principles</h2>
+  <p style="font-size:1.1rem; line-height:1.8; color:#333; margin-bottom:1rem">
+    The plugin follows the same architectural patterns as
+    <a href="https://github.com/jterrats/profiler" style="color:#667eea">profiler</a> and
+    <a href="https://github.com/jterrats/JT_DynamicQueries" style="color:#667eea">JT_DynamicQueries</a>:
+    each layer has a single responsibility, and the command layer stays as thin as possible.
+  </p>
+  <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:1rem; margin-top:1.5rem">
+    <div style="background:white; padding:1.25rem; border-radius:10px; border-left:4px solid #667eea">
+      <strong style="color:#667eea">Thin Commands</strong>
+      <p style="margin:0.4rem 0 0; font-size:0.9rem; color:#666">Parse flags, delegate to setup layer, return typed results.</p>
+    </div>
+    <div style="background:white; padding:1.25rem; border-radius:10px; border-left:4px solid #764ba2">
+      <strong style="color:#764ba2">Dependency Injection</strong>
+      <p style="margin:0.4rem 0 0; font-size:0.9rem; color:#666"><code>promptScope</code> and <code>printToConsole</code> injected into setup functions — easy to test without mocking globals.</p>
+    </div>
+    <div style="background:white; padding:1.25rem; border-radius:10px; border-left:4px solid #4caf50">
+      <strong style="color:#4caf50">Result Monad</strong>
+      <p style="margin:0.4rem 0 0; font-size:0.9rem; color:#666"><code>Result&lt;T, E&gt;</code> type in <code>src/types/index.ts</code> for composable error handling without exceptions.</p>
+    </div>
+    <div style="background:white; padding:1.25rem; border-radius:10px; border-left:4px solid #ff9800">
+      <strong style="color:#ff9800">Pure Generators</strong>
+      <p style="margin:0.4rem 0 0; font-size:0.9rem; color:#666">All content generation is side-effect free — takes inputs, returns strings. Zero I/O.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Layer diagram -->
+<section>
+  <h2>📐 Layer Overview</h2>
+
+  <div style="display:flex; flex-direction:column; gap:1rem; max-width:800px; margin:2rem auto">
+
+    <!-- Commands layer -->
+    <div style="background:linear-gradient(135deg,#667eea,#764ba2); color:white; border-radius:12px; padding:1.25rem 1.5rem">
+      <strong style="font-size:1rem">Commands Layer</strong>
+      <p style="margin:0.5rem 0 0; font-size:0.85rem; opacity:0.9">
+        <code>sf setup-agents local</code> &nbsp;·&nbsp;
+        <code>sf setup-agents mcp</code> &nbsp;·&nbsp;
+        <code>sf setup-agents update</code>
+      </p>
+      <p style="margin:0.4rem 0 0; font-size:0.82rem; opacity:0.8">Parse flags · Call detectTools / resolveProfiles · Delegate to Setup Layer · Return typed result</p>
+    </div>
+
+    <div style="text-align:center; color:#667eea; font-size:1.5rem">↓</div>
+
+    <!-- Setup layer -->
+    <div style="background:#f0f4ff; border:2px solid #667eea; border-radius:12px; padding:1.25rem 1.5rem">
+      <strong style="color:#667eea; font-size:1rem">Setup Layer — <code>src/setup/</code></strong>
+      <p style="margin:0.5rem 0 0; font-size:0.85rem; color:#555">
+        <code>cursor-setup.ts</code> &nbsp;·&nbsp;
+        <code>vscode-setup.ts</code> &nbsp;·&nbsp;
+        <code>codex-setup.ts</code> &nbsp;·&nbsp;
+        <code>agentforce-setup.ts</code>
+      </p>
+      <p style="margin:0.4rem 0 0; font-size:0.82rem; color:#777">
+        Orchestrates file creation. Calls Generators to build content. Calls FileWriter to persist. Receives <code>promptScope</code> and <code>printToConsole</code> as injected functions.
+      </p>
+    </div>
+
+    <div style="text-align:center; color:#667eea; font-size:1.5rem">↓</div>
+
+    <!-- Generators -->
+    <div style="background:#f9f9f9; border:2px solid #e0e0e0; border-radius:12px; padding:1.25rem 1.5rem">
+      <strong style="color:#333; font-size:1rem">Generators — <code>src/generators/</code></strong>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:0.5rem; margin-top:0.75rem">
+        <div style="background:white; padding:0.6rem 0.8rem; border-radius:6px; border-left:3px solid #667eea; font-size:0.82rem">
+          <strong style="color:#667eea">mdc-generator</strong><br>
+          <span style="color:#666">agent-guidelines, sf-standards, sub-agent-protocol</span>
+        </div>
+        <div style="background:white; padding:0.6rem 0.8rem; border-radius:6px; border-left:3px solid #667eea; font-size:0.82rem">
+          <strong style="color:#667eea">workflow-generator</strong><br>
+          <span style="color:#666">deploy, run-tests, validate, profile workflows</span>
+        </div>
+        <div style="background:white; padding:0.6rem 0.8rem; border-radius:6px; border-left:3px solid #667eea; font-size:0.82rem">
+          <strong style="color:#667eea">copilot-generator</strong><br>
+          <span style="color:#666">copilot-instructions.md content</span>
+        </div>
+        <div style="background:white; padding:0.6rem 0.8rem; border-radius:6px; border-left:3px solid #667eea; font-size:0.82rem">
+          <strong style="color:#667eea">codex-generator</strong><br>
+          <span style="color:#666">AGENTS.md content</span>
+        </div>
+        <div style="background:white; padding:0.6rem 0.8rem; border-radius:6px; border-left:3px solid #667eea; font-size:0.82rem">
+          <strong style="color:#667eea">extensions-generator</strong><br>
+          <span style="color:#666">extensions.json union</span>
+        </div>
+        <div style="background:white; padding:0.6rem 0.8rem; border-radius:6px; border-left:3px solid #667eea; font-size:0.82rem">
+          <strong style="color:#667eea">agentforce-generator</strong><br>
+          <span style="color:#666">.a4drules/ numbered files</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center; color:#667eea; font-size:1.5rem">↓</div>
+
+    <!-- Services -->
+    <div style="background:#f9f9f9; border:2px solid #e0e0e0; border-radius:12px; padding:1.25rem 1.5rem">
+      <strong style="color:#333; font-size:1rem">Services — <code>src/services/</code></strong>
+      <p style="margin:0.5rem 0 0; font-size:0.85rem; color:#555">
+        <code>FileWriter</code> — centralises force/skip logic, calls <code>writeFileSync</code>, invokes log/warn callbacks.<br>
+        <code>ensureDir</code> — creates directories recursively if they don't exist.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Source tree -->
+<section>
+  <h2>📁 Source Structure</h2>
+  <pre><code>src/
+├── commands/
+│   └── setup-agents/
+│       ├── local.ts         ← sf setup-agents local
+│       ├── mcp.ts           ← sf setup-agents mcp
+│       └── update.ts        ← sf setup-agents update
+├── generators/
+│   ├── mdc-generator.ts
+│   ├── workflow-generator.ts
+│   ├── copilot-generator.ts
+│   ├── codex-generator.ts
+│   ├── extensions-generator.ts
+│   ├── agentforce-generator.ts
+│   ├── shared.ts
+│   └── index.ts
+├── setup/
+│   ├── cursor-setup.ts
+│   ├── vscode-setup.ts
+│   ├── codex-setup.ts
+│   ├── agentforce-setup.ts
+│   └── index.ts
+├── profiles/
+│   ├── types.ts             ← Profile interface
+│   ├── developer.ts
+│   ├── architect.ts
+│   ├── ba.ts  mulesoft.ts  ux.ts  cgcloud.ts
+│   ├── devops.ts  qa.ts  crma.ts  data360.ts
+│   └── index.ts
+├── services/
+│   └── file-writer.ts       ← FileWriter + ensureDir
+├── types/
+│   └── index.ts             ← SupportedTool, Result&lt;T,E&gt;, SetupLocalResult
+└── version.ts               ← PLUGIN_VERSION constant</code></pre>
+</section>
+
+<!-- Key types -->
+<section>
+  <h2>🧩 Key Types</h2>
+  <div class="card-grid">
+    <div class="card">
+      <h4><code>Result&lt;T, E&gt;</code></h4>
+      <p>Lightweight Result monad. <code>ok&lt;T&gt;(value)</code> and <code>err&lt;E&gt;(error)</code> constructors. Enables composable error flows without throw/catch chains.</p>
+      <pre><code>type Result&lt;T, E = Error&gt; =
+  | { ok: true; value: T }
+  | { ok: false; error: E }</code></pre>
+    </div>
+    <div class="card">
+      <h4><code>Profile</code></h4>
+      <p>Interface every profile object implements. <code>detect?(cwd)</code> for auto-detection, <code>ruleContent()</code> for .mdc generation, <code>workflows?(version)</code> for Agentforce workflows.</p>
+      <pre><code>interface Profile {
+  id: ProfileId
+  label: string
+  ruleFile: string
+  ruleContent(): string
+  extensions?: string[]
+  detect?(cwd: string): boolean
+  workflows?(v: string): Record&lt;string, string&gt;
+}</code></pre>
+    </div>
+    <div class="card">
+      <h4><code>SupportedTool</code></h4>
+      <p>Union type for the four supported AI tools. Used by <code>detectTools()</code> and the <code>--rules</code> flag.</p>
+      <pre><code>type SupportedTool =
+  | 'cursor'
+  | 'vscode'
+  | 'codex'
+  | 'agentforce'</code></pre>
+    </div>
+    <div class="card">
+      <h4><code>FileWriter</code></h4>
+      <p>Injected into every setup function. Centralises the <code>force</code>/skip decision so all setup modules share the same write behaviour.</p>
+      <pre><code>class FileWriter {
+  write(path: string, content: string)
+    : 'written' | 'skipped'
+}</code></pre>
+    </div>
+  </div>
+</section>
+
+<div class="cta-section">
+  <h2>Explore the testing methodology</h2>
+  <p>Tests were written error-first following the EDD (Error-Driven Development) philosophy.</p>
+  <a href="{{ site.baseurl }}/edd/" class="cta-button">EDD Methodology</a>
+  <a href="{{ site.baseurl }}/commands/" class="cta-button secondary">Commands</a>
+</div>
