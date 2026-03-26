@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/SetupUpdateResult",
+  "definitions": {
+    "SetupUpdateResult": {
+      "type": "object",
+      "properties": {
+        "updated": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "skipped": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "cwd": {
+          "type": "string"
+        }
+      },
+      "required": ["updated", "skipped", "cwd"],
+      "additionalProperties": false
+    }
+  }
+}

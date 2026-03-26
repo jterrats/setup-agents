@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/SetupMcpResult",
+  "definitions": {
+    "SetupMcpResult": {
+      "type": "object",
+      "properties": {
+        "mcpFile": {
+          "type": "string"
+        },
+        "serversAdded": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "cwd": {
+          "type": "string"
+        }
+      },
+      "required": ["mcpFile", "serversAdded", "cwd"],
+      "additionalProperties": false
+    }
+  }
+}

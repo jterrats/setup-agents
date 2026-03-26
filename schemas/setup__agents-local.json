@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/SetupLocalResult",
+  "definitions": {
+    "SetupLocalResult": {
+      "type": "object",
+      "properties": {
+        "configured": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "profiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ProfileId"
+          }
+        },
+        "cwd": {
+          "type": "string"
+        }
+      },
+      "required": ["configured", "profiles", "cwd"],
+      "additionalProperties": false
+    },
+    "ProfileId": {
+      "type": "string",
+      "enum": ["developer", "architect", "ba", "mulesoft", "ux", "cgcloud", "devops", "qa", "crma", "data360"]
+    }
+  }
+}
