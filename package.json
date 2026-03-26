@@ -3,7 +3,7 @@
   "description": "A Salesforce CLI plugin to configure agent rules for AI coding assistants (Cursor, VS Code, Codex, and more).",
   "version": "1.0.0",
   "author": "Jaime Terrats <jterrats@salesforce.com>",
-  "bugs": "https://github.com/jterrats/plugin-setup-agents/issues",
+  "bugs": "https://github.com/jterrats/setup-agents/issues",
   "dependencies": {
     "@inquirer/prompts": "^8.3.2",
     "@oclif/core": "^4",
@@ -32,7 +32,7 @@
     "/oclif.manifest.json",
     "/schemas"
   ],
-  "homepage": "https://github.com/jterrats/plugin-setup-agents",
+  "homepage": "https://github.com/jterrats/setup-agents",
   "keywords": [
     "force",
     "salesforce",
@@ -65,7 +65,10 @@
     },
     "flexibleTaxonomy": true
   },
-  "repository": "jterrats/plugin-setup-agents",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jterrats/setup-agents"
+  },
   "scripts": {
     "build": "wireit",
     "clean": "sf-clean",
