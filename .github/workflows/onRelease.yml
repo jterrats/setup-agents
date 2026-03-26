@@ -70,13 +70,13 @@ jobs:
       - name: Verify published version
         run: |
           PKG_VERSION=$(node -p "require('./package.json').version")
-          npm view @jterrats/plugin-setup-agents@$PKG_VERSION version
-          echo "✅ Published @jterrats/plugin-setup-agents@$PKG_VERSION"
+          npm view @jterrats/setup-agents@$PKG_VERSION version
+          echo "✅ Published @jterrats/setup-agents@$PKG_VERSION"
 
       - name: Summary
         run: |
           PKG_VERSION=$(node -p "require('./package.json').version")
-          echo "## 🚀 Published @jterrats/plugin-setup-agents@${PKG_VERSION}" >> $GITHUB_STEP_SUMMARY
+          echo "## 🚀 Published @jterrats/setup-agents@${PKG_VERSION}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Tag:** ${{ github.event.release.tag_name || inputs.tag }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **npm:** https://www.npmjs.com/package/@jterrats/plugin-setup-agents/v/${PKG_VERSION}" >> $GITHUB_STEP_SUMMARY
+          echo "- **npm:** https://www.npmjs.com/package/@jterrats/setup-agents/v/${PKG_VERSION}" >> $GITHUB_STEP_SUMMARY

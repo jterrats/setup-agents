@@ -2,10 +2,10 @@
 
 > Bootstrap AI agent rules and role profiles for any Salesforce project in seconds.
 
-[![Version](https://img.shields.io/npm/v/@jterrats/plugin-setup-agents.svg?logo=npm)](https://npmjs.org/package/@jterrats/plugin-setup-agents)
-[![CI](https://img.shields.io/github/actions/workflow/status/jterrats/plugin-setup-agents/ci.yml?branch=main&logo=github&label=CI)](https://github.com/jterrats/plugin-setup-agents/actions)
-[![License](https://img.shields.io/npm/l/@jterrats/plugin-setup-agents.svg)](https://github.com/jterrats/plugin-setup-agents/blob/main/LICENSE.txt)
-[![Node.js](https://img.shields.io/node/v/@jterrats/plugin-setup-agents.svg?logo=node.js)](https://nodejs.org)
+[![Version](https://img.shields.io/npm/v/@jterrats/setup-agents.svg?logo=npm)](https://npmjs.org/package/@jterrats/setup-agents)
+[![CI](https://img.shields.io/github/actions/workflow/status/jterrats/setup-agents/ci.yml?branch=main&logo=github&label=CI)](https://github.com/jterrats/setup-agents/actions)
+[![License](https://img.shields.io/npm/l/@jterrats/setup-agents.svg)](https://github.com/jterrats/setup-agents/blob/main/LICENSE.txt)
+[![Node.js](https://img.shields.io/node/v/@jterrats/setup-agents.svg?logo=node.js)](https://nodejs.org)
 
 ---
 
@@ -28,7 +28,7 @@
 
 ```sh
 # Install the plugin
-sf plugins install @jterrats/plugin-setup-agents
+sf plugins install @jterrats/setup-agents
 
 # Run in your Salesforce project
 cd my-salesforce-project
@@ -55,7 +55,7 @@ The command auto-detects your tools and prompts for role selection:
 > You will be prompted the first time you install an unsigned plugin. To trust this plugin:
 >
 > ```sh
-> sf plugins install @jterrats/plugin-setup-agents --no-verify
+> sf plugins install @jterrats/setup-agents --no-verify
 > # or add to allowlist in ~/.config/sf/unsignedPluginAllowList.json
 > ```
 
@@ -189,7 +189,7 @@ When `--rules agentforce` is used on a Salesforce project, the plugin generates 
 ## Install
 
 ```sh
-sf plugins install @jterrats/plugin-setup-agents
+sf plugins install @jterrats/setup-agents
 ```
 
 ### Requirements
@@ -260,7 +260,7 @@ sf setup-agents local --rules agentforce --profile qa
 sf setup-agents local --force
 ```
 
-_See code: [src/commands/setup-agents/local.ts](https://github.com/jterrats/plugin-setup-agents/blob/main/src/commands/setup-agents/local.ts)_
+_See code: [src/commands/setup-agents/local.ts](https://github.com/jterrats/setup-agents/blob/main/src/commands/setup-agents/local.ts)_
 
 ---
 
@@ -305,7 +305,7 @@ sf setup-agents mcp --target-org myOrg --global
 sf setup-agents mcp --target-org myOrg --all-toolsets
 ```
 
-_See code: [src/commands/setup-agents/mcp.ts](https://github.com/jterrats/plugin-setup-agents/blob/main/src/commands/setup-agents/mcp.ts)_
+_See code: [src/commands/setup-agents/mcp.ts](https://github.com/jterrats/setup-agents/blob/main/src/commands/setup-agents/mcp.ts)_
 
 ---
 
@@ -348,7 +348,7 @@ sf setup-agents update --yes
 sf setup-agents update
 ```
 
-_See code: [src/commands/setup-agents/update.ts](https://github.com/jterrats/plugin-setup-agents/blob/main/src/commands/setup-agents/update.ts)_
+_See code: [src/commands/setup-agents/update.ts](https://github.com/jterrats/setup-agents/blob/main/src/commands/setup-agents/update.ts)_
 
 <!-- commandsstop -->
 
@@ -360,8 +360,8 @@ _See code: [src/commands/setup-agents/update.ts](https://github.com/jterrats/plu
 
 ```sh
 # Clone and install
-git clone https://github.com/jterrats/plugin-setup-agents.git
-cd plugin-setup-agents
+git clone https://github.com/jterrats/setup-agents.git
+cd setup-agents
 npm install
 
 # Compile
@@ -394,9 +394,9 @@ npm test
 2. Create a branch: `git checkout -b feature/my-feature`
 3. Make your changes and add tests
 4. Run `npm test` to ensure everything passes
-5. Open a pull request on [GitHub](https://github.com/jterrats/plugin-setup-agents)
+5. Open a pull request on [GitHub](https://github.com/jterrats/setup-agents)
 
-Please open an [issue](https://github.com/jterrats/plugin-setup-agents/issues) before starting work on large features.
+Please open an [issue](https://github.com/jterrats/setup-agents/issues) before starting work on large features.
 
 ---
 
@@ -407,5 +407,5 @@ Apache-2.0 — see [LICENSE.txt](LICENSE.txt).
 ---
 
 <div align="center">
-  Built by <strong>Jaime Terrats</strong> · <a href="https://github.com/jterrats/plugin-setup-agents">GitHub</a>
+  Built by <strong>Jaime Terrats</strong> · <a href="https://github.com/jterrats/setup-agents">GitHub</a>
 </div>

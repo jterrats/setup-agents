@@ -5,7 +5,7 @@
     "flagAliases": [],
     "flagChars": ["f"],
     "flags": ["flags-dir", "force", "json", "profile", "rules"],
-    "plugin": "@jterrats/plugin-setup-agents"
+    "plugin": "@jterrats/setup-agents"
   },
   {
     "alias": [],
@@ -13,7 +13,7 @@
     "flagAliases": [],
     "flagChars": ["g"],
     "flags": ["all-toolsets", "flags-dir", "global", "json", "profile", "target-org"],
-    "plugin": "@jterrats/plugin-setup-agents"
+    "plugin": "@jterrats/setup-agents"
   },
   {
     "alias": [],
@@ -21,6 +21,6 @@
     "flagAliases": [],
     "flagChars": ["y"],
     "flags": ["dry-run", "flags-dir", "json", "yes"],
-    "plugin": "@jterrats/plugin-setup-agents"
+    "plugin": "@jterrats/setup-agents"
   }
 ]

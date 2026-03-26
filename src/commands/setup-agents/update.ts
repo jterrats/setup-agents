@@ -24,7 +24,7 @@ import type { SupportedTool } from '../../types/index.js';
 import { PLUGIN_VERSION } from '../../version.js';
 
 Messages.importMessagesDirectoryFromMetaUrl(import.meta.url);
-const messages = Messages.loadMessages('@jterrats/plugin-setup-agents', 'setup-agents.update');
+const messages = Messages.loadMessages('@jterrats/setup-agents', 'setup-agents.update');
 
 export type SetupUpdateResult = {
   updated: string[];

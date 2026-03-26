@@ -50,7 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### ✨ Added
 
-- Initial release of `@jterrats/plugin-setup-agents`
+- Initial release of `@jterrats/setup-agents`
 - `sf setup local` command with `--rules` flag (`cursor` | `vscode` | `codex`)
 - Auto-detection of tools via `.cursor/`, `.vscode/`, `.github/`, `AGENTS.md`
 - Creates `agent-guidelines.mdc` for Cursor AI
@@ -59,6 +59,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Safe by default — never overwrites existing files
 - Returns `{ configured, cwd }` result for `--json` output
 
-[Unreleased]: https://github.com/jterrats/plugin-setup-agents/compare/v0.2.0...HEAD
-[0.2.0]: https://github.com/jterrats/plugin-setup-agents/compare/v0.1.0...v0.2.0
-[0.1.0]: https://github.com/jterrats/plugin-setup-agents/releases/tag/v0.1.0
+[Unreleased]: https://github.com/jterrats/setup-agents/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/jterrats/setup-agents/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/jterrats/setup-agents/releases/tag/v0.1.0

@@ -32,7 +32,7 @@ import type { SetupLocalResult, SupportedTool } from '../../types/index.js';
 import { SUPPORTED_TOOLS } from '../../types/index.js';
 
 Messages.importMessagesDirectoryFromMetaUrl(import.meta.url);
-const messages = Messages.loadMessages('@jterrats/plugin-setup-agents', 'setup-agents.local');
+const messages = Messages.loadMessages('@jterrats/setup-agents', 'setup-agents.local');
 
 const VALID_PROFILE_IDS: ProfileId[] = ALL_PROFILES.map((p) => p.id);
 

@@ -22,7 +22,7 @@ import { SfCommand, Flags } from '@salesforce/sf-plugins-core';
 import type { ProfileId } from '../../profiles/index.js';
 
 Messages.importMessagesDirectoryFromMetaUrl(import.meta.url);
-const messages = Messages.loadMessages('@jterrats/plugin-setup-agents', 'setup-agents.mcp');
+const messages = Messages.loadMessages('@jterrats/setup-agents', 'setup-agents.mcp');
 
 export type SetupMcpResult = {
   mcpFile: string;
