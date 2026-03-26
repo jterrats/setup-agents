@@ -1,33 +1,82 @@
-name: publish
+name: publish-npm
+
 on:
   release:
-    # both release and prereleases
     types: [published]
-  # support manual release in case something goes wrong and needs to be repeated or tested
   workflow_dispatch:
     inputs:
       tag:
-        description: github tag that needs to publish
+        description: 'GitHub tag to publish (e.g. v1.0.0)'
         type: string
         required: true
+
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
-  getDistTag:
-    outputs:
-      tag: ${{ steps.distTag.outputs.tag }}
+  publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.release.tag_name || inputs.tag  }}
-      - uses: salesforcecli/github-workflows/.github/actions/getPreReleaseTag@main
-        id: distTag
-  npm:
-    uses: salesforcecli/github-workflows/.github/workflows/npmPublish.yml@main
-    needs: [getDistTag]
-    with:
-      ctc: true
-      sign: true
-      tag: ${{ needs.getDistTag.outputs.tag || 'latest' }}
-      githubTag: ${{ github.event.release.tag_name || inputs.tag }}
+          ref: ${{ github.event.release.tag_name || inputs.tag }}
+          fetch-depth: 0
 
-    secrets: inherit
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+          cache: yarn
+
+      - name: Verify tag matches package.json version
+        run: |
+          TAG="${{ github.event.release.tag_name || inputs.tag }}"
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          EXPECTED_TAG="v${PKG_VERSION}"
+          if [ "$TAG" != "$EXPECTED_TAG" ]; then
+            echo "❌ Tag $TAG does not match package.json version $PKG_VERSION (expected $EXPECTED_TAG)"
+            exit 1
+          fi
+          echo "✅ Tag $TAG matches package.json version"
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build
+        run: yarn build
+
+      - name: Run tests
+        run: yarn test
+
+      - name: Verify lib/ output exists
+        run: |
+          if [ ! -d "lib" ]; then
+            echo "❌ lib/ directory not found — build may have failed"
+            exit 1
+          fi
+          echo "✅ lib/ directory found"
+
+      - name: Dry-run pack
+        run: npm pack --dry-run
+
+      - name: Publish to npm
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Verify published version
+        run: |
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          npm view @jterrats/plugin-setup-agents@$PKG_VERSION version
+          echo "✅ Published @jterrats/plugin-setup-agents@$PKG_VERSION"
+
+      - name: Summary
+        run: |
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          echo "## 🚀 Published @jterrats/plugin-setup-agents@${PKG_VERSION}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tag:** ${{ github.event.release.tag_name || inputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **npm:** https://www.npmjs.com/package/@jterrats/plugin-setup-agents/v/${PKG_VERSION}" >> $GITHUB_STEP_SUMMARY

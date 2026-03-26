@@ -24,17 +24,38 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Pages
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: false
+
+      - name: Configure Pages
         uses: actions/configure-pages@v5
 
+      - name: Generate Gemfile
+        working-directory: docs
+        run: |
+          cat > Gemfile << 'EOF'
+          source "https://rubygems.org"
+          gem "jekyll", "~> 4.3"
+          gem "webrick", "~> 1.8"
+          EOF
+
+      - name: Install dependencies
+        working-directory: docs
+        run: bundle install
+
       - name: Build with Jekyll
-        uses: actions/jekyll-build-pages@v1
-        with:
-          source: ./docs
-          destination: ./_site
+        working-directory: docs
+        run: bundle exec jekyll build --baseurl "/setup-agents"
+        env:
+          JEKYLL_ENV: production
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/_site
 
   deploy:
     environment:
