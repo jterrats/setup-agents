@@ -43,6 +43,20 @@ describe('mdc-generator', () => {
       expect(generateBaseGuidelines(VERSION)).to.include('## Planning');
     });
 
+    it('includes Language Policy section', () => {
+      expect(generateBaseGuidelines(VERSION)).to.include('## Language Policy');
+    });
+
+    it('Language Policy defaults agent outputs to English', () => {
+      const content = generateBaseGuidelines(VERSION);
+      expect(content).to.include('Default all agent-facing outputs to English');
+    });
+
+    it('Language Policy preserves metadata language conventions', () => {
+      const content = generateBaseGuidelines(VERSION);
+      expect(content).to.include('Preserve project/business conventions in Salesforce metadata');
+    });
+
     it('Planning section requires confirmation before edits', () => {
       const content = generateBaseGuidelines(VERSION);
       expect(content).to.include('wait for explicit user confirmation');
@@ -69,6 +83,10 @@ describe('mdc-generator', () => {
 
     it('includes testing standards', () => {
       expect(generateSfStandards(VERSION)).to.include('## 17. Testing Standards');
+    });
+
+    it('includes documentation language guidance', () => {
+      expect(generateSfStandards(VERSION)).to.include('Keep agent/tooling communication in English by default');
     });
   });
 
