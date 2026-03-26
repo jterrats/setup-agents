@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { mkdtempSync, rmSync, existsSync, writeFileSync, mkdirSync, readFileSync } from 'node:fs';
+import { mkdtempSync, readdirSync, rmSync, existsSync, writeFileSync, mkdirSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { TestContext } from '@salesforce/core/testSetup';
@@ -256,6 +256,7 @@ describe('setup-agents local', () => {
     });
 
     it('creates developer-specific workflows when developer profile is active', async () => {
+      writeFileSync(join(tmpDir, 'sfdx-project.json'), JSON.stringify({ sourceApiVersion: '62.0' }));
       await Local.run(['--rules', 'agentforce', '--profile', 'developer']);
 
       expect(existsSync(join(tmpDir, '.a4drules', 'workflows', 'create-apex-class.md'))).to.be.true;
@@ -264,6 +265,7 @@ describe('setup-agents local', () => {
     });
 
     it('creates devops-specific workflows when devops profile is active', async () => {
+      writeFileSync(join(tmpDir, 'sfdx-project.json'), JSON.stringify({ sourceApiVersion: '62.0' }));
       await Local.run(['--rules', 'agentforce', '--profile', 'devops']);
 
       expect(existsSync(join(tmpDir, '.a4drules', 'workflows', 'release.md'))).to.be.true;
@@ -271,12 +273,14 @@ describe('setup-agents local', () => {
     });
 
     it('creates qa-specific workflows when qa profile is active', async () => {
+      writeFileSync(join(tmpDir, 'sfdx-project.json'), JSON.stringify({ sourceApiVersion: '62.0' }));
       await Local.run(['--rules', 'agentforce', '--profile', 'qa']);
 
       expect(existsSync(join(tmpDir, '.a4drules', 'workflows', 'run-playwright.md'))).to.be.true;
     });
 
     it('creates crma-specific workflows when crma profile is active', async () => {
+      writeFileSync(join(tmpDir, 'sfdx-project.json'), JSON.stringify({ sourceApiVersion: '62.0' }));
       await Local.run(['--rules', 'agentforce', '--profile', 'crma']);
 
       expect(existsSync(join(tmpDir, '.a4drules', 'workflows', 'deploy-analytics.md'))).to.be.true;
@@ -431,6 +435,106 @@ describe('setup-agents local', () => {
 
       const content = readFileSync(join(tmpDir, '.cursor', 'rules', 'sub-agent-protocol.mdc'), 'utf8');
       expect(content).to.include(`pluginVersion: "${PLUGIN_VERSION}"`);
+    });
+  });
+
+  describe('unknown --profile warning (GAP-L-02)', () => {
+    it('emits a warning when an unknown profile id is provided', async () => {
+      await Local.run(['--rules', 'cursor', '--profile', 'totally-wrong']);
+
+      const warnCalls = sfCommandStubs.warn
+        .getCalls()
+        .flatMap((c) => c.args)
+        .join('\n');
+      expect(warnCalls).to.include('totally-wrong');
+    });
+
+    it('still runs with valid profiles when mixed with an invalid one', async () => {
+      await Local.run(['--rules', 'cursor', '--profile', 'developer,bad-profile']);
+
+      expect(existsSync(join(tmpDir, '.cursor', 'rules', 'developer-standards.mdc'))).to.be.true;
+      const warnCalls = sfCommandStubs.warn
+        .getCalls()
+        .flatMap((c) => c.args)
+        .join('\n');
+      expect(warnCalls).to.include('bad-profile');
+    });
+  });
+
+  describe('vscode non-Salesforce project (GAP-V-01)', () => {
+    it('does NOT create extensions.json for a non-Salesforce project', async () => {
+      await Local.run(['--rules', 'vscode', '--profile', 'developer']);
+
+      expect(existsSync(join(tmpDir, '.vscode', 'extensions.json'))).to.be.false;
+    });
+
+    it('still creates copilot-instructions.md for a non-Salesforce project', async () => {
+      await Local.run(['--rules', 'vscode', '--profile', 'developer']);
+
+      expect(existsSync(join(tmpDir, '.github', 'copilot-instructions.md'))).to.be.true;
+    });
+  });
+
+  describe('agentforce — profiles without workflows() (GAP-A-01)', () => {
+    beforeEach(() => {
+      // Create sfdx-project.json so Salesforce-specific files are generated
+      writeFileSync(join(tmpDir, 'sfdx-project.json'), '{"packageDirectories":[]}');
+    });
+
+    it('does not create profile-specific workflow files for ba profile', async () => {
+      await Local.run(['--rules', 'agentforce', '--profile', 'ba']);
+
+      const workflowsDir = join(tmpDir, '.a4drules', 'workflows');
+      const baseFiles = ['deploy.md', 'run-tests.md', 'validate.md'];
+      const allFiles = existsSync(workflowsDir) ? readdirSync(workflowsDir) : [];
+      const nonBaseFiles = allFiles.filter((f) => !baseFiles.includes(f));
+      expect(nonBaseFiles).to.be.empty;
+    });
+
+    it('does not create profile-specific workflow files for mulesoft profile', async () => {
+      await Local.run(['--rules', 'agentforce', '--profile', 'mulesoft']);
+
+      const workflowsDir = join(tmpDir, '.a4drules', 'workflows');
+      const baseFiles = ['deploy.md', 'run-tests.md', 'validate.md'];
+      const allFiles = existsSync(workflowsDir) ? readdirSync(workflowsDir) : [];
+      const nonBaseFiles = allFiles.filter((f) => !baseFiles.includes(f));
+      expect(nonBaseFiles).to.be.empty;
+    });
+
+    it('does not create profile-specific workflow files for ux profile', async () => {
+      await Local.run(['--rules', 'agentforce', '--profile', 'ux']);
+
+      const workflowsDir = join(tmpDir, '.a4drules', 'workflows');
+      const baseFiles = ['deploy.md', 'run-tests.md', 'validate.md'];
+      const allFiles = existsSync(workflowsDir) ? readdirSync(workflowsDir) : [];
+      const nonBaseFiles = allFiles.filter((f) => !baseFiles.includes(f));
+      expect(nonBaseFiles).to.be.empty;
+    });
+  });
+
+  describe('agentforce — non-Salesforce project (GAP-A-02)', () => {
+    it('does NOT create 01-salesforce-standards.md for non-Salesforce project', async () => {
+      await Local.run(['--rules', 'agentforce', '--profile', 'developer']);
+
+      expect(existsSync(join(tmpDir, '.a4drules', '01-salesforce-standards.md'))).to.be.false;
+    });
+
+    it('does NOT create the workflows/ directory for non-Salesforce project', async () => {
+      await Local.run(['--rules', 'agentforce', '--profile', 'developer']);
+
+      expect(existsSync(join(tmpDir, '.a4drules', 'workflows'))).to.be.false;
+    });
+
+    it('still creates 00-base-guidelines.md for non-Salesforce project', async () => {
+      await Local.run(['--rules', 'agentforce', '--profile', 'developer']);
+
+      expect(existsSync(join(tmpDir, '.a4drules', '00-base-guidelines.md'))).to.be.true;
+    });
+
+    it('still creates profile rule files for non-Salesforce project', async () => {
+      await Local.run(['--rules', 'agentforce', '--profile', 'developer']);
+
+      expect(existsSync(join(tmpDir, '.a4drules', '02-developer-standards.md'))).to.be.true;
     });
   });
 });

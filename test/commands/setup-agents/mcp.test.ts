@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { mkdtempSync, rmSync, existsSync, readFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, rmSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { TestContext } from '@salesforce/core/testSetup';
@@ -116,6 +116,59 @@ describe('setup-agents mcp', () => {
       .join('\n');
     expect(warnCalls).to.include('org');
     expect(result.serversAdded).to.be.empty;
+  });
+
+  describe('corrupt mcp.json handling (GAP-M-04)', () => {
+    it('warns when mcp.json contains invalid JSON', async () => {
+      const cursorDir = join(tmpDir, '.cursor');
+      mkdirSync(cursorDir, { recursive: true });
+      writeFileSync(join(cursorDir, 'mcp.json'), 'INVALID JSON {{{');
+
+      await Mcp.run(['--target-org', 'myOrg']);
+
+      const warnCalls = sfCommandStubs.warn
+        .getCalls()
+        .flatMap((c) => c.args)
+        .join('\n');
+      expect(warnCalls).to.include('mcp.json');
+    });
+
+    it('falls back to empty structure and continues when mcp.json is corrupt', async () => {
+      const cursorDir = join(tmpDir, '.cursor');
+      mkdirSync(cursorDir, { recursive: true });
+      writeFileSync(join(cursorDir, 'mcp.json'), 'INVALID JSON {{{');
+
+      const result = await Mcp.run(['--target-org', 'myOrg']);
+
+      expect(result.serversAdded).to.deep.equal(['salesforce-myOrg']);
+    });
+
+    it('overwrites corrupt mcp.json with valid content', async () => {
+      const cursorDir = join(tmpDir, '.cursor');
+      mkdirSync(cursorDir, { recursive: true });
+      writeFileSync(join(cursorDir, 'mcp.json'), '{ this is not valid json }');
+
+      await Mcp.run(['--target-org', 'myOrg']);
+
+      const written = JSON.parse(readFileSync(join(cursorDir, 'mcp.json'), 'utf8')) as {
+        mcpServers: Record<string, unknown>;
+      };
+      expect(written.mcpServers['salesforce-myOrg']).to.exist;
+    });
+
+    it('warns when mcp.json is an empty file', async () => {
+      const cursorDir = join(tmpDir, '.cursor');
+      mkdirSync(cursorDir, { recursive: true });
+      writeFileSync(join(cursorDir, 'mcp.json'), '');
+
+      await Mcp.run(['--target-org', 'myOrg']);
+
+      const warnCalls = sfCommandStubs.warn
+        .getCalls()
+        .flatMap((c) => c.args)
+        .join('\n');
+      expect(warnCalls).to.include('mcp.json');
+    });
   });
 
   describe('--global flag', () => {

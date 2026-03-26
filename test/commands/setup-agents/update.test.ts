@@ -16,8 +16,10 @@
 import { mkdtempSync, rmSync, existsSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { Config } from '@oclif/core';
 import { TestContext } from '@salesforce/core/testSetup';
 import { expect } from 'chai';
+import type sinon from 'sinon';
 import { stubSfCommandUx } from '@salesforce/sf-plugins-core';
 import Update from '../../../src/commands/setup-agents/update.js';
 import { PLUGIN_VERSION } from '../../../src/version.js';
@@ -155,5 +157,118 @@ describe('setup-agents update', () => {
 
     expect(result.updated).to.have.lengthOf(1);
     expect(existsSync(join(rulesDir, 'developer-standards.mdc'))).to.be.true;
+  });
+
+  describe('--yes flag (actual execution)', () => {
+    let runCommandStub: sinon.SinonStub;
+
+    beforeEach(() => {
+      runCommandStub = $$.SANDBOX.stub(Config.prototype, 'runCommand').resolves(undefined);
+    });
+
+    it('calls runCommand for each stale tool when --yes is provided', async () => {
+      const rulesDir = join(tmpDir, '.cursor', 'rules');
+      mkdirSync(rulesDir, { recursive: true });
+      writeFileSync(join(rulesDir, 'agent-guidelines.mdc'), '---\npluginVersion: "0.0.1"\n---\n# Agent\n');
+
+      await Update.run(['--yes']);
+
+      expect(runCommandStub.calledOnce).to.be.true;
+    });
+
+    it('passes --rules cursor when a cursor .mdc file is stale', async () => {
+      const rulesDir = join(tmpDir, '.cursor', 'rules');
+      mkdirSync(rulesDir, { recursive: true });
+      writeFileSync(join(rulesDir, 'agent-guidelines.mdc'), '---\npluginVersion: "0.0.1"\n---\n# Agent\n');
+
+      await Update.run(['--yes']);
+
+      const callArgs = runCommandStub.firstCall.args as [string, string[]];
+      expect(callArgs[0]).to.equal('setup-agents local');
+      expect(callArgs[1]).to.include('--rules');
+      expect(callArgs[1]).to.include('cursor');
+    });
+
+    it('passes --force in the runCommand args', async () => {
+      writeFileSync(join(tmpDir, 'AGENTS.md'), '<!-- setup-agents: 0.0.1 -->\n# Agents\n');
+
+      await Update.run(['--yes']);
+
+      const callArgs = runCommandStub.firstCall.args as [string, string[]];
+      expect(callArgs[1]).to.include('--force');
+    });
+
+    it('returns updated files list after --yes execution', async () => {
+      writeFileSync(join(tmpDir, 'AGENTS.md'), '<!-- setup-agents: 0.0.1 -->\n# Agents\n');
+
+      const result = await Update.run(['--yes']);
+
+      expect(result.updated).to.have.lengthOf(1);
+      expect(result.updated[0]).to.include('AGENTS.md');
+    });
+
+    it('calls runCommand once per unique stale tool', async () => {
+      const rulesDir = join(tmpDir, '.cursor', 'rules');
+      mkdirSync(rulesDir, { recursive: true });
+      writeFileSync(join(rulesDir, 'agent-guidelines.mdc'), '---\npluginVersion: "0.0.1"\n---\n');
+      writeFileSync(join(rulesDir, 'developer-standards.mdc'), '---\npluginVersion: "0.0.1"\n---\n');
+      writeFileSync(join(tmpDir, 'AGENTS.md'), '<!-- setup-agents: 0.0.1 -->\n');
+
+      await Update.run(['--yes']);
+
+      // cursor + codex = 2 distinct tools → 2 runCommand calls
+      expect(runCommandStub.callCount).to.equal(2);
+    });
+
+    it('does not call runCommand when there are no stale files', async () => {
+      const rulesDir = join(tmpDir, '.cursor', 'rules');
+      mkdirSync(rulesDir, { recursive: true });
+      writeFileSync(join(rulesDir, 'agent-guidelines.mdc'), `---\npluginVersion: "${PLUGIN_VERSION}"\n---\n# Agent\n`);
+
+      await Update.run(['--yes']);
+
+      expect(runCommandStub.called).to.be.false;
+    });
+  });
+
+  describe('non-TTY auto-update (GAP-U-08)', () => {
+    let runCommandStub: sinon.SinonStub;
+    let originalIsTTY: boolean | undefined;
+
+    beforeEach(() => {
+      runCommandStub = $$.SANDBOX.stub(Config.prototype, 'runCommand').resolves(undefined);
+      originalIsTTY = process.stdin.isTTY;
+      (process.stdin as { isTTY: boolean | undefined }).isTTY = false;
+    });
+
+    afterEach(() => {
+      (process.stdin as { isTTY: boolean | undefined }).isTTY = originalIsTTY;
+    });
+
+    it('auto-updates without --yes in non-TTY mode when stale files exist', async () => {
+      writeFileSync(join(tmpDir, 'AGENTS.md'), '<!-- setup-agents: 0.0.1 -->\n# Agents\n');
+
+      const result = await Update.run([]);
+
+      expect(runCommandStub.calledOnce).to.be.true;
+      expect(result.updated).to.have.lengthOf(1);
+    });
+
+    it('does not prompt for confirmation in non-TTY mode', async () => {
+      writeFileSync(join(tmpDir, 'AGENTS.md'), '<!-- setup-agents: 0.0.1 -->\n# Agents\n');
+
+      // Should complete without hanging on a TTY prompt
+      await Update.run([]);
+
+      expect(runCommandStub.called).to.be.true;
+    });
+
+    it('skips runCommand in non-TTY mode when no stale files exist', async () => {
+      writeFileSync(join(tmpDir, 'AGENTS.md'), `<!-- setup-agents: ${PLUGIN_VERSION} -->\n# Agents\n`);
+
+      await Update.run([]);
+
+      expect(runCommandStub.called).to.be.false;
+    });
   });
 });

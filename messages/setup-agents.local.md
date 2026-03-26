@@ -119,6 +119,10 @@ Skipped (already exists): %s
 
 No profile selected. Using default: developer.
 
+# warn.unknownProfiles
+
+Unknown profile(s): %s. Valid profiles: %s
+
 # prompt.selectProfiles
 
 Select your role profile(s):

@@ -78,7 +78,7 @@ export default class Local extends SfCommand<SetupLocalResult> {
       return { configured: [], profiles: [], cwd };
     }
 
-    const { profiles, usedDefault } = await resolveProfiles(cwd, flags.profile, messages);
+    const { profiles, usedDefault } = await resolveProfiles(cwd, flags.profile, messages, (msg) => this.warn(msg));
     const isSalesforceProject = existsSync(join(cwd, 'sfdx-project.json'));
     const configured: string[] = [];
 
@@ -110,13 +110,14 @@ export function detectTools(cwd: string): SupportedTool[] {
 export async function resolveProfiles(
   cwd: string,
   flagValue: string | undefined,
-  msgs: AnyMessages
+  msgs: AnyMessages,
+  warnFn?: (msg: string) => void
 ): Promise<{ profiles: Profile[]; usedDefault: boolean }> {
   if (flagValue) {
     const ids = flagValue.split(',').map((s) => s.trim()) as ProfileId[];
     const invalid = ids.filter((id) => !VALID_PROFILE_IDS.includes(id));
     if (invalid.length > 0) {
-      // Non-fatal: filter unknowns and continue
+      warnFn?.(msgs.getMessage('warn.unknownProfiles', [invalid.join(', '), VALID_PROFILE_IDS.join(', ')]));
     }
     const profiles = ALL_PROFILES.filter((p) => ids.includes(p.id));
     return { profiles, usedDefault: false };

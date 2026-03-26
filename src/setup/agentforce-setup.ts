@@ -38,7 +38,6 @@ export function setupAgentforce(opts: AgentforceSetupOptions): void {
   const workflowsDir = join(a4dDir, 'workflows');
 
   ensureDir(a4dDir);
-  ensureDir(workflowsDir);
 
   writer.write(join(a4dDir, '00-base-guidelines.md'), generateA4dBaseGuidelines(PLUGIN_VERSION));
 
@@ -63,15 +62,15 @@ export function setupAgentforce(opts: AgentforceSetupOptions): void {
   );
 
   if (isSalesforceProject) {
+    ensureDir(workflowsDir);
     for (const [filename, content] of Object.entries(generateBaseWorkflows(PLUGIN_VERSION))) {
       writer.write(join(workflowsDir, filename), content);
     }
-  }
-
-  for (const profile of profiles) {
-    if (!profile.workflows) continue;
-    for (const [filename, content] of Object.entries(profile.workflows(PLUGIN_VERSION))) {
-      writer.write(join(workflowsDir, filename), content);
+    for (const profile of profiles) {
+      if (!profile.workflows) continue;
+      for (const [filename, content] of Object.entries(profile.workflows(PLUGIN_VERSION))) {
+        writer.write(join(workflowsDir, filename), content);
+      }
     }
   }
 }
