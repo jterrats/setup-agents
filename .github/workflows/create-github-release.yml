@@ -2,31 +2,65 @@ name: create-github-release
 
 on:
   push:
-    branches:
-      - main
-      - prerelease/**
-    tags-ignore:
-      - "*"
+    branches: [main]
+    paths:
+      - 'package.json'
   workflow_dispatch:
-    inputs:
-      prerelease:
-        type: string
-        description: "Name to use for the prerelease: beta, dev, etc. NOTE: If this is already set in the package.json, it does not need to be passed in here."
+
+permissions:
+  contents: write
+  id-token: write
 
 jobs:
   release:
-    uses: salesforcecli/github-workflows/.github/workflows/create-github-release.yml@main
-    secrets: inherit
-    with:
-      prerelease: ${{ inputs.prerelease }}
-      # If this is a push event, we want to skip the release if there are no semantic commits
-      # However, if this is a manual release (workflow_dispatch), then we want to disable skip-on-empty
-      # This helps recover from forgetting to add semantic commits ('fix:', 'feat:', etc.)
-      skip-on-empty: ${{ github.event_name == 'push' }}
-  # docs:
-  #   # Most repos won't use this
-  #   # Depends on the 'release' job to avoid git collisions, not for any functionality reason
-  #   needs: release
-  #   secrets: inherit
-  #   if: ${{ github.ref_name == 'main' }}
-  #   uses: salesforcecli/github-workflows/.github/workflows/publishTypedoc.yml@main
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Read versions
+        id: versions
+        run: |
+          CURRENT=$(node -p "require('./package.json').version")
+          PREVIOUS=$(git show HEAD~1:package.json 2>/dev/null | node -p "JSON.parse(require('fs').readFileSync('/dev/stdin','utf8')).version" 2>/dev/null || echo "0.0.0")
+          echo "current=$CURRENT" >> $GITHUB_OUTPUT
+          echo "previous=$PREVIOUS" >> $GITHUB_OUTPUT
+          echo "tag=v$CURRENT" >> $GITHUB_OUTPUT
+
+      - name: Check if release already exists
+        id: check
+        run: |
+          TAG="v${{ steps.versions.outputs.current }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Extract changelog notes
+        id: changelog
+        if: steps.versions.outputs.current != steps.versions.outputs.previous && steps.check.outputs.exists == 'false'
+        run: |
+          VERSION="${{ steps.versions.outputs.current }}"
+          NOTES=$(awk "/^## \[?${VERSION}\]?/,/^## \[?[0-9]/" CHANGELOG.md 2>/dev/null | grep -v "^## \[?${VERSION}\]" | grep -v "^## \[?[0-9]" | sed '/^$/d' | head -50 || echo "Release v${VERSION}")
+          if [ -z "$NOTES" ]; then NOTES="Release v${VERSION}"; fi
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          echo "$NOTES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create tag and release
+        if: steps.versions.outputs.current != steps.versions.outputs.previous && steps.check.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.versions.outputs.tag }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" -m "Release $TAG"
+          git push origin "$TAG"
+          gh release create "$TAG" \
+            --title "$TAG" \
+            --notes "${{ steps.changelog.outputs.notes }}" \
+            --verify-tag
