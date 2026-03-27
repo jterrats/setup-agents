@@ -60,7 +60,18 @@ jobs:
           echo "✅ lib/ directory found"
 
       - name: Dry-run pack
-        run: npm pack --dry-run
+        run: |
+          PACK_OUTPUT="$(npm pack --dry-run 2>&1)"
+          echo "$PACK_OUTPUT"
+          echo "$PACK_OUTPUT" | grep -q "lib/commands/setup-agents/local.js" || {
+            echo "❌ Tarball is missing lib/commands/setup-agents/local.js"
+            exit 1
+          }
+          echo "$PACK_OUTPUT" | grep -q "lib/profiles/index.js" || {
+            echo "❌ Tarball is missing lib/profiles/index.js"
+            exit 1
+          }
+          echo "✅ Tarball includes required compiled files"
 
       - name: Publish to npm
         run: npm publish --provenance --access public

@@ -386,6 +386,24 @@ npm run test:e2e
 npm test
 ```
 
+### Package Validation Before Publish
+
+```sh
+# Build from a clean state
+yarn clean-all
+yarn build
+
+# Validate npm tarball includes compiled commands/profiles
+npm pack --dry-run
+```
+
+Confirm the dry-run output includes at least:
+
+- `lib/commands/setup-agents/local.js`
+- `lib/commands/setup-agents/mcp.js`
+- `lib/commands/setup-agents/update.js`
+- `lib/profiles/index.js`
+
 ---
 
 ## Contributing
