@@ -81,8 +81,20 @@ jobs:
       - name: Verify published version
         run: |
           PKG_VERSION=$(node -p "require('./package.json').version")
-          npm view @jterrats/setup-agents@$PKG_VERSION version
-          echo "✅ Published @jterrats/setup-agents@$PKG_VERSION"
+          MAX_ATTEMPTS=10
+          DELAY_SECONDS=10
+          for i in $(seq 1 $MAX_ATTEMPTS); do
+            echo "Attempt $i of $MAX_ATTEMPTS: Verifying @jterrats/setup-agents@${PKG_VERSION} on npm..."
+            if npm view @jterrats/setup-agents@$PKG_VERSION version; then
+              echo "✅ Verified @jterrats/setup-agents@${PKG_VERSION} is available on npm."
+              exit 0
+            else
+              echo "⏳ Not found yet. Waiting ${DELAY_SECONDS}s before next attempt..."
+              sleep $DELAY_SECONDS
+            fi
+          done
+          echo "❌ Failed to verify @jterrats/setup-agents@${PKG_VERSION} on npm after $MAX_ATTEMPTS attempts."
+          exit 1
 
       - name: Summary
         run: |
