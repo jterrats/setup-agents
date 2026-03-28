@@ -128,7 +128,7 @@ sf setup-agents local --force</code></pre>
           <tr>
             <td><code>--all-toolsets</code></td>
             <td>boolean</td>
-            <td>Force-enable all toolsets: <code>metadata</code>, <code>apex</code>, <code>sobjects</code>.</td>
+            <td>Force-enable all available Salesforce MCP toolsets.</td>
           </tr>
           <tr>
             <td><code>-g, --global</code></td>
@@ -144,9 +144,10 @@ sf setup-agents local --force</code></pre>
           <tr><th>Profile</th><th>Toolsets</th></tr>
         </thead>
         <tbody>
-          <tr><td><code>developer</code> · <code>architect</code> · <code>qa</code> · <code>cgcloud</code></td><td>metadata · apex · sobjects</td></tr>
-          <tr><td><code>ba</code> · <code>ux</code> · <code>crma</code> · <code>data360</code></td><td>metadata · sobjects</td></tr>
-          <tr><td><code>devops</code> · <code>mulesoft</code></td><td>metadata</td></tr>
+          <tr><td><code>developer</code> · <code>architect</code> · <code>qa</code> · <code>cgcloud</code></td><td>metadata · data · testing · users</td></tr>
+          <tr><td><code>ba</code> · <code>ux</code> · <code>crma</code> · <code>data360</code></td><td>metadata · data</td></tr>
+          <tr><td><code>devops</code></td><td>metadata · orgs · users</td></tr>
+          <tr><td><code>mulesoft</code></td><td>metadata · orgs</td></tr>
         </tbody>
       </table>
 

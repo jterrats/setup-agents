@@ -1,6 +1,6 @@
 # setup-agents ⚡ — Salesforce CLI Plugin
 
-> Bootstrap AI agent rules and role profiles for any Salesforce project in seconds. 
+> Bootstrap AI agent rules and role profiles for any Salesforce project in seconds.
 
 [![Version](https://img.shields.io/npm/v/@jterrats/setup-agents.svg?logo=npm)](https://npmjs.org/package/@jterrats/setup-agents)
 [![CI](https://img.shields.io/github/actions/workflow/status/jterrats/setup-agents/ci.yml?branch=main&logo=github&label=CI)](https://github.com/jterrats/setup-agents/actions)
@@ -274,7 +274,7 @@ USAGE
 
 FLAGS
   -g, --global             Write to ~/.cursor/mcp.json (user-level) instead of the project.
-  --all-toolsets           Enable all toolsets: metadata, apex, sobjects.
+  --all-toolsets           Enable all available Salesforce MCP toolsets.
   --profile=<value>        Role profiles to determine which toolsets to activate.
   --target-org=<value>     Org alias or username to configure.
 
@@ -284,9 +284,10 @@ DESCRIPTION
   sourced from `sf org list`.
 
   Toolsets are selected based on --profile:
-    developer / architect / qa / cgcloud  → metadata, apex, sobjects
-    ba / ux / crma / data360              → metadata, sobjects
-    devops / mulesoft                     → metadata
+    developer / architect / qa / cgcloud  → metadata, data, testing, users
+    ba / ux / crma / data360              → metadata, data
+    devops                                → metadata, orgs, users
+    mulesoft                              → metadata, orgs
 ```
 
 **Examples:**

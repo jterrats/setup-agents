@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { Messages } from '@salesforce/core';
 import { SfCommand, Flags } from '@salesforce/sf-plugins-core';
-import { ALL_PROFILES } from '../../profiles/index.js';
-import type { ProfileId } from '../../profiles/index.js';
 import type { SupportedTool } from '../../types/index.js';
 import { PLUGIN_VERSION } from '../../version.js';
+import { findStaleFiles, inferProfiles } from '../../util/command-helpers.js';
 
 Messages.importMessagesDirectoryFromMetaUrl(import.meta.url);
 const messages = Messages.loadMessages('@jterrats/setup-agents', 'setup-agents.update');
@@ -30,22 +27,6 @@ export type SetupUpdateResult = {
   updated: string[];
   skipped: string[];
   cwd: string;
-};
-
-const STALE_VERSION_MDC = /^pluginVersion: "([^"]+)"/m;
-const STALE_VERSION_FLAT = /<!-- setup-agents: ([^\s]+) -->/;
-
-const PROFILE_FILE_MAP: Record<string, ProfileId> = {
-  'developer-standards.mdc': 'developer',
-  'architect-standards.mdc': 'architect',
-  'ba-standards.mdc': 'ba',
-  'mulesoft-standards.mdc': 'mulesoft',
-  'ux-standards.mdc': 'ux',
-  'cgcloud-standards.mdc': 'cgcloud',
-  'devops-standards.mdc': 'devops',
-  'qa-standards.mdc': 'qa',
-  'analytics-standards.mdc': 'crma',
-  'data360-standards.mdc': 'data360',
 };
 
 export default class Update extends SfCommand<SetupUpdateResult> {
@@ -67,70 +48,13 @@ export default class Update extends SfCommand<SetupUpdateResult> {
     }),
   };
 
-  private static findStaleFiles(cwd: string): Array<{ file: string; tool: SupportedTool; version: string | null }> {
-    const stale: Array<{ file: string; tool: SupportedTool; version: string | null }> = [];
-
-    const checkMdc = (filePath: string, tool: SupportedTool): void => {
-      if (!existsSync(filePath)) return;
-      const content = readFileSync(filePath, 'utf8');
-      const match = STALE_VERSION_MDC.exec(content);
-      if (!match || match[1] !== PLUGIN_VERSION) {
-        stale.push({ file: filePath, tool, version: match?.[1] ?? null });
-      }
-    };
-
-    const checkFlat = (filePath: string, tool: SupportedTool): void => {
-      if (!existsSync(filePath)) return;
-      const content = readFileSync(filePath, 'utf8');
-      const match = STALE_VERSION_FLAT.exec(content);
-      if (!match || match[1] !== PLUGIN_VERSION) {
-        stale.push({ file: filePath, tool, version: match?.[1] ?? null });
-      }
-    };
-
-    const rulesDir = join(cwd, '.cursor', 'rules');
-    if (existsSync(rulesDir)) {
-      for (const file of readdirSync(rulesDir).filter((f) => f.endsWith('.mdc'))) {
-        checkMdc(join(rulesDir, file), 'cursor');
-      }
-    }
-
-    checkFlat(join(cwd, '.github', 'copilot-instructions.md'), 'vscode');
-    checkFlat(join(cwd, 'AGENTS.md'), 'codex');
-
-    const a4dDir = join(cwd, '.a4drules');
-    if (existsSync(a4dDir)) {
-      for (const file of readdirSync(a4dDir).filter((f) => f.endsWith('.md'))) {
-        checkFlat(join(a4dDir, file), 'agentforce');
-      }
-      const workflowsDir = join(a4dDir, 'workflows');
-      if (existsSync(workflowsDir)) {
-        for (const file of readdirSync(workflowsDir).filter((f) => f.endsWith('.md'))) {
-          checkFlat(join(workflowsDir, file), 'agentforce');
-        }
-      }
-    }
-
-    return stale;
-  }
-
-  private static inferProfiles(cwd: string): ProfileId[] {
-    const rulesDir = join(cwd, '.cursor', 'rules');
-    if (!existsSync(rulesDir)) return [];
-
-    return readdirSync(rulesDir)
-      .filter((f) => f.endsWith('.mdc'))
-      .map((f) => PROFILE_FILE_MAP[f])
-      .filter((id): id is ProfileId => !!id && ALL_PROFILES.some((p) => p.id === id));
-  }
-
   public async run(): Promise<SetupUpdateResult> {
     const { flags } = await this.parse(Update);
     const cwd = process.cwd();
     const updated: string[] = [];
     const skipped: string[] = [];
 
-    const staleFiles = Update.findStaleFiles(cwd);
+    const staleFiles = findStaleFiles(cwd);
 
     if (staleFiles.length === 0) {
       this.log(messages.getMessage('info.nothingToUpdate', [PLUGIN_VERSION]));
@@ -157,7 +81,7 @@ export default class Update extends SfCommand<SetupUpdateResult> {
     }
 
     const toolsToUpdate = [...new Set(staleFiles.map((f) => f.tool))] as SupportedTool[];
-    const inferredProfiles = Update.inferProfiles(cwd);
+    const inferredProfiles = inferProfiles(cwd);
     const profileArg = inferredProfiles.length > 0 ? inferredProfiles.join(',') : 'developer';
 
     const args = ['--force', '--profile', profileArg];

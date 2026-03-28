@@ -42,19 +42,19 @@ type McpConfig = {
 };
 
 const PROFILE_TOOLSETS: Record<ProfileId, string[]> = {
-  developer: ['metadata', 'apex', 'sobjects'],
-  architect: ['metadata', 'apex', 'sobjects'],
-  ba: ['metadata', 'sobjects'],
-  mulesoft: ['metadata'],
-  ux: ['metadata', 'sobjects'],
-  cgcloud: ['metadata', 'apex', 'sobjects'],
-  devops: ['metadata'],
-  qa: ['metadata', 'apex', 'sobjects'],
-  crma: ['metadata', 'sobjects'],
-  data360: ['metadata', 'sobjects'],
+  developer: ['metadata', 'data', 'testing', 'users'],
+  architect: ['metadata', 'data', 'testing', 'users'],
+  ba: ['metadata', 'data'],
+  mulesoft: ['metadata', 'orgs'],
+  ux: ['metadata', 'data'],
+  cgcloud: ['metadata', 'data', 'testing', 'users'],
+  devops: ['metadata', 'orgs', 'users'],
+  qa: ['metadata', 'data', 'testing', 'users'],
+  crma: ['metadata', 'data'],
+  data360: ['metadata', 'data'],
 };
 
-const ALL_TOOLSETS = ['metadata', 'apex', 'sobjects'] as const;
+const ALL_TOOLSETS = ['all'] as const;
 
 export default class Mcp extends SfCommand<SetupMcpResult> {
   public static readonly summary = messages.getMessage('summary');

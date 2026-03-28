@@ -1,4 +1,4 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-yarn build && yarn test
+WIREIT_PARALLEL=1 yarn build && WIREIT_PARALLEL=1 yarn test

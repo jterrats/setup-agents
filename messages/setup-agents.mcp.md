@@ -6,7 +6,7 @@ Configure Cursor MCP servers for Salesforce orgs.
 
 Sets up Cursor's Micro-Agent Collaboration Protocol (MCP) configuration for one or more
 Salesforce orgs using `@salesforce/mcp`. This allows Cursor AI to interact directly with
-your Salesforce org metadata, Apex classes, and sObjects via tool calls.
+your Salesforce org metadata, data, users, and testing tools via tool calls.
 
 The command writes (or merges into) a `.cursor/mcp.json` file with an MCP server entry per
 selected org. Use `--global` to write to the user-level `~/.cursor/mcp.json` instead.
@@ -14,8 +14,9 @@ selected org. Use `--global` to write to the user-level `~/.cursor/mcp.json` ins
 Toolsets included by default (based on profile):
 
 - **metadata** — SFDX metadata read/deploy tools.
-- **apex** — Apex class retrieval and execution.
-- **sobjects** — sObject schema and record inspection.
+- **data** — SOQL and org data inspection tools.
+- **testing** — Apex and project testing tools.
+- **users** — permission set and user management tools.
 
 If `--target-org` is omitted, all authenticated orgs are listed for interactive selection.
 
@@ -35,7 +36,7 @@ Role profile(s) used to determine MCP toolsets.
 # flags.profile.description
 
 Comma-separated list of role profiles. Each profile maps to a subset of MCP toolsets.
-If omitted, all toolsets (metadata, apex, sobjects) are enabled.
+If omitted, all available MCP toolsets are enabled.
 
 # flags.all-toolsets.summary
 
@@ -43,7 +44,7 @@ Enable all MCP toolsets regardless of profile.
 
 # flags.all-toolsets.description
 
-Force-enable all available toolsets (metadata, apex, sobjects) for every org configured.
+Force-enable all available MCP toolsets for every org configured.
 
 # flags.global.summary
 

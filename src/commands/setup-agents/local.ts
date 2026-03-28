@@ -16,13 +16,13 @@
 
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { checkbox, confirm, select } from '@inquirer/prompts';
 import { Messages } from '@salesforce/core';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyMessages = Messages<any>;
-import { SfCommand, Flags } from '@salesforce/sf-plugins-core';
-import { ALL_PROFILES, developerProfile } from '../../profiles/index.js';
-import type { Profile, ProfileId } from '../../profiles/index.js';
+import { Flags, SfCommand } from '@salesforce/sf-plugins-core';
+import { select } from '@inquirer/prompts';
+
+import type { Profile } from '../../profiles/index.js';
 import { FileWriter } from '../../services/file-writer.js';
 import { setupAgentforce } from '../../setup/agentforce-setup.js';
 import { setupCodex } from '../../setup/codex-setup.js';
@@ -30,11 +30,10 @@ import { setupCursor } from '../../setup/cursor-setup.js';
 import { setupVsCode } from '../../setup/vscode-setup.js';
 import type { SetupLocalResult, SupportedTool } from '../../types/index.js';
 import { SUPPORTED_TOOLS } from '../../types/index.js';
+import { detectTools, resolveProfiles } from '../../util/command-helpers.js';
 
 Messages.importMessagesDirectoryFromMetaUrl(import.meta.url);
 const messages = Messages.loadMessages('@jterrats/setup-agents', 'setup-agents.local');
-
-const VALID_PROFILE_IDS: ProfileId[] = ALL_PROFILES.map((p) => p.id);
 
 export default class Local extends SfCommand<SetupLocalResult> {
   public static readonly summary = messages.getMessage('summary');
@@ -96,56 +95,7 @@ export default class Local extends SfCommand<SetupLocalResult> {
   }
 }
 
-// ─── Module-level helpers (pure, testable independently) ───────────────────
-
-export function detectTools(cwd: string): SupportedTool[] {
-  const detected: SupportedTool[] = [];
-  if (existsSync(join(cwd, '.cursor'))) detected.push('cursor');
-  if (existsSync(join(cwd, '.vscode'))) detected.push('vscode');
-  if (existsSync(join(cwd, 'AGENTS.md'))) detected.push('codex');
-  if (existsSync(join(cwd, '.a4drules'))) detected.push('agentforce');
-  return detected.length === 0 ? SUPPORTED_TOOLS : detected;
-}
-
-export async function resolveProfiles(
-  cwd: string,
-  flagValue: string | undefined,
-  msgs: AnyMessages,
-  warnFn?: (msg: string) => void
-): Promise<{ profiles: Profile[]; usedDefault: boolean }> {
-  if (flagValue) {
-    const ids = flagValue.split(',').map((s) => s.trim()) as ProfileId[];
-    const invalid = ids.filter((id) => !VALID_PROFILE_IDS.includes(id));
-    if (invalid.length > 0) {
-      warnFn?.(msgs.getMessage('warn.unknownProfiles', [invalid.join(', '), VALID_PROFILE_IDS.join(', ')]));
-    }
-    const profiles = ALL_PROFILES.filter((p) => ids.includes(p.id));
-    return { profiles, usedDefault: false };
-  }
-
-  if (!process.stdin.isTTY) {
-    return { profiles: [developerProfile], usedDefault: true };
-  }
-
-  const autoDetected = new Set<ProfileId>(
-    ALL_PROFILES.filter((p) => p.id !== 'cgcloud' && p.detect?.(cwd)).map((p) => p.id)
-  );
-
-  const cgcloud = ALL_PROFILES.find((p) => p.id === 'cgcloud')!;
-  if (cgcloud.detect?.(cwd)) {
-    const add = await confirm({ message: msgs.getMessage('prompt.confirmCGCloud'), default: true });
-    if (add) autoDetected.add('cgcloud');
-  }
-
-  const selected = await checkbox<ProfileId>({
-    message: msgs.getMessage('prompt.selectProfiles'),
-    choices: ALL_PROFILES.map((p) => ({ value: p.id, name: p.label, checked: autoDetected.has(p.id) })),
-  });
-
-  if (selected.length === 0) return { profiles: [developerProfile], usedDefault: true };
-  return { profiles: ALL_PROFILES.filter((p) => selected.includes(p.id)), usedDefault: false };
-}
-
+// Estas funciones fueron movidas aquí desde el helper temporal
 async function runSetup(
   tool: SupportedTool,
   ctx: { cwd: string; profiles: Profile[]; writer: FileWriter; isSalesforceProject: boolean; log: (m: string) => void }

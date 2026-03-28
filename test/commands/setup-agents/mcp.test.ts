@@ -85,9 +85,18 @@ describe('setup-agents mcp', () => {
     };
     const args = config.mcpServers['salesforce-myOrg'].args;
     const toolsetsIndex = args.indexOf('--toolsets');
-    expect(args[toolsetsIndex + 1]).to.include('metadata');
-    expect(args[toolsetsIndex + 1]).to.include('apex');
-    expect(args[toolsetsIndex + 1]).to.include('sobjects');
+    expect(args[toolsetsIndex + 1]).to.equal('all');
+  });
+
+  it('maps developer profile to valid Salesforce MCP toolsets', async () => {
+    await Mcp.run(['--target-org', 'myOrg', '--profile', 'developer']);
+
+    const config = JSON.parse(readFileSync(join(tmpDir, '.cursor', 'mcp.json'), 'utf8')) as {
+      mcpServers: Record<string, { command: string; args: string[] }>;
+    };
+    const args = config.mcpServers['salesforce-myOrg'].args;
+    const toolsetsIndex = args.indexOf('--toolsets');
+    expect(args[toolsetsIndex + 1]).to.equal('metadata,data,testing,users');
   });
 
   it('merges new org into existing mcp.json without overwriting other servers', async () => {
