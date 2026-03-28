@@ -184,7 +184,7 @@ describe('setup-agents update', () => {
       await Update.run(['--yes']);
 
       const callArgs = runCommandStub.firstCall.args as [string, string[]];
-      expect(callArgs[0]).to.equal('setup-agents local');
+      expect(callArgs[0]).to.equal('setup-agents:local');
       expect(callArgs[1]).to.include('--rules');
       expect(callArgs[1]).to.include('cursor');
     });

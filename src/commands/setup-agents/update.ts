@@ -88,7 +88,7 @@ export default class Update extends SfCommand<SetupUpdateResult> {
     for (const tool of toolsToUpdate) {
       this.log(messages.getMessage('info.updating', [tool]));
       // eslint-disable-next-line no-await-in-loop
-      await this.config.runCommand('setup-agents local', [...args, '--rules', tool]);
+      await this.config.runCommand('setup-agents:local', [...args, '--rules', tool]);
       updated.push(...staleFiles.filter((f) => f.tool === tool).map((f) => f.file));
     }
 

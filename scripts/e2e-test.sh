@@ -16,6 +16,7 @@ set -euo pipefail
 
 PLUGIN_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 TESTS_DIR="${PLUGIN_DIR}/tests"
+PLUGIN_VERSION="$(node -p 'JSON.parse(require("node:fs").readFileSync(process.argv[1],"utf8")).version' "${PLUGIN_DIR}/package.json")"
 PASS=0
 FAIL=0
 
@@ -274,6 +275,113 @@ run_detection_tests() {
   popd > /dev/null
 }
 
+
+# ─── Suite 3: MCP command scenarios ───────────────────────────────────────────
+run_mcp_tests() {
+  echo ""
+  echo -e "${YELLOW}════════════════════════════════════════${NC}"
+  echo -e "${YELLOW}  Suite 3: MCP Scenarios${NC}"
+  echo -e "${YELLOW}════════════════════════════════════════${NC}"
+
+  local dir
+
+  # developer profile -> valid MCP toolsets
+  echo ""
+  echo -e "${CYAN}── mcp: developer profile toolsets ──${NC}"
+  dir="$(new_minimal_project "mcp-developer-profile")"
+  pushd "$dir" > /dev/null
+  sf setup-agents mcp --target-org myOrg --profile developer 2>&1 | sed 's/^/  │ /'
+  section "[MCP file created]"
+  expect_file ".cursor/mcp.json" "project mcp.json created"
+  section "[Toolsets mapped to current MCP values]"
+  expect_content ".cursor/mcp.json" "metadata,data,testing,users" "developer toolsets mapped"
+  popd > /dev/null
+
+  # all-toolsets -> all
+  echo ""
+  echo -e "${CYAN}── mcp: --all-toolsets ──${NC}"
+  dir="$(new_minimal_project "mcp-all-toolsets")"
+  pushd "$dir" > /dev/null
+  sf setup-agents mcp --target-org myOrg --all-toolsets 2>&1 | sed 's/^/  │ /'
+  section "[All toolsets shorthand]"
+  expect_content ".cursor/mcp.json" '"--toolsets"' "--toolsets flag present"
+  expect_content ".cursor/mcp.json" '"all"' "--all-toolsets writes all"
+  popd > /dev/null
+
+  # global writes to home scope
+  echo ""
+  echo -e "${CYAN}── mcp: --global scope ──${NC}"
+  dir="$(new_minimal_project "mcp-global-scope")"
+  mkdir -p "$dir/fake-home"
+  pushd "$dir" > /dev/null
+  HOME="$dir/fake-home" USERPROFILE="$dir/fake-home" sf plugins link "$PLUGIN_DIR" > /dev/null 2>&1 || true
+  HOME="$dir/fake-home" USERPROFILE="$dir/fake-home" sf setup-agents mcp --target-org myOrg --global 2>&1 | sed 's/^/  │ /'
+  section "[Global mcp.json created]"
+  expect_file "$dir/fake-home/.cursor/mcp.json" "global mcp.json created"
+  expect_no_file ".cursor/mcp.json" "project mcp.json not created in --global mode"
+  popd > /dev/null
+
+  # corrupt existing mcp.json should be recovered
+  echo ""
+  echo -e "${CYAN}── mcp: recover corrupt mcp.json ──${NC}"
+  dir="$(new_minimal_project "mcp-corrupt-json")"
+  mkdir -p "$dir/.cursor"
+  printf '{ invalid json' > "$dir/.cursor/mcp.json"
+  pushd "$dir" > /dev/null
+  sf setup-agents mcp --target-org myOrg 2>&1 | sed 's/^/  │ /'
+  section "[Corrupt config recovered]"
+  expect_content ".cursor/mcp.json" "salesforce-myOrg" "server entry exists after recovery"
+  popd > /dev/null
+}
+
+# ─── Suite 4: Update command scenarios ───────────────────────────────────────
+mutate_markers_to_old_version() {
+  local old='0.0.0'
+  local files=(
+    '.cursor/rules/agent-guidelines.mdc'
+    'AGENTS.md'
+    '.a4drules/00-base-guidelines.md'
+  )
+
+  for file in "${files[@]}"; do
+    perl -i -pe "s/pluginVersion: \"[^\"]+\"/pluginVersion: \"${old}\"/g; s/<!-- setup-agents:\s*[^\s]+ -->/<!-- setup-agents: ${old} -->/g" "$file"
+  done
+}
+
+run_update_tests() {
+  echo ""
+  echo -e "${YELLOW}════════════════════════════════════════${NC}"
+  echo -e "${YELLOW}  Suite 4: Update Scenarios${NC}"
+  echo -e "${YELLOW}════════════════════════════════════════${NC}"
+
+  local dir
+
+  echo ""
+  echo -e "${CYAN}── update: dry-run + apply stale files ──${NC}"
+  dir="$(new_minimal_project "update-dryrun-apply")"
+  mkdir -p "$dir/.cursor" "$dir/.vscode" "$dir/.a4drules"
+  touch "$dir/AGENTS.md"
+  pushd "$dir" > /dev/null
+
+  sf setup-agents local --profile developer --force 2>&1 | sed 's/^/  │ /'
+  mutate_markers_to_old_version
+
+  local dry_output
+  dry_output="$(sf setup-agents update --dry-run 2>&1)"
+  echo "$dry_output" | sed 's/^/  │ /'
+  section "[Dry run reports stale files]"
+  if [[ "$dry_output" == *"agent-guidelines.mdc"* ]]; then pass "dry-run includes cursor stale file"; else fail "dry-run includes cursor stale file"; fi
+
+  sf setup-agents update --yes 2>&1 | sed 's/^/  │ /'
+
+  section "[Markers refreshed to current plugin version]"
+  expect_content ".cursor/rules/agent-guidelines.mdc" "pluginVersion: \"${PLUGIN_VERSION}\"" "cursor mdc version refreshed"
+  expect_content "AGENTS.md" "setup-agents: ${PLUGIN_VERSION}" "AGENTS.md version refreshed"
+  expect_content ".a4drules/00-base-guidelines.md" "setup-agents: ${PLUGIN_VERSION}" "agentforce version refreshed"
+
+  popd > /dev/null
+}
+
 # =============================================================================
 # Entry point
 # =============================================================================
@@ -312,6 +420,8 @@ run_profile_test ""
 # Run detection suite only when no specific profiles were requested
 if [[ $# -eq 0 ]]; then
   run_detection_tests
+  run_mcp_tests
+  run_update_tests
 fi
 
 # =============================================================================
