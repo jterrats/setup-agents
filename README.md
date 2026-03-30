@@ -1,7 +1,7 @@
 # setup-agents ⚡ — Salesforce CLI Plugin
 
 > Bootstrap AI agent rules and role profiles for any Salesforce project in seconds.
-
+ 
 [![Version](https://img.shields.io/npm/v/@jterrats/setup-agents.svg?logo=npm)](https://npmjs.org/package/@jterrats/setup-agents)
 [![CI](https://img.shields.io/github/actions/workflow/status/jterrats/setup-agents/onRelease.yml?branch=main&logo=github&label=Release_CI)](https://github.com/jterrats/setup-agents/actions)
 [![License](https://img.shields.io/npm/l/@jterrats/setup-agents.svg)](https://github.com/jterrats/setup-agents/blob/main/LICENSE.txt)
