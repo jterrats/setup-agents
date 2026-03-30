@@ -59,6 +59,17 @@ The command auto-detects your tools and prompts for role selection:
 > # or add to allowlist in ~/.config/sf/unsignedPluginAllowList.json
 > ```
 
+### VS Code UI Extension (Preview)
+
+This repository now includes a UI companion extension for VS Code at
+`extensions/vscode-setup-agents-ui`.
+
+```sh
+cd extensions/vscode-setup-agents-ui
+npm install
+npm run build
+```
+
 ---
 
 ## Architecture
