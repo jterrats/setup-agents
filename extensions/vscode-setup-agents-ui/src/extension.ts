@@ -1,6 +1,4 @@
 import * as vscode from 'vscode';
-import { existsSync } from 'node:fs';
-import { join } from 'node:path';
 import { ALL_PROFILES } from './constants';
 import { CliService } from './services/cliService';
 import { RuleManagementService } from './services/ruleManagementService';
@@ -34,7 +32,7 @@ class SetupAgentsViewProvider implements vscode.WebviewViewProvider {
   public constructor(private readonly context: vscode.ExtensionContext) {}
 
   public async openPanel(): Promise<void> {
-    await vscode.commands.executeCommand('workbench.view.extension.setupAgentsUi');
+    await vscode.commands.executeCommand('workbench.view.extension.setupAgentsUi.sidebar');
   }
 
   public async requestImportFromUrl(): Promise<void> {
@@ -61,7 +59,7 @@ class SetupAgentsViewProvider implements vscode.WebviewViewProvider {
           this.post({
             type: 'bootstrapResult',
             payload: {
-              tools: this.detectTools(),
+              tools: await this.detectTools(),
               profiles: ALL_PROFILES,
             },
           });
@@ -131,7 +129,7 @@ class SetupAgentsViewProvider implements vscode.WebviewViewProvider {
     this.view?.webview.postMessage(message);
   }
 
-  private detectTools(): ToolStatus[] {
+  private async detectTools(): Promise<ToolStatus[]> {
     const workspace = vscode.workspace.workspaceFolders?.[0];
     if (!workspace) {
       return [
@@ -142,14 +140,21 @@ class SetupAgentsViewProvider implements vscode.WebviewViewProvider {
       ];
     }
 
-    const workspacePath = workspace.uri.fsPath;
-    const exists = (segments: string[]): boolean => existsSync(join(workspacePath, ...segments));
+    const workspaceUri = workspace.uri;
+    const exists = async (segments: string[]): Promise<boolean> => {
+      try {
+        await vscode.workspace.fs.stat(vscode.Uri.joinPath(workspaceUri, ...segments));
+        return true;
+      } catch {
+        return false;
+      }
+    };
 
     return [
-      { id: 'cursor', detected: exists(['.cursor']), reason: '.cursor directory' },
-      { id: 'vscode', detected: exists(['.vscode']), reason: '.vscode directory' },
-      { id: 'codex', detected: exists(['AGENTS.md']), reason: 'AGENTS.md file' },
-      { id: 'agentforce', detected: exists(['.a4drules']), reason: '.a4drules directory' },
+      { id: 'cursor', detected: await exists(['.cursor']), reason: '.cursor directory' },
+      { id: 'vscode', detected: await exists(['.vscode']), reason: '.vscode directory' },
+      { id: 'codex', detected: await exists(['AGENTS.md']), reason: 'AGENTS.md file' },
+      { id: 'agentforce', detected: await exists(['.a4drules']), reason: '.a4drules directory' },
     ];
   }
 

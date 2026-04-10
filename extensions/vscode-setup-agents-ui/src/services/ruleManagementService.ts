@@ -20,7 +20,7 @@ export class RuleManagementService {
 
     for (const dir of CUSTOM_RULE_DIRS) {
       const absoluteDir = join(workspacePath, dir);
-      for (const path of await this.collectMarkdownFiles(absoluteDir)) {
+      for (const path of await this.collectMarkdownFiles(absoluteDir, false)) {
         rules.push({
           path,
           relativePath: relative(workspacePath, path),
@@ -83,15 +83,15 @@ export class RuleManagementService {
     return absoluteDir;
   }
 
-  private async collectMarkdownFiles(directory: string, skipCustomDirectories = false): Promise<string[]> {
+  private async collectMarkdownFiles(directory: string, skipCustom: boolean): Promise<string[]> {
     try {
       const items = await readdir(directory, { withFileTypes: true });
       const files = await Promise.all(
         items.map(async (item) => {
           const fullPath = join(directory, item.name);
           if (item.isDirectory()) {
-            if (skipCustomDirectories && item.name === 'custom') return [];
-            return this.collectMarkdownFiles(fullPath, skipCustomDirectories);
+            if (skipCustom && item.name === 'custom') return [];
+            return this.collectMarkdownFiles(fullPath, skipCustom);
           }
           if (item.isFile() && ['.md', '.mdc'].includes(extname(item.name).toLowerCase())) return [fullPath];
           return [];

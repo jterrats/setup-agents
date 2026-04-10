@@ -44,7 +44,7 @@ export type UiToHostMessage =
   | { type: 'readRule'; payload: { path: string } }
   | { type: 'saveRule'; payload: { path: string; content: string } }
   | { type: 'importRuleFromUrl'; payload: { url: string; tool: ToolId } }
-  | { type: 'importRuleFromFile'; payload: { sourcePath: string; tool: ToolId } };
+  | { type: 'importRuleFromFile'; payload: { tool: ToolId } };
 
 export type HostToUiMessage =
   | { type: 'bootstrapResult'; payload: { tools: ToolStatus[]; profiles: ProfileDescriptor[] } }

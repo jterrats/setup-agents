@@ -50,13 +50,15 @@
     "clean": "rm -rf out",
     "lint": "eslint src --ext .ts",
     "test": "node --test out/test/**/*.test.js",
-    "pretest": "npm run build"
+    "pretest": "npm run build",
+    "package": "vsce package"
   },
   "devDependencies": {
     "@types/node": "^20.14.10",
     "@types/vscode": "^1.90.0",
     "@typescript-eslint/eslint-plugin": "^7.16.1",
     "@typescript-eslint/parser": "^7.16.1",
+    "@vscode/vsce": "^3.2.2",
     "eslint": "^8.57.0",
     "typescript": "^5.5.4"
   }
