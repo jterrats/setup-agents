@@ -70,6 +70,8 @@ export const developerProfile: Profile = {
       '- Prioritize **SLDS Styling Hooks** over custom CSS.',
       '- Use **LDS 2** and **Lightning Data Service** whenever possible.',
       '- User feedback: Toasts with **Custom Labels**. Never hardcode strings.',
+      '- **UX Gate (when generating LWC UI):** verify contrast (4.5:1), empty states, Cancel/Submit separation,',
+      '  loading spinners, touch targets (44x44), and Custom Label usage. See `ux-standards.mdc` for full checklist.',
       '',
       '## Testing',
       '- **Exactly one Assert per test method** using the modern `Assert` class.',

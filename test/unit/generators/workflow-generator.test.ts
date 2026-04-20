@@ -27,9 +27,9 @@ const VERSION = '0.1.0';
 
 describe('workflow-generator', () => {
   describe('generateBaseWorkflows()', () => {
-    it('returns deploy, run-tests and validate files', () => {
+    it('returns deploy, run-tests, validate and code-quality files', () => {
       const workflows = generateBaseWorkflows(VERSION);
-      expect(workflows).to.have.keys(['deploy.md', 'run-tests.md', 'validate.md']);
+      expect(workflows).to.have.keys(['deploy.md', 'run-tests.md', 'validate.md', 'code-quality.md']);
     });
 
     it('each workflow includes the setup-agents version comment', () => {
@@ -44,6 +44,39 @@ describe('workflow-generator', () => {
 
     it('run-tests workflow includes sf apex test run command', () => {
       expect(generateBaseWorkflows(VERSION)['run-tests.md']).to.include('sf apex test run');
+    });
+
+    it('code-quality workflow references sf code-analyzer run', () => {
+      const cq = generateBaseWorkflows(VERSION)['code-quality.md'];
+      expect(cq).to.include('sf code-analyzer run');
+    });
+
+    it('code-quality workflow includes Apex PMD rule selectors', () => {
+      const cq = generateBaseWorkflows(VERSION)['code-quality.md'];
+      expect(cq).to.include('pmd:Recommended,pmd:Security,pmd:Performance');
+    });
+
+    it('code-quality workflow includes LWC ESLint rule selectors', () => {
+      const cq = generateBaseWorkflows(VERSION)['code-quality.md'];
+      expect(cq).to.include('eslint:Recommended,eslint:Security');
+    });
+
+    it('code-quality workflow filters .js and .html under lwc/ excluding __tests__', () => {
+      const cq = generateBaseWorkflows(VERSION)['code-quality.md'];
+      expect(cq).to.include('/lwc/');
+      expect(cq).to.include('__tests__');
+      expect(cq).to.include('.js');
+      expect(cq).to.include('.html');
+    });
+
+    it('code-quality workflow uses --severity-threshold 1', () => {
+      const cq = generateBaseWorkflows(VERSION)['code-quality.md'];
+      expect(cq).to.include('--severity-threshold 1');
+    });
+
+    it('code-quality workflow includes fallback for HTML targets', () => {
+      const cq = generateBaseWorkflows(VERSION)['code-quality.md'];
+      expect(cq).to.include('HTML targets unsupported');
     });
   });
 

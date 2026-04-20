@@ -26,6 +26,7 @@ export function generateBaseWorkflows(version: string): Record<string, string> {
     'deploy.md': deployWorkflow(version),
     'run-tests.md': runTestsWorkflow(version),
     'validate.md': validateWorkflow(version),
+    'code-quality.md': codeQualityWorkflow(version),
   };
 }
 
@@ -131,6 +132,151 @@ Summarise:
 - Test coverage results (must be ≥ 90%)
 
 If validation fails, identify which components need attention before a real deploy.
+`
+  );
+}
+
+function codeQualityWorkflow(version: string): string {
+  return workflow(
+    version,
+    'Code Quality — Pre-commit Hook (Apex + LWC)',
+    `
+## Overview
+
+This workflow sets up a **Husky pre-commit hook** that runs \`sf code-analyzer\` on
+staged Apex and LWC files. It blocks commits only on **HIGH / critical** violations
+(\`--severity-threshold 1\`). MEDIUM and LOW issues are reported as warnings but do
+not prevent the commit.
+
+The hook is **profile-agnostic** — it triggers on every commit, regardless of which
+developer profile is configured.
+
+## Setup
+
+Install Husky and create the hook file:
+
+\`\`\`bash
+npm install --save-dev husky
+npx husky init
+\`\`\`
+
+Then replace \`.husky/pre-commit\` with the script below.
+
+## Pre-commit Script
+
+\`\`\`bash
+#!/bin/bash
+# ─────────────────────────────────────────────────────────────
+# Pre-commit: Salesforce Code Analyzer (Apex PMD + LWC ESLint)
+# Blocks on HIGH/critical only (--severity-threshold 1).
+# ─────────────────────────────────────────────────────────────
+set -euo pipefail
+
+STAGED=$(git diff --cached --name-only --diff-filter=ACM)
+
+if [ -z "$STAGED" ]; then
+  echo "ℹ️  No staged files — skipping Code Analyzer."
+  exit 0
+fi
+
+EXIT_CODE=0
+
+# ── Apex (PMD) ──────────────────────────────────────────────
+APEX_FILES=$(echo "$STAGED" | grep '\\.cls$' || true)
+
+if [ -n "$APEX_FILES" ]; then
+  APEX_COUNT=$(echo "$APEX_FILES" | wc -l | tr -d ' ')
+  echo "🔍 Analyzing $APEX_COUNT Apex file(s) with PMD…"
+
+  APEX_TARGET=$(echo "$APEX_FILES" | paste -sd ',' -)
+  sf code-analyzer run \\
+    --target "$APEX_TARGET" \\
+    --rule-selector "pmd:Recommended,pmd:Security,pmd:Performance" \\
+    --severity-threshold 1 || APEX_EXIT=$?
+
+  APEX_EXIT=\${APEX_EXIT:-0}
+  if [ "$APEX_EXIT" -eq 2 ]; then
+    echo "❌ Apex: HIGH-severity violations found — commit blocked."
+    EXIT_CODE=1
+  elif [ "$APEX_EXIT" -ne 0 ]; then
+    echo "⚠️  Apex: warnings found (MEDIUM/LOW) — commit allowed."
+  else
+    echo "✅ Apex: no issues."
+  fi
+else
+  echo "ℹ️  No staged Apex files."
+fi
+
+# ── LWC (ESLint) ────────────────────────────────────────────
+LWC_FILES=$(echo "$STAGED" \\
+  | grep '/lwc/' \\
+  | grep -v '/__tests__/' \\
+  | grep -E '\\.(js|html)$' || true)
+
+if [ -n "$LWC_FILES" ]; then
+  LWC_COUNT=$(echo "$LWC_FILES" | wc -l | tr -d ' ')
+  LWC_JS_COUNT=$(echo "$LWC_FILES" | grep -c '\\.js$' || echo 0)
+  LWC_HTML_COUNT=$(echo "$LWC_FILES" | grep -c '\\.html$' || echo 0)
+  echo "🔍 Analyzing $LWC_COUNT LWC file(s) ($LWC_JS_COUNT .js, $LWC_HTML_COUNT .html) with ESLint…"
+
+  LWC_TARGET=$(echo "$LWC_FILES" | paste -sd ',' -)
+  sf code-analyzer run \\
+    --target "$LWC_TARGET" \\
+    --rule-selector "eslint:Recommended,eslint:Security" \\
+    --severity-threshold 1 || LWC_EXIT=$?
+
+  LWC_EXIT=\${LWC_EXIT:-0}
+
+  # Fallback: if the CLI rejects .html targets, retry with .js only
+  if [ "$LWC_EXIT" -ne 0 ] && [ "$LWC_HTML_COUNT" -gt 0 ]; then
+    LWC_JS_ONLY=$(echo "$LWC_FILES" | grep '\\.js$' || true)
+    if [ -n "$LWC_JS_ONLY" ]; then
+      echo "⚠️  Retrying LWC analysis with .js files only (HTML targets unsupported)…"
+      LWC_TARGET_JS=$(echo "$LWC_JS_ONLY" | paste -sd ',' -)
+      sf code-analyzer run \\
+        --target "$LWC_TARGET_JS" \\
+        --rule-selector "eslint:Recommended,eslint:Security" \\
+        --severity-threshold 1 || LWC_EXIT=$?
+      LWC_EXIT=\${LWC_EXIT:-0}
+    fi
+  fi
+
+  if [ "$LWC_EXIT" -eq 2 ]; then
+    echo "❌ LWC: HIGH-severity violations found — commit blocked."
+    EXIT_CODE=1
+  elif [ "$LWC_EXIT" -ne 0 ]; then
+    echo "⚠️  LWC: warnings found (MEDIUM/LOW) — commit allowed."
+  else
+    echo "✅ LWC: no issues."
+  fi
+else
+  echo "ℹ️  No staged LWC files."
+fi
+
+exit $EXIT_CODE
+\`\`\`
+
+## Exit Code Behavior
+
+| Exit Code | Meaning | Commit |
+|-----------|---------|--------|
+| 0 | No issues or MEDIUM/LOW only | **Allowed** |
+| 2 | HIGH / critical violations | **Blocked** |
+| Other | Analyzer error / warning | **Allowed** (non-blocking) |
+
+## File Filters
+
+| Type | Glob | Exclusions |
+|------|------|------------|
+| Apex | \`*.cls\` (staged) | — |
+| LWC JS | \`**/lwc/**/*.js\` (staged) | \`**/__tests__/**\` |
+| LWC HTML | \`**/lwc/**/*.html\` (staged) | \`**/__tests__/**\` |
+
+## Fallback for HTML Targets
+
+If \`sf code-analyzer\` does not support \`.html\` targets for ESLint rules,
+the hook automatically retries with only \`.js\` files. This ensures the hook
+never breaks on CLI version differences.
 `
   );
 }
