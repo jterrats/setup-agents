@@ -96,7 +96,7 @@ The `sub-agent-protocol.mdc` is generated once and **never overwritten** by subs
 ```sh
 # Delete and regenerate
 rm .cursor/rules/sub-agent-protocol.mdc
-sf setup local --rules cursor --profile developer,architect,crma,data360
+sf setup-agents local --rules cursor --profile developer,architect,crma,data360
 ```
 
 ---
