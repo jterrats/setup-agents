@@ -25,6 +25,7 @@ import { select } from '@inquirer/prompts';
 import type { Profile } from '../../profiles/index.js';
 import { FileWriter } from '../../services/file-writer.js';
 import { setupAgentforce } from '../../setup/agentforce-setup.js';
+import { setupClaude } from '../../setup/claude-setup.js';
 import { setupCodex } from '../../setup/codex-setup.js';
 import { setupCursor } from '../../setup/cursor-setup.js';
 import { setupVsCode } from '../../setup/vscode-setup.js';
@@ -45,7 +46,7 @@ export default class Local extends SfCommand<SetupLocalResult> {
       summary: messages.getMessage('flags.rules.summary'),
       description: messages.getMessage('flags.rules.description'),
       options: SUPPORTED_TOOLS,
-      helpValue: 'cursor|vscode|codex|agentforce',
+      helpValue: 'cursor|vscode|codex|claude|agentforce',
     }),
     profile: Flags.string({
       summary: messages.getMessage('flags.profile.summary'),
@@ -118,6 +119,9 @@ async function runSetup(
       break;
     case 'codex':
       setupCodex({ cwd, profiles, writer });
+      break;
+    case 'claude':
+      setupClaude({ cwd, profiles, writer });
       break;
     case 'agentforce':
       setupAgentforce({ cwd, profiles, writer, isSalesforceProject });

@@ -75,6 +75,14 @@ describe('setup-agents update', () => {
     expect(result.updated).to.have.lengthOf(1);
   });
 
+  it('detects stale CLAUDE.md with old setup-agents comment', async () => {
+    writeFileSync(join(tmpDir, 'CLAUDE.md'), '# CLAUDE.md\n<!-- setup-agents: 0.0.1 -->\n');
+
+    const result = await Update.run(['--dry-run']);
+
+    expect(result.updated).to.have.lengthOf(1);
+  });
+
   it('detects stale copilot-instructions.md', async () => {
     const githubDir = join(tmpDir, '.github');
     mkdirSync(githubDir, { recursive: true });

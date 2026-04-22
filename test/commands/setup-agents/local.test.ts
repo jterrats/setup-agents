@@ -65,6 +65,18 @@ describe('setup-agents local', () => {
     expect(existsSync(join(tmpDir, 'AGENTS.md'))).to.be.true;
   });
 
+  it('creates CLAUDE.md when --rules claude is provided', async () => {
+    await Local.run(['--rules', 'claude']);
+
+    expect(existsSync(join(tmpDir, 'CLAUDE.md'))).to.be.true;
+  });
+
+  it('returns configured tools including claude', async () => {
+    const result = await Local.run(['--rules', 'claude']);
+
+    expect(result.configured).to.deep.equal(['claude']);
+  });
+
   it('returns configured tools in result', async () => {
     const result = await Local.run(['--rules', 'cursor']);
 
@@ -88,6 +100,7 @@ describe('setup-agents local', () => {
     expect(result.configured).to.include('cursor');
     expect(result.configured).to.include('vscode');
     expect(result.configured).to.include('codex');
+    expect(result.configured).to.include('claude');
   });
 
   describe('tool auto-detection', () => {
@@ -122,6 +135,14 @@ describe('setup-agents local', () => {
       expect(result.configured).to.include('cursor');
       expect(result.configured).to.include('vscode');
       expect(result.configured).to.not.include('codex');
+    });
+
+    it('auto-detects claude when CLAUDE.md exists', async () => {
+      writeFileSync(join(tmpDir, 'CLAUDE.md'), '# CLAUDE.md');
+
+      const result = await Local.run([]);
+
+      expect(result.configured).to.include('claude');
     });
   });
 
@@ -172,6 +193,13 @@ describe('setup-agents local', () => {
       const content = readFileSync(join(tmpDir, '.github', 'copilot-instructions.md'), 'utf8');
       expect(content).to.include(`<!-- setup-agents: ${PLUGIN_VERSION} -->`);
     });
+
+    it('embeds setup-agents comment in CLAUDE.md', async () => {
+      await Local.run(['--rules', 'claude']);
+
+      const content = readFileSync(join(tmpDir, 'CLAUDE.md'), 'utf8');
+      expect(content).to.include(`<!-- setup-agents: ${PLUGIN_VERSION} -->`);
+    });
   });
 
   describe('profile-aware content', () => {
@@ -179,6 +207,13 @@ describe('setup-agents local', () => {
       await Local.run(['--rules', 'codex', '--profile', 'developer']);
 
       const content = readFileSync(join(tmpDir, 'AGENTS.md'), 'utf8');
+      expect(content).to.include('Developer');
+    });
+
+    it('injects developer profile content into CLAUDE.md', async () => {
+      await Local.run(['--rules', 'claude', '--profile', 'developer']);
+
+      const content = readFileSync(join(tmpDir, 'CLAUDE.md'), 'utf8');
       expect(content).to.include('Developer');
     });
 
@@ -485,7 +520,7 @@ describe('setup-agents local', () => {
       await Local.run(['--rules', 'agentforce', '--profile', 'ba']);
 
       const workflowsDir = join(tmpDir, '.a4drules', 'workflows');
-      const baseFiles = ['deploy.md', 'run-tests.md', 'validate.md'];
+      const baseFiles = ['deploy.md', 'run-tests.md', 'validate.md', 'code-quality.md'];
       const allFiles = existsSync(workflowsDir) ? readdirSync(workflowsDir) : [];
       const nonBaseFiles = allFiles.filter((f) => !baseFiles.includes(f));
       expect(nonBaseFiles).to.be.empty;
@@ -495,7 +530,7 @@ describe('setup-agents local', () => {
       await Local.run(['--rules', 'agentforce', '--profile', 'mulesoft']);
 
       const workflowsDir = join(tmpDir, '.a4drules', 'workflows');
-      const baseFiles = ['deploy.md', 'run-tests.md', 'validate.md'];
+      const baseFiles = ['deploy.md', 'run-tests.md', 'validate.md', 'code-quality.md'];
       const allFiles = existsSync(workflowsDir) ? readdirSync(workflowsDir) : [];
       const nonBaseFiles = allFiles.filter((f) => !baseFiles.includes(f));
       expect(nonBaseFiles).to.be.empty;
@@ -505,7 +540,7 @@ describe('setup-agents local', () => {
       await Local.run(['--rules', 'agentforce', '--profile', 'ux']);
 
       const workflowsDir = join(tmpDir, '.a4drules', 'workflows');
-      const baseFiles = ['deploy.md', 'run-tests.md', 'validate.md'];
+      const baseFiles = ['deploy.md', 'run-tests.md', 'validate.md', 'code-quality.md'];
       const allFiles = existsSync(workflowsDir) ? readdirSync(workflowsDir) : [];
       const nonBaseFiles = allFiles.filter((f) => !baseFiles.includes(f));
       expect(nonBaseFiles).to.be.empty;

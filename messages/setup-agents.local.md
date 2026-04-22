@@ -11,10 +11,11 @@ Supported tools:
 - **cursor** — Creates `.cursor/rules/agent-guidelines.mdc` and per-profile rule files for Cursor AI.
 - **vscode** — Creates `.github/copilot-instructions.md` and `.vscode/extensions.json` for GitHub Copilot.
 - **codex** — Creates `AGENTS.md` for OpenAI Codex CLI.
+- **claude** — Creates `CLAUDE.md` for Anthropic Claude Code.
 - **agentforce** — Creates `.a4drules/` numbered markdown files for Agentforce Vibes Extension.
 
 If `--rules` is omitted, the command auto-detects installed tools based on existing directories
-(`.cursor`, `.vscode`, `AGENTS.md`, `.a4drules`). If none are detected, all tools are configured.
+(`.cursor`, `.vscode`, `AGENTS.md`, `CLAUDE.md`, `.a4drules`). If none are detected, all tools are configured.
 
 If `--profile` is omitted, the command auto-detects profiles from the project structure and
 presents a selection prompt. If nothing is selected, the `developer` profile is used by default.
@@ -23,11 +24,11 @@ Use `--force` to overwrite existing files (useful when running `sf setup-agents 
 
 # flags.rules.summary
 
-Target AI tool to configure (cursor, vscode, codex, agentforce).
+Target AI tool to configure (cursor, vscode, codex, claude, agentforce).
 
 # flags.rules.description
 
-Specify which AI coding assistant to configure. Valid options are `cursor`, `vscode`, `codex`, or `agentforce`.
+Specify which AI coding assistant to configure. Valid options are `cursor`, `vscode`, `codex`, `claude`, or `agentforce`.
 When omitted, the command auto-detects tools present in the project; if none are found, all tools are configured.
 
 # flags.profile.summary
@@ -70,6 +71,10 @@ Use this flag after updating your profiles or when the plugin version has change
 - Configure only Codex (AGENTS.md):
 
   <%= config.bin %> <%= command.id %> --rules codex
+
+- Configure Claude Code (CLAUDE.md):
+
+  <%= config.bin %> <%= command.id %> --rules claude
 
 - Configure Agentforce Vibes rules:
 

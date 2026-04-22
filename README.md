@@ -1,7 +1,7 @@
 # setup-agents ⚡ — Salesforce CLI Plugin
 
 > Bootstrap AI agent rules and role profiles for any Salesforce project in seconds.
- 
+
 [![Version](https://img.shields.io/npm/v/@jterrats/setup-agents.svg?logo=npm)](https://npmjs.org/package/@jterrats/setup-agents)
 [![CI](https://img.shields.io/github/actions/workflow/status/jterrats/setup-agents/onRelease.yml?branch=main&logo=github&label=Release_CI)](https://github.com/jterrats/setup-agents/actions)
 [![License](https://img.shields.io/npm/l/@jterrats/setup-agents.svg)](https://github.com/jterrats/setup-agents/blob/main/LICENSE.txt)
@@ -129,6 +129,7 @@ graph TD
 | **Cursor**     | `.cursor/rules/agent-guidelines.mdc`, `salesforce-standards.mdc`, `<profile>-standards.mdc`, `sub-agent-protocol.mdc`         |
 | **VS Code**    | `.github/copilot-instructions.md`, `.vscode/extensions.json`                                                                  |
 | **Codex**      | `AGENTS.md`                                                                                                                   |
+| **Claude**     | `CLAUDE.md`                                                                                                                   |
 | **Agentforce** | `.a4drules/00-base-guidelines.md`, `01-salesforce-standards.md`, `<profile>.md`, `99-sub-agent-protocol.md`, `workflows/*.md` |
 
 ---

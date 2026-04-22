@@ -13,6 +13,7 @@ Detection logic:
 - `.cursor/rules/*.mdc` — checks `pluginVersion:` in frontmatter.
 - `.github/copilot-instructions.md` — checks `<!-- setup-agents: x.y.z -->` comment.
 - `AGENTS.md` — checks `<!-- setup-agents: x.y.z -->` comment.
+- `CLAUDE.md` — checks `<!-- setup-agents: x.y.z -->` comment.
 - `.a4drules/*.md` — checks `<!-- setup-agents: x.y.z -->` comment.
 
 Active profiles are inferred from the filenames in `.cursor/rules/` (e.g. `developer-standards.mdc`
