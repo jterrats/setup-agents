@@ -17,6 +17,7 @@
 export { generateBaseGuidelines, generateSfStandards, generateSubAgentProtocol } from './mdc-generator.js';
 export { generateCopilotInstructions } from './copilot-generator.js';
 export { generateAgentsMd } from './codex-generator.js';
+export { generateClaudeMd } from './claude-generator.js';
 export { generateExtensionsJson } from './extensions-generator.js';
 export { generateA4dBaseGuidelines } from './agentforce-generator.js';
 export {

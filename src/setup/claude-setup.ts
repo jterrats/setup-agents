@@ -14,8 +14,19 @@
  * limitations under the License.
  */
 
-export { setupCursor } from './cursor-setup.js';
-export { setupVsCode } from './vscode-setup.js';
-export { setupCodex } from './codex-setup.js';
-export { setupClaude } from './claude-setup.js';
-export { setupAgentforce } from './agentforce-setup.js';
+import { join } from 'node:path';
+import { generateClaudeMd } from '../generators/claude-generator.js';
+import type { Profile } from '../profiles/index.js';
+import type { FileWriter } from '../services/file-writer.js';
+import { PLUGIN_VERSION } from '../version.js';
+
+export type ClaudeSetupOptions = {
+  cwd: string;
+  profiles: Profile[];
+  writer: FileWriter;
+};
+
+export function setupClaude(opts: ClaudeSetupOptions): void {
+  const { cwd, profiles, writer } = opts;
+  writer.write(join(cwd, 'CLAUDE.md'), generateClaudeMd(profiles, PLUGIN_VERSION));
+}

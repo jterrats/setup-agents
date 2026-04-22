@@ -16,7 +16,7 @@
 
 import type { ProfileId } from '../profiles/index.js';
 
-export type SupportedTool = 'cursor' | 'vscode' | 'codex' | 'agentforce';
+export type SupportedTool = 'cursor' | 'vscode' | 'codex' | 'claude' | 'agentforce';
 
 export type SetupLocalResult = {
   configured: string[];
@@ -33,4 +33,4 @@ export type Result<T, E = Error> = { ok: true; value: T } | { ok: false; error: 
 export const ok = <T>(value: T): Result<T, never> => ({ ok: true, value });
 export const err = <E>(error: E): Result<never, E> => ({ ok: false, error });
 
-export const SUPPORTED_TOOLS: SupportedTool[] = ['cursor', 'vscode', 'codex', 'agentforce'];
+export const SUPPORTED_TOOLS: SupportedTool[] = ['cursor', 'vscode', 'codex', 'claude', 'agentforce'];

@@ -1,0 +1,65 @@
+{
+  "name": "setup-agents-ui",
+  "displayName": "Setup Agents UI",
+  "description": "UI companion for sf setup-agents (profiles, rules, and guided setup).",
+  "version": "0.1.0",
+  "publisher": "jterrats",
+  "license": "Apache-2.0",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "setupAgentsUi.open",
+        "title": "Setup Agents: Open UI"
+      },
+      {
+        "command": "setupAgentsUi.importRulesFromUrl",
+        "title": "Setup Agents: Import Rules From URL"
+      },
+      {
+        "command": "setupAgentsUi.importRulesFromFile",
+        "title": "Setup Agents: Import Rules From File"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "setupAgentsUi",
+          "title": "Setup Agents",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "setupAgentsUi": [
+        {
+          "id": "setupAgentsUi.sidebar",
+          "name": "Control Center"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "clean": "rm -rf out",
+    "lint": "eslint src --ext .ts",
+    "test": "node --test out/test/**/*.test.js",
+    "pretest": "npm run build",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "@types/vscode": "^1.90.0",
+    "@typescript-eslint/eslint-plugin": "^7.16.1",
+    "@typescript-eslint/parser": "^7.16.1",
+    "@vscode/vsce": "^3.2.2",
+    "eslint": "^8.57.0",
+    "typescript": "^5.5.4"
+  }
+}

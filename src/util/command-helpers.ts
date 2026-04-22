@@ -49,6 +49,7 @@ export function detectTools(cwd: string): SupportedTool[] {
   if (existsSync(join(cwd, '.cursor'))) detected.push('cursor');
   if (existsSync(join(cwd, '.vscode'))) detected.push('vscode');
   if (existsSync(join(cwd, 'AGENTS.md'))) detected.push('codex');
+  if (existsSync(join(cwd, 'CLAUDE.md'))) detected.push('claude');
   if (existsSync(join(cwd, '.a4drules'))) detected.push('agentforce');
   return detected.length === 0 ? SUPPORTED_TOOLS : detected;
 }
@@ -122,6 +123,7 @@ export function findStaleFiles(cwd: string): Array<{ file: string; tool: Support
 
   checkFlat(join(cwd, '.github', 'copilot-instructions.md'), 'vscode');
   checkFlat(join(cwd, 'AGENTS.md'), 'codex');
+  checkFlat(join(cwd, 'CLAUDE.md'), 'claude');
 
   const a4dDir = join(cwd, '.a4drules');
   if (existsSync(a4dDir)) {
