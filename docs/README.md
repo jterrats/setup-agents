@@ -1,6 +1,6 @@
 # setup-agents — Documentation
 
-> Central hub for all `@jterrats/plugin-setup-agents` documentation.
+> Central hub for all `@jterrats/setup-agents` documentation.
 
 ---
 
@@ -50,6 +50,6 @@ docs/
 
 ---
 
-**Last Updated:** March 2026
-**Version:** 0.2.0
+**Last Updated:** April 2026
+**Version:** 1.1.0
 **Author:** Jaime Terrats

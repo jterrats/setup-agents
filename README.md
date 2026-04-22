@@ -11,7 +11,7 @@
 
 ## About
 
-`setup-agents` is a Salesforce CLI plugin that sets up AI coding assistant rules and role-based profiles for any project. One command configures [Cursor](https://cursor.sh), [GitHub Copilot](https://code.visualstudio.com/docs/copilot/overview), [OpenAI Codex CLI](https://github.com/openai/codex), and [Agentforce Vibes](https://developer.salesforce.com/docs/platform/einstein-for-devs/guide/devagent-rules.html) simultaneously — with rules tailored to the specific roles working in the project.
+`setup-agents` is a Salesforce CLI plugin that sets up AI coding assistant rules and role-based profiles for any project. One command configures [Cursor](https://cursor.sh), [GitHub Copilot](https://code.visualstudio.com/docs/copilot/overview), [OpenAI Codex CLI](https://github.com/openai/codex), [Anthropic Claude Code](https://docs.anthropic.com/en/docs/claude-code), and [Agentforce Vibes](https://developer.salesforce.com/docs/platform/einstein-for-devs/guide/devagent-rules.html) simultaneously — with rules tailored to the specific roles working in the project.
 
 - **10 role profiles** — Developer, Architect, BA, MuleSoft, UX, CGCloud, DevOps, QA, CRMA, Data Cloud
 - **Auto-detection** — detects `cgcloud__`, `WaveDashboard`, `DataStream`, Playwright config, and more
@@ -86,6 +86,7 @@ graph TD
         cursorSetup["cursor-setup.ts"]
         vscodeSetup["vscode-setup.ts"]
         codexSetup["codex-setup.ts"]
+        claudeSetup["claude-setup.ts"]
         a4dSetup["agentforce-setup.ts"]
     end
 
@@ -95,6 +96,7 @@ graph TD
         copilotGen["copilot-generator"]
         extGen["extensions-generator"]
         codexGen["codex-generator"]
+        claudeGen["claude-generator"]
         a4dGen["agentforce-generator"]
         sharedGen["shared"]
     end
@@ -104,6 +106,7 @@ graph TD
     local --> cursorSetup
     local --> vscodeSetup
     local --> codexSetup
+    local --> claudeSetup
     local --> a4dSetup
 
     cursorSetup --> mdcGen
@@ -111,9 +114,11 @@ graph TD
     vscodeSetup --> copilotGen
     vscodeSetup --> extGen
     codexSetup --> codexGen
+    claudeSetup --> claudeGen
     a4dSetup --> a4dGen
     a4dSetup --> workflowGen
     a4dGen --> sharedGen
+    claudeGen --> sharedGen
 
     mcp --> orgList["sf org list"]
     mcp --> mcpJson[".cursor/mcp.json"]
@@ -225,13 +230,13 @@ Configure AI agent rules for the local development environment.
 
 ```
 USAGE
-  $ sf setup-agents local [--rules cursor|vscode|codex|agentforce] [--profile <value>] [-f] [--json]
+  $ sf setup-agents local [--rules cursor|vscode|codex|claude|agentforce] [--profile <value>] [-f] [--json]
 
 FLAGS
   -f, --force            Overwrite existing rule files.
   --profile=<value>      Role profiles to configure (comma-separated).
   --rules=<option>       Target AI tool to configure.
-                         <options: cursor|vscode|codex|agentforce>
+                         <options: cursor|vscode|codex|claude|agentforce>
 
 DESCRIPTION
   Sets up agent rule files for AI coding assistants in the current project directory.
@@ -240,15 +245,17 @@ DESCRIPTION
   - cursor      — Creates .cursor/rules/agent-guidelines.mdc and per-profile rule files.
   - vscode      — Creates .github/copilot-instructions.md and .vscode/extensions.json.
   - codex       — Creates AGENTS.md for OpenAI Codex CLI.
+  - claude      — Creates CLAUDE.md for Anthropic Claude Code.
   - agentforce  — Creates .a4drules/ rule files and workflow files.
 
   If --rules is omitted, the command auto-detects installed tools by checking for:
     .cursor/      → cursor
     .vscode/      → vscode
     AGENTS.md     → codex
+    CLAUDE.md     → claude
     .a4drules/    → agentforce
 
-  If no tools are detected, all four are configured.
+  If no tools are detected, all five are configured.
   If --profile is omitted, profiles are auto-detected and presented as a multi-select prompt.
   In non-interactive mode, developer is used as the default profile.
 ```
@@ -261,6 +268,9 @@ sf setup-agents local
 
 # Configure Cursor with a specific profile
 sf setup-agents local --rules cursor --profile developer
+
+# Configure Claude Code
+sf setup-agents local --rules claude --profile developer
 
 # Stack multiple profiles across all tools
 sf setup-agents local --profile developer,architect,cgcloud
@@ -342,6 +352,7 @@ DESCRIPTION
     .cursor/rules/*.mdc
     .github/copilot-instructions.md
     AGENTS.md
+    CLAUDE.md
     .a4drules/*.md
     .a4drules/workflows/*.md
 

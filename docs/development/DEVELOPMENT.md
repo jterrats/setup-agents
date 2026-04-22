@@ -1,6 +1,6 @@
 # Development Guide
 
-Everything you need to contribute to `@jterrats/plugin-setup-agents`.
+Everything you need to contribute to `@jterrats/setup-agents`.
 
 ---
 
@@ -18,14 +18,14 @@ Everything you need to contribute to `@jterrats/plugin-setup-agents`.
 
 ```sh
 # Clone
-git clone https://github.com/jterrats/plugin-setup-agents.git
-cd plugin-setup-agents
+git clone https://github.com/jterrats/setup-agents.git
+cd setup-agents
 
 # Install dependencies
-npm install
+yarn install
 
 # Compile TypeScript
-npm run compile
+yarn compile
 
 # Link as a local SF plugin
 sf plugins link .
@@ -36,29 +36,60 @@ sf plugins link .
 ## Project Structure
 
 ```
-plugin-setup-agents/
+setup-agents/
 ├── src/
 │   ├── commands/
-│   │   └── setup/
-│   │       └── local.ts          ← Main command
-│   └── profiles/
-│       ├── types.ts              ← Profile and ProfileId types
-│       ├── index.ts              ← ALL_PROFILES array + re-exports
-│       ├── developer.ts
-│       ├── architect.ts
-│       ├── ba.ts
-│       ├── mulesoft.ts
-│       ├── ux.ts
-│       ├── cgcloud.ts
-│       ├── devops.ts
-│       ├── qa.ts
-│       ├── crma.ts
-│       └── data360.ts
+│   │   └── setup-agents/
+│   │       ├── local.ts          ← Main command
+│   │       ├── mcp.ts            ← MCP server configuration
+│   │       └── update.ts         ← Stale-file updater
+│   ├── generators/
+│   │   ├── index.ts              ← Barrel exports
+│   │   ├── mdc-generator.ts      ← .mdc (Cursor) generator
+│   │   ├── copilot-generator.ts  ← copilot-instructions.md
+│   │   ├── codex-generator.ts    ← AGENTS.md (Codex)
+│   │   ├── claude-generator.ts   ← CLAUDE.md (Claude Code)
+│   │   ├── agentforce-generator.ts ← .a4drules/ (Agentforce Vibes)
+│   │   ├── extensions-generator.ts ← .vscode/extensions.json
+│   │   ├── workflow-generator.ts ← Agentforce workflows
+│   │   └── shared.ts            ← Shared utilities
+│   ├── profiles/
+│   │   ├── types.ts              ← Profile and ProfileId types
+│   │   ├── index.ts              ← ALL_PROFILES array + re-exports
+│   │   ├── developer.ts
+│   │   ├── architect.ts
+│   │   ├── ba.ts
+│   │   ├── mulesoft.ts
+│   │   ├── ux.ts
+│   │   ├── cgcloud.ts
+│   │   ├── devops.ts
+│   │   ├── qa.ts
+│   │   ├── crma.ts
+│   │   └── data360.ts
+│   ├── setup/
+│   │   ├── index.ts              ← Barrel exports
+│   │   ├── cursor-setup.ts
+│   │   ├── vscode-setup.ts
+│   │   ├── codex-setup.ts
+│   │   ├── claude-setup.ts
+│   │   └── agentforce-setup.ts
+│   ├── services/
+│   │   └── file-writer.ts        ← File write abstraction
+│   ├── types/
+│   │   └── index.ts              ← SupportedTool, shared types
+│   └── util/
+│       └── command-helpers.ts    ← detectTools(), findStaleFiles()
 ├── messages/
-│   └── setup.local.md            ← Oclif i18n messages
+│   ├── setup-agents.local.md     ← Oclif i18n messages
+│   ├── setup-agents.mcp.md
+│   └── setup-agents.update.md
 ├── test/
-│   └── commands/setup/
-│       └── local.test.ts         ← Unit tests
+│   ├── commands/setup-agents/
+│   │   ├── local.test.ts
+│   │   └── update.test.ts
+│   └── unit/generators/
+│       ├── claude-generator.test.ts
+│       └── workflow-generator.test.ts
 ├── docs/                         ← This documentation
 └── command-snapshot.json         ← Oclif deprecation policy snapshot
 ```
@@ -105,7 +136,7 @@ export const myProfile: Profile = {
 
 4. **Update `command-snapshot.json`** if the flag shape changes (it won't for a new profile)
 
-5. **Add tests** in `test/commands/setup/local.test.ts`
+5. **Add tests** in `test/commands/setup-agents/local.test.ts`
 
 ---
 
@@ -128,7 +159,7 @@ Tests run against isolated `tmp/` directories — each test creates a fresh temp
 
 ## Messages (i18n)
 
-All user-facing strings live in `messages/setup.local.md` using the oclif message format. Add new keys at the bottom:
+All user-facing strings live in `messages/setup-agents.local.md` (and `.mcp.md`, `.update.md`) using the oclif message format. Add new keys at the bottom:
 
 ```markdown
 # my.new.key
