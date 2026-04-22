@@ -25,7 +25,7 @@ defaults:
     values:
       layout: 'default'
 
-version: 0.1.0
-repository: jterrats/plugin-setup-agents
+version: 1.1.0
+repository: jterrats/setup-agents
 github_username: jterrats
 license: Apache-2.0

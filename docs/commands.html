@@ -23,7 +23,7 @@ description: Reference for all sf setup-agents commands — local, mcp, and upda
         Auto-detects installed tools and prompts for role profile selection.
       </p>
 
-      <pre><code>sf setup-agents local [--rules cursor|vscode|codex|agentforce]
+      <pre><code>sf setup-agents local [--rules {{ site.data.tools | map: "id" | join: "|" }}]
                       [--profile &lt;value&gt;] [-f]</code></pre>
 
       <h3>Flags</h3>
@@ -39,7 +39,7 @@ description: Reference for all sf setup-agents commands — local, mcp, and upda
           <tr>
             <td><code>--rules</code></td>
             <td>string</td>
-            <td>Target AI tool. Options: <code>cursor</code> · <code>vscode</code> · <code>codex</code> · <code>agentforce</code>. Omit to auto-detect.</td>
+            <td>Target AI tool. Options: {% for t in site.data.tools %}<code>{{ t.id }}</code>{% unless forloop.last %} · {% endunless %}{% endfor %}. Omit to auto-detect.</td>
           </tr>
           <tr>
             <td><code>--profile</code></td>
@@ -61,11 +61,10 @@ description: Reference for all sf setup-agents commands — local, mcp, and upda
           <tr><th>Indicator</th><th>Tool Configured</th></tr>
         </thead>
         <tbody>
-          <tr><td><code>.cursor/</code> directory</td><td>cursor</td></tr>
-          <tr><td><code>.vscode/</code> directory</td><td>vscode</td></tr>
-          <tr><td><code>AGENTS.md</code> file</td><td>codex</td></tr>
-          <tr><td><code>.a4drules/</code> directory</td><td>agentforce</td></tr>
-          <tr><td><em>none detected</em></td><td>all four tools</td></tr>
+          {% for t in site.data.tools %}
+          <tr><td><code>{{ t.detect }}</code></td><td>{{ t.id }}</td></tr>
+          {% endfor %}
+          <tr><td><em>none detected</em></td><td>all {{ site.data.tools | size }} tools</td></tr>
         </tbody>
       </table>
 
@@ -75,6 +74,9 @@ sf setup-agents local
 
 # Configure only Cursor
 sf setup-agents local --rules cursor
+
+# Configure Claude Code
+sf setup-agents local --rules claude
 
 # Configure with multiple combined profiles
 sf setup-agents local --profile developer,architect,cgcloud
@@ -215,6 +217,7 @@ sf setup-agents mcp --target-org myOrg --profile developer</code></pre>
           <tr><td><code>.cursor/rules/*.mdc</code></td><td><code>pluginVersion: "x.y.z"</code> in frontmatter</td></tr>
           <tr><td><code>.github/copilot-instructions.md</code></td><td><code>&lt;!-- setup-agents: x.y.z --&gt;</code></td></tr>
           <tr><td><code>AGENTS.md</code></td><td><code>&lt;!-- setup-agents: x.y.z --&gt;</code></td></tr>
+          <tr><td><code>CLAUDE.md</code></td><td><code>&lt;!-- setup-agents: x.y.z --&gt;</code></td></tr>
           <tr><td><code>.a4drules/*.md</code></td><td><code>&lt;!-- setup-agents: x.y.z --&gt;</code></td></tr>
           <tr><td><code>.a4drules/workflows/*.md</code></td><td><code>&lt;!-- setup-agents: x.y.z --&gt;</code></td></tr>
         </tbody>

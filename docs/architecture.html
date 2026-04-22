@@ -65,6 +65,7 @@ description: Layered architecture of the setup-agents plugin — commands, setup
         <code>cursor-setup.ts</code> &nbsp;·&nbsp;
         <code>vscode-setup.ts</code> &nbsp;·&nbsp;
         <code>codex-setup.ts</code> &nbsp;·&nbsp;
+        <code>claude-setup.ts</code> &nbsp;·&nbsp;
         <code>agentforce-setup.ts</code>
       </p>
       <p style="margin:0.4rem 0 0; font-size:0.82rem; color:#777">
@@ -93,6 +94,10 @@ description: Layered architecture of the setup-agents plugin — commands, setup
         <div style="background:white; padding:0.6rem 0.8rem; border-radius:6px; border-left:3px solid #667eea; font-size:0.82rem">
           <strong style="color:#667eea">codex-generator</strong><br>
           <span style="color:#666">AGENTS.md content</span>
+        </div>
+        <div style="background:white; padding:0.6rem 0.8rem; border-radius:6px; border-left:3px solid #667eea; font-size:0.82rem">
+          <strong style="color:#667eea">claude-generator</strong><br>
+          <span style="color:#666">CLAUDE.md content</span>
         </div>
         <div style="background:white; padding:0.6rem 0.8rem; border-radius:6px; border-left:3px solid #667eea; font-size:0.82rem">
           <strong style="color:#667eea">extensions-generator</strong><br>
@@ -132,6 +137,7 @@ description: Layered architecture of the setup-agents plugin — commands, setup
 │   ├── workflow-generator.ts
 │   ├── copilot-generator.ts
 │   ├── codex-generator.ts
+│   ├── claude-generator.ts
 │   ├── extensions-generator.ts
 │   ├── agentforce-generator.ts
 │   ├── shared.ts
@@ -140,6 +146,7 @@ description: Layered architecture of the setup-agents plugin — commands, setup
 │   ├── cursor-setup.ts
 │   ├── vscode-setup.ts
 │   ├── codex-setup.ts
+│   ├── claude-setup.ts
 │   ├── agentforce-setup.ts
 │   └── index.ts
 ├── profiles/
@@ -182,11 +189,12 @@ description: Layered architecture of the setup-agents plugin — commands, setup
     </div>
     <div class="card">
       <h4><code>SupportedTool</code></h4>
-      <p>Union type for the four supported AI tools. Used by <code>detectTools()</code> and the <code>--rules</code> flag.</p>
+      <p>Union type for the {{ site.data.tools | size }} supported AI tools. Used by <code>detectTools()</code> and the <code>--rules</code> flag.</p>
       <pre><code>type SupportedTool =
   | 'cursor'
   | 'vscode'
   | 'codex'
+  | 'claude'
   | 'agentforce'</code></pre>
     </div>
     <div class="card">

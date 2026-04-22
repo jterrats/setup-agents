@@ -89,7 +89,7 @@ description: Error-Driven Development methodology applied to setup-agents. Test 
     </div>
     <div class="card">
       <h4>No Tools Detected</h4>
-      <p>When no tool indicators (<code>.cursor/</code>, <code>.vscode/</code>, etc.) are found, all four tools are configured as a safe default. Never returns empty.</p>
+      <p>When no tool indicators (<code>.cursor/</code>, <code>.vscode/</code>, etc.) are found, all {{ site.data.tools | size }} tools are configured as a safe default. Never returns empty.</p>
     </div>
     <div class="card">
       <h4>Non-interactive Mode</h4>
@@ -246,6 +246,7 @@ description: Error-Driven Development methodology applied to setup-agents. Test 
 └── unit/
     ├── generators/
     │   ├── mdc-generator.test.ts
+    │   ├── claude-generator.test.ts
     │   ├── workflow-generator.test.ts
     │   └── shared.test.ts
     └── setup/

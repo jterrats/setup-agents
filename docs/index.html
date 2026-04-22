@@ -2,7 +2,7 @@
 layout: default
 title: Home
 permalink: /
-description: Salesforce CLI plugin to configure AI agent rules and role profiles for Cursor, VS Code, Codex, and Agentforce in seconds.
+description: Salesforce CLI plugin to configure AI agent rules and role profiles for Cursor, VS Code, Codex, Claude, and Agentforce in seconds.
 ---
 
 <!-- Hero -->
@@ -21,12 +21,10 @@ description: Salesforce CLI plugin to configure AI agent rules and role profiles
 
 <!-- Hero description -->
 <section class="hero-section" style="margin-top:0">
-  <h2>🤖 One command. Four AI tools. Ten role profiles.</h2>
+  <h2>🤖 One command. {{ site.data.tools | size }} AI tools. Ten role profiles.</h2>
   <p style="font-size:1.15rem; line-height:1.8; color:#333; margin-bottom:1.5rem">
-    <strong>setup-agents</strong> configures <a href="https://cursor.sh" style="color:#667eea">Cursor</a>,
-    <a href="https://code.visualstudio.com/docs/copilot/overview" style="color:#667eea">GitHub Copilot</a>,
-    <a href="https://github.com/openai/codex" style="color:#667eea">OpenAI Codex</a>, and
-    <a href="https://developer.salesforce.com/docs/platform/einstein-for-devs/guide/devagent-rules.html" style="color:#667eea">Agentforce Vibes</a>
+    <strong>setup-agents</strong> configures
+    {% for tool in site.data.tools %}<a href="{{ tool.url }}" style="color:#667eea">{{ tool.label | default: tool.name }}</a>{% if forloop.rindex == 2 %}, and {% elsif forloop.last == false %}, {% endif %}{% endfor %}
     with role-aware rules so every AI assistant in your team has the same architectural context.
   </p>
 
@@ -51,8 +49,8 @@ sf setup-agents local</code></pre>
     </div>
     <div class="status-item">
       <h4>AI Tools</h4>
-      <div class="number">4</div>
-      <p style="font-size:0.85rem;color:#999;margin-top:0.3rem">Cursor · VS Code · Codex · Agentforce</p>
+      <div class="number">{{ site.data.tools | size }}</div>
+      <p style="font-size:0.85rem;color:#999;margin-top:0.3rem">{{ site.data.tools | map: "name" | join: " · " }}</p>
     </div>
     <div class="status-item">
       <h4>Commands</h4>
@@ -78,7 +76,7 @@ sf setup-agents local</code></pre>
   <div class="feature-grid">
     <div class="feature-card">
       <h4>🔍 Auto-Detection</h4>
-      <p>Detects installed tools (.cursor, .vscode, AGENTS.md, .a4drules) and active profiles (cgcloud__, WaveDashboard, DataStream, Playwright) automatically.</p>
+      <p>Detects installed tools ({% for t in site.data.tools %}{{ t.detect | split: " " | first }}{% unless forloop.last %}, {% endunless %}{% endfor %}) and active profiles (cgcloud__, WaveDashboard, DataStream, Playwright) automatically.</p>
     </div>
     <div class="feature-card">
       <h4>🎭 Role Profiles</h4>
@@ -145,30 +143,12 @@ sf setup-agents local \
 <section>
   <h2>📂 Files Generated</h2>
   <div class="card-grid">
+    {% for tool in site.data.tools %}
     <div class="card">
-      <h4>Cursor</h4>
-      <p><code>.cursor/rules/agent-guidelines.mdc</code><br>
-      <code>.cursor/rules/salesforce-standards.mdc</code><br>
-      <code>.cursor/rules/&lt;profile&gt;-standards.mdc</code><br>
-      <code>.cursor/rules/sub-agent-protocol.mdc</code></p>
+      <h4>{{ tool.name }}</h4>
+      <p>{% for f in tool.files %}<code>{{ f }}</code>{% unless forloop.last %}<br>{% endunless %}{% endfor %}</p>
     </div>
-    <div class="card">
-      <h4>VS Code</h4>
-      <p><code>.github/copilot-instructions.md</code><br>
-      <code>.vscode/extensions.json</code></p>
-    </div>
-    <div class="card">
-      <h4>Codex</h4>
-      <p><code>AGENTS.md</code></p>
-    </div>
-    <div class="card">
-      <h4>Agentforce</h4>
-      <p><code>.a4drules/00-base-guidelines.md</code><br>
-      <code>.a4drules/01-salesforce-standards.md</code><br>
-      <code>.a4drules/&lt;N&gt;-&lt;profile&gt;.md</code><br>
-      <code>.a4drules/99-sub-agent-protocol.md</code><br>
-      <code>.a4drules/workflows/*.md</code></p>
-    </div>
+    {% endfor %}
   </div>
 </section>
 

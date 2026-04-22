@@ -1,0 +1,46 @@
+- id: cursor
+  name: Cursor
+  url: https://cursor.sh
+  detect: ".cursor/ directory"
+  files:
+    - ".cursor/rules/agent-guidelines.mdc"
+    - ".cursor/rules/salesforce-standards.mdc"
+    - ".cursor/rules/<profile>-standards.mdc"
+    - ".cursor/rules/sub-agent-protocol.mdc"
+
+- id: vscode
+  name: VS Code
+  url: https://code.visualstudio.com/docs/copilot/overview
+  label: GitHub Copilot
+  detect: ".vscode/ directory"
+  files:
+    - ".github/copilot-instructions.md"
+    - ".vscode/extensions.json"
+
+- id: codex
+  name: Codex
+  url: https://github.com/openai/codex
+  label: OpenAI Codex
+  detect: "AGENTS.md file"
+  files:
+    - "AGENTS.md"
+
+- id: claude
+  name: Claude
+  url: https://docs.anthropic.com/en/docs/claude-code
+  label: Anthropic Claude Code
+  detect: "CLAUDE.md file"
+  files:
+    - "CLAUDE.md"
+
+- id: agentforce
+  name: Agentforce
+  url: https://developer.salesforce.com/docs/platform/einstein-for-devs/guide/devagent-rules.html
+  label: Agentforce Vibes
+  detect: ".a4drules/ directory"
+  files:
+    - ".a4drules/00-base-guidelines.md"
+    - ".a4drules/01-salesforce-standards.md"
+    - ".a4drules/<N>-<profile>.md"
+    - ".a4drules/99-sub-agent-protocol.md"
+    - ".a4drules/workflows/*.md"
