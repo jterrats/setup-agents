@@ -24,7 +24,14 @@ export function getHtml(webview: vscode.Webview, extensionUri: vscode.Uri): stri
     .header img { width: 18px; height: 18px; }
     .card { border: 1px solid var(--vscode-editorWidget-border); border-radius: 8px; padding: 10px; margin-bottom: 12px; }
     .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
-    .profiles { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .profiles { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 8px 0; }
+    .profile-card { display: flex; align-items: flex-start; gap: 6px; padding: 6px 8px; border: 1px solid var(--vscode-editorWidget-border); border-radius: 6px; cursor: pointer; transition: border-color 0.15s; }
+    .profile-card:hover { border-color: var(--vscode-focusBorder); }
+    .profile-card.selected { border-color: var(--vscode-focusBorder); background: var(--vscode-list-activeSelectionBackground); color: var(--vscode-list-activeSelectionForeground); }
+    .profile-card input[type=checkbox] { margin-top: 2px; }
+    .profile-card .profile-info { display: flex; flex-direction: column; }
+    .profile-card .profile-name { font-weight: bold; font-size: 0.92em; }
+    .profile-card .profile-desc { font-size: 0.8em; opacity: 0.75; }
     .muted { opacity: 0.8; font-size: 0.9em; }
     textarea { width: 100%; min-height: 170px; background: var(--vscode-input-background); color: var(--vscode-input-foreground); border: 1px solid var(--vscode-input-border); border-radius: 4px; padding: 8px; }
     select, input, button { background: var(--vscode-input-background); color: var(--vscode-input-foreground); border: 1px solid var(--vscode-input-border); border-radius: 4px; padding: 6px 8px; }
@@ -84,7 +91,8 @@ export function getHtml(webview: vscode.Webview, extensionUri: vscode.Uri): stri
 
   <script nonce="${nonce}">
     const vscode = acquireVsCodeApi();
-    const state = { profiles: [], selectedRulePath: null };
+    const persisted = vscode.getState() || {};
+    const state = { profiles: [], selectedRulePath: null, selectedProfileIds: persisted.selectedProfileIds || ['developer'] };
     const toolsEl = document.getElementById('tools');
     const profilesEl = document.getElementById('profiles');
     const consoleEl = document.getElementById('console');
@@ -160,12 +168,21 @@ export function getHtml(webview: vscode.Webview, extensionUri: vscode.Uri): stri
           .map((t) => \`\${t.id}: \${t.detected ? 'detected' : 'not detected'} (\${t.reason})\`)
           .join(' | ');
         state.profiles = message.payload.profiles;
+        const savedSelections = state.selectedProfileIds;
         profilesEl.innerHTML = '';
         profileDetailsSelect.innerHTML = '';
         for (const profile of message.payload.profiles) {
-          const label = document.createElement('label');
-          label.innerHTML = \`<input type="checkbox" value="\${profile.id}" \${profile.id === 'developer' ? 'checked' : ''} /> \${profile.label}\`;
-          profilesEl.appendChild(label);
+          const isChecked = savedSelections.includes(profile.id);
+          const card = document.createElement('label');
+          card.className = 'profile-card' + (isChecked ? ' selected' : '');
+          card.innerHTML = \`<input type="checkbox" value="\${profile.id}" \${isChecked ? 'checked' : ''} /><div class="profile-info"><span class="profile-name">\${profile.label}</span><span class="profile-desc">\${profile.description}</span></div>\`;
+          const checkbox = card.querySelector('input');
+          checkbox.addEventListener('change', () => {
+            card.classList.toggle('selected', checkbox.checked);
+            state.selectedProfileIds = selectedProfiles();
+            vscode.setState({ selectedProfileIds: state.selectedProfileIds });
+          });
+          profilesEl.appendChild(card);
           const option = document.createElement('option');
           option.value = profile.id;
           option.textContent = profile.label;
