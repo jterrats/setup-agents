@@ -220,9 +220,9 @@ sf plugins install @jterrats/setup-agents
 
 <!-- commands -->
 
-- [`sf setup-agents local`](#sf-setup-local)
-- [`sf setup-agents mcp`](#sf-setup-mcp)
-- [`sf setup-agents update`](#sf-setup-update)
+- [`sf setup-agents local`](#sf-setup-agents-local)
+- [`sf setup-agents mcp`](#sf-setup-agents-mcp)
+- [`sf setup-agents update`](#sf-setup-agents-update)
 
 ## `sf setup-agents local`
 
@@ -230,107 +230,197 @@ Configure AI agent rules for the local development environment.
 
 ```
 USAGE
-  $ sf setup-agents local [--rules cursor|vscode|codex|claude|agentforce] [--profile <value>] [-f] [--json]
+  $ sf setup-agents local [--json] [--flags-dir <value>] [--rules cursor|vscode|codex|claude|agentforce] [--profile
+    developer|architect|ba|mulesoft|ux|cgcloud|devops|qa|crma|data360] [-f]
 
 FLAGS
-  -f, --force            Overwrite existing rule files.
-  --profile=<value>      Role profiles to configure (comma-separated).
-  --rules=<option>       Target AI tool to configure.
-                         <options: cursor|vscode|codex|claude|agentforce>
+  -f, --force                                                                      Overwrite existing rule files.
+      --profile=developer|architect|ba|mulesoft|ux|cgcloud|devops|qa|crma|data360  Role profiles to configure
+                                                                                   (comma-separated).
+      --rules=cursor|vscode|codex|claude|agentforce                                Target AI tool to configure (cursor,
+                                                                                   vscode, codex, claude, agentforce).
+
+GLOBAL FLAGS
+  --flags-dir=<value>  Import flag values from a directory.
+  --json               Format output as json.
 
 DESCRIPTION
+  Configure AI agent rules for the local development environment.
+
   Sets up agent rule files for AI coding assistants in the current project directory.
 
   Supported tools:
-  - cursor      — Creates .cursor/rules/agent-guidelines.mdc and per-profile rule files.
-  - vscode      — Creates .github/copilot-instructions.md and .vscode/extensions.json.
-  - codex       — Creates AGENTS.md for OpenAI Codex CLI.
-  - claude      — Creates CLAUDE.md for Anthropic Claude Code.
-  - agentforce  — Creates .a4drules/ rule files and workflow files.
 
-  If --rules is omitted, the command auto-detects installed tools by checking for:
-    .cursor/      → cursor
-    .vscode/      → vscode
-    AGENTS.md     → codex
-    CLAUDE.md     → claude
-    .a4drules/    → agentforce
+  - **cursor** — Creates `.cursor/rules/agent-guidelines.mdc` and per-profile rule files for Cursor AI.
+  - **vscode** — Creates `.github/copilot-instructions.md` and `.vscode/extensions.json` for GitHub Copilot.
+  - **codex** — Creates `AGENTS.md` for OpenAI Codex CLI.
+  - **claude** — Creates `CLAUDE.md` for Anthropic Claude Code.
+  - **agentforce** — Creates `.a4drules/` numbered markdown files for Agentforce Vibes Extension.
 
-  If no tools are detected, all five are configured.
-  If --profile is omitted, profiles are auto-detected and presented as a multi-select prompt.
-  In non-interactive mode, developer is used as the default profile.
+  If `--rules` is omitted, the command auto-detects installed tools based on existing directories
+  (`.cursor`, `.vscode`, `AGENTS.md`, `CLAUDE.md`, `.a4drules`). If none are detected, all tools are configured.
+
+  If `--profile` is omitted, the command auto-detects profiles from the project structure and
+  presents a selection prompt. If nothing is selected, the `developer` profile is used by default.
+
+  Use `--force` to overwrite existing files (useful when running `sf setup-agents update` under the hood).
+
+EXAMPLES
+  Configure all detected AI tools with interactive profile selection:
+
+    $ sf setup-agents local
+
+  Configure only Cursor rules:
+
+    $ sf setup-agents local --rules cursor
+
+  Configure only GitHub Copilot instructions for VS Code:
+
+    $ sf setup-agents local --rules vscode
+
+  Configure only Codex (AGENTS.md):
+
+    $ sf setup-agents local --rules codex
+
+  Configure Claude Code (CLAUDE.md):
+
+    $ sf setup-agents local --rules claude
+
+  Configure Agentforce Vibes rules:
+
+    $ sf setup-agents local --rules agentforce
+
+  Configure with a specific profile:
+
+    $ sf setup-agents local --profile developer
+
+  Configure with multiple combined profiles:
+
+    $ sf setup-agents local --profile developer,architect,cgcloud
+
+  Configure QA automation profile:
+
+    $ sf setup-agents local --profile qa
+
+  Force overwrite all existing rule files:
+
+    $ sf setup-agents local --force
+
+FLAG DESCRIPTIONS
+  -f, --force  Overwrite existing rule files.
+
+    Force overwrite of all generated files, even if they already exist.
+    Use this flag after updating your profiles or when the plugin version has changed.
+
+  --profile=developer|architect|ba|mulesoft|ux|cgcloud|devops|qa|crma|data360
+
+    Role profiles to configure (comma-separated).
+
+    Specify one or more role profiles as a comma-separated list. Each profile generates a dedicated
+    rule file with role-specific agent guidance and adds the relevant VS Code extensions.
+
+    Valid profiles: developer, architect, ba, mulesoft, ux, cgcloud, devops, qa, crma, data360
+
+    When omitted, the command auto-detects profiles from the project structure and presents an
+    interactive multi-select prompt. If no profile is selected, `developer` is used as the default.
+
+  --rules=cursor|vscode|codex|claude|agentforce  Target AI tool to configure (cursor, vscode, codex, claude, agentforce).
+
+    Specify which AI coding assistant to configure. Valid options are `cursor`, `vscode`, `codex`, `claude`, or
+    `agentforce`.
+    When omitted, the command auto-detects tools present in the project; if none are found, all tools are configured.
 ```
 
-**Examples:**
-
-```sh
-# Interactive — auto-detect tools and prompt for profiles
-sf setup-agents local
-
-# Configure Cursor with a specific profile
-sf setup-agents local --rules cursor --profile developer
-
-# Configure Claude Code
-sf setup-agents local --rules claude --profile developer
-
-# Stack multiple profiles across all tools
-sf setup-agents local --profile developer,architect,cgcloud
-
-# Full Agentforce setup for a QA engineer
-sf setup-agents local --rules agentforce --profile qa
-
-# Overwrite existing files
-sf setup-agents local --force
-```
-
-_See code: [src/commands/setup-agents/local.ts](https://github.com/jterrats/setup-agents/blob/main/src/commands/setup-agents/local.ts)_
-
----
+_See code: [src/commands/setup-agents/local.ts](https://github.com/jterrats/setup-agents/blob/v1.1.1/src/commands/setup-agents/local.ts)_
 
 ## `sf setup-agents mcp`
 
-Configure the Salesforce MCP server in `.cursor/mcp.json`.
+Configure Cursor MCP servers for Salesforce orgs.
 
 ```
 USAGE
-  $ sf setup-agents mcp [--target-org <value>] [--profile <value>] [--all-toolsets] [-g] [--json]
+  $ sf setup-agents mcp [--json] [--flags-dir <value>] [--target-org myOrgAlias] [--profile
+    developer|architect|ba|mulesoft|ux|cgcloud|devops|qa|crma|data360] [--all-toolsets] [-g]
 
 FLAGS
-  -g, --global             Write to ~/.cursor/mcp.json (user-level) instead of the project.
-  --all-toolsets           Enable all available Salesforce MCP toolsets.
-  --profile=<value>        Role profiles to determine which toolsets to activate.
-  --target-org=<value>     Org alias or username to configure.
+  -g, --global                                                                     Write to the global
+                                                                                   ~/.cursor/mcp.json instead of the
+                                                                                   project-level .cursor/mcp.json.
+      --all-toolsets                                                               Enable all MCP toolsets regardless of
+                                                                                   profile.
+      --profile=developer|architect|ba|mulesoft|ux|cgcloud|devops|qa|crma|data360  Role profile(s) used to determine MCP
+                                                                                   toolsets.
+      --target-org=myOrgAlias                                                      Salesforce org alias or username to
+                                                                                   configure.
+
+GLOBAL FLAGS
+  --flags-dir=<value>  Import flag values from a directory.
+  --json               Format output as json.
 
 DESCRIPTION
-  Writes a @salesforce/mcp server entry into .cursor/mcp.json (or ~/.cursor/mcp.json
-  with --global). If --target-org is omitted, presents an interactive org picker
-  sourced from `sf org list`.
+  Configure Cursor MCP servers for Salesforce orgs.
 
-  Toolsets are selected based on --profile:
-    developer / architect / qa / cgcloud  → metadata, data, testing, users
-    ba / ux / crma / data360              → metadata, data
-    devops                                → metadata, orgs, users
-    mulesoft                              → metadata, orgs
+  Sets up Cursor's Micro-Agent Collaboration Protocol (MCP) configuration for one or more
+  Salesforce orgs using `@salesforce/mcp`. This allows Cursor AI to interact directly with
+  your Salesforce org metadata, data, users, and testing tools via tool calls.
+
+  The command writes (or merges into) a `.cursor/mcp.json` file with an MCP server entry per
+  selected org. Use `--global` to write to the user-level `~/.cursor/mcp.json` instead.
+
+  Toolsets included by default (based on profile):
+
+  - **metadata** — SFDX metadata read/deploy tools.
+  - **data** — SOQL and org data inspection tools.
+  - **testing** — Apex and project testing tools.
+  - **users** — permission set and user management tools.
+
+  If `--target-org` is omitted, all authenticated orgs are listed for interactive selection.
+
+EXAMPLES
+  Configure MCP for all authenticated orgs (interactive):
+
+    $ sf setup-agents mcp
+
+  Configure MCP for a specific org:
+
+    $ sf setup-agents mcp --target-org myOrgAlias
+
+  Configure MCP globally (all projects):
+
+    $ sf setup-agents mcp --global --target-org myOrgAlias
+
+  Configure MCP with toolsets for the developer profile:
+
+    $ sf setup-agents mcp --profile developer --target-org myOrgAlias
+
+  Configure MCP with all toolsets:
+
+    $ sf setup-agents mcp --all-toolsets --target-org myOrgAlias
+
+FLAG DESCRIPTIONS
+  -g, --global  Write to the global ~/.cursor/mcp.json instead of the project-level .cursor/mcp.json.
+
+    When set, the MCP server entries are added to `~/.cursor/mcp.json`, making them available
+    across all Cursor projects on this machine.
+
+  --all-toolsets  Enable all MCP toolsets regardless of profile.
+
+    Force-enable all available MCP toolsets for every org configured.
+
+  --profile=developer|architect|ba|mulesoft|ux|cgcloud|devops|qa|crma|data360
+
+    Role profile(s) used to determine MCP toolsets.
+
+    Comma-separated list of role profiles. Each profile maps to a subset of MCP toolsets.
+    If omitted, all available MCP toolsets are enabled.
+
+  --target-org=myOrgAlias  Salesforce org alias or username to configure.
+
+    Specify a single org alias or username. An MCP server entry will be added for this org.
+    Omit to select from all authenticated orgs interactively.
 ```
 
-**Examples:**
-
-```sh
-# Configure MCP for a specific org
-sf setup-agents mcp --target-org myOrgAlias
-
-# Configure with all toolsets for a developer profile
-sf setup-agents mcp --target-org myOrg --profile developer
-
-# Write to global user-level Cursor config
-sf setup-agents mcp --target-org myOrg --global
-
-# Enable all toolsets explicitly
-sf setup-agents mcp --target-org myOrg --all-toolsets
-```
-
-_See code: [src/commands/setup-agents/mcp.ts](https://github.com/jterrats/setup-agents/blob/main/src/commands/setup-agents/mcp.ts)_
-
----
+_See code: [src/commands/setup-agents/mcp.ts](https://github.com/jterrats/setup-agents/blob/v1.1.1/src/commands/setup-agents/mcp.ts)_
 
 ## `sf setup-agents update`
 
@@ -338,41 +428,60 @@ Update stale AI agent rule files to the current plugin version.
 
 ```
 USAGE
-  $ sf setup-agents update [--dry-run] [-y] [--json]
+  $ sf setup-agents update [--json] [--flags-dir <value>] [--dry-run] [-y]
 
 FLAGS
-  -y, --yes        Skip confirmation prompt and update immediately.
-  --dry-run        Report stale files without modifying them.
+  -y, --yes      Skip confirmation prompt.
+      --dry-run  Preview changes without writing any files.
+
+GLOBAL FLAGS
+  --flags-dir=<value>  Import flag values from a directory.
+  --json               Format output as json.
 
 DESCRIPTION
-  Scans the current project for rule files generated by an older version of this
-  plugin and regenerates them using the current version.
+  Update stale AI agent rule files to the current plugin version.
 
-  Scanned locations:
-    .cursor/rules/*.mdc
-    .github/copilot-instructions.md
-    AGENTS.md
-    CLAUDE.md
-    .a4drules/*.md
-    .a4drules/workflows/*.md
+  Scans the current project for rule files generated by `sf setup-agents local` and re-generates any
+  files whose embedded `pluginVersion` (or `<!-- setup-agents: -->` comment) does not match the
+  current plugin version.
 
-  Active profiles are inferred from the existing .cursor/rules/ profile files.
+  Detection logic:
+
+  - `.cursor/rules/*.mdc` — checks `pluginVersion:` in frontmatter.
+  - `.github/copilot-instructions.md` — checks `<!-- setup-agents: x.y.z -->` comment.
+  - `AGENTS.md` — checks `<!-- setup-agents: x.y.z -->` comment.
+  - `CLAUDE.md` — checks `<!-- setup-agents: x.y.z -->` comment.
+  - `.a4drules/*.md` — checks `<!-- setup-agents: x.y.z -->` comment.
+
+  Active profiles are inferred from the filenames in `.cursor/rules/` (e.g. `developer-standards.mdc`
+  maps to the `developer` profile). Use `--dry-run` to preview changes without writing files.
+
+EXAMPLES
+  Preview which rule files are stale:
+
+    $ sf setup-agents update --dry-run
+
+  Update all stale files with confirmation:
+
+    $ sf setup-agents update
+
+  Update all stale files without prompting (CI mode):
+
+    $ sf setup-agents update --yes
+
+FLAG DESCRIPTIONS
+  -y, --yes  Skip confirmation prompt.
+
+    Automatically confirm the update without interactive prompting.
+    Useful in CI/CD pipelines or scripted environments.
+
+  --dry-run  Preview changes without writing any files.
+
+    List all stale files that would be updated without actually modifying them.
+    Useful to audit what would change before committing to an update.
 ```
 
-**Examples:**
-
-```sh
-# Preview what would be updated
-sf setup-agents update --dry-run
-
-# Update without confirmation prompt
-sf setup-agents update --yes
-
-# Interactive confirmation
-sf setup-agents update
-```
-
-_See code: [src/commands/setup-agents/update.ts](https://github.com/jterrats/setup-agents/blob/main/src/commands/setup-agents/update.ts)_
+_See code: [src/commands/setup-agents/update.ts](https://github.com/jterrats/setup-agents/blob/v1.1.1/src/commands/setup-agents/update.ts)_
 
 <!-- commandsstop -->
 

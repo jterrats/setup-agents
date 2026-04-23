@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
+import { execSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { homedir } from 'node:os';
+import { homedir, platform } from 'node:os';
 import { join } from 'node:path';
 import { Messages } from '@salesforce/core';
 import { SfCommand, Flags } from '@salesforce/sf-plugins-core';
@@ -85,6 +86,33 @@ export default class Mcp extends SfCommand<SetupMcpResult> {
     }),
   };
 
+  /**
+   * Resolves the npx executable to use in the MCP server config.
+   * 1. Checks if `npx` is available in PATH.
+   * 2. Falls back to the absolute path via `which` / `where`.
+   * Returns null if npx cannot be found by either method.
+   */
+  public static resolveNpxCommand(): string | null {
+    // Option 1: npx available in PATH
+    try {
+      execSync('npx --version', { stdio: 'ignore' });
+      return 'npx';
+    } catch {
+      // not in PATH, try absolute path resolution
+    }
+
+    // Option 2: resolve absolute path
+    try {
+      const whichCmd = platform() === 'win32' ? 'where npx' : 'which npx';
+      const resolved = execSync(whichCmd, { encoding: 'utf8' }).trim().split('\n')[0].trim();
+      if (resolved) return resolved;
+    } catch {
+      // npx not found anywhere
+    }
+
+    return null;
+  }
+
   private static resolveToolsets(profileFlag?: string): string[] {
     if (!profileFlag) return [...ALL_TOOLSETS];
     const ids = profileFlag.split(',').map((s) => s.trim()) as ProfileId[];
@@ -127,7 +155,6 @@ export default class Mcp extends SfCommand<SetupMcpResult> {
 
     let orgAliases: string[] = [];
     try {
-      const { execSync } = await import('node:child_process');
       const raw = execSync('sf org list --json 2>/dev/null', { encoding: 'utf8' });
       const parsed = JSON.parse(raw) as {
         result?: {
@@ -161,16 +188,24 @@ export default class Mcp extends SfCommand<SetupMcpResult> {
     if (existsSync(mcpFilePath)) {
       try {
         existing = JSON.parse(readFileSync(mcpFilePath, 'utf8')) as McpConfig;
+        if (!existing.mcpServers || typeof existing.mcpServers !== 'object') {
+          existing.mcpServers = {};
+        }
       } catch {
         this.warn(messages.getMessage('warn.corruptMcpJson', [mcpFilePath]));
       }
+    }
+
+    const npxCmd = Mcp.resolveNpxCommand();
+    if (!npxCmd) {
+      this.warn(messages.getMessage('warn.npxNotFound'));
     }
 
     const serversAdded: string[] = [];
     for (const org of orgs) {
       const serverKey = `salesforce-${org}`;
       existing.mcpServers[serverKey] = {
-        command: 'npx',
+        command: npxCmd ?? 'npx',
         args: ['@salesforce/mcp@latest', '--orgs', org, '--toolsets', toolsets.join(',')],
         type: 'stdio',
       };

@@ -60,7 +60,7 @@ export function generateSfStandards(version: string): string {
     '',
     '# Salesforce Development Standards',
     '',
-    '> You are a Senior Architect for Salesforce Servicios Profesionales.',
+    '> You are a Senior Architect for Salesforce Professional Services.',
     '',
     '## 1. Codebase Contextualization',
     '- Search the codebase before answering. Reuse existing patterns and utility classes.',
@@ -73,7 +73,7 @@ export function generateSfStandards(version: string): string {
     '',
     '## 3. Documentation',
     '- Every `/docs/*.md` must start with the Salesforce Cloud logo header.',
-    '- Author: **Salesforce Servicios Profesionales**. Increment version only on significant changes.',
+    '- Author: **Salesforce Professional Services**. Increment version only on significant changes.',
     '- Always read existing docs before creating new ones to avoid duplication.',
     '- Keep agent/tooling communication in English by default; switch only on explicit user request.',
     '',
@@ -152,7 +152,7 @@ export function generateSfStandards(version: string): string {
     '',
     '## 20. Sub-agent Orchestration',
     '- Pass architectural context and these rules to sub-agents.',
-    '- Sub-agents must follow: one assert per test, zero logic in triggers, Salesforce Servicios Profesionales authorship.'
+    '- Sub-agents must follow: one assert per test, zero logic in triggers, Salesforce Professional Services authorship.'
   );
 }
 

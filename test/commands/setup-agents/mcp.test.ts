@@ -180,6 +180,74 @@ describe('setup-agents mcp', () => {
     });
   });
 
+  describe('valid JSON without mcpServers key (Bug fix)', () => {
+    it('does not crash when mcp.json is valid JSON but missing mcpServers', async () => {
+      const cursorDir = join(tmpDir, '.cursor');
+      mkdirSync(cursorDir, { recursive: true });
+      writeFileSync(join(cursorDir, 'mcp.json'), JSON.stringify({}));
+
+      const result = await Mcp.run(['--target-org', 'myOrg']);
+
+      expect(result.serversAdded).to.deep.equal(['salesforce-myOrg']);
+    });
+
+    it('writes a valid server entry when mcp.json had no mcpServers key', async () => {
+      const cursorDir = join(tmpDir, '.cursor');
+      mkdirSync(cursorDir, { recursive: true });
+      writeFileSync(join(cursorDir, 'mcp.json'), JSON.stringify({ other: 'data' }));
+
+      await Mcp.run(['--target-org', 'myOrg']);
+
+      const written = JSON.parse(readFileSync(join(cursorDir, 'mcp.json'), 'utf8')) as {
+        mcpServers: Record<string, unknown>;
+        other: string;
+      };
+      expect(written.mcpServers['salesforce-myOrg']).to.exist;
+    });
+  });
+
+  describe('resolveNpxCommand()', () => {
+    it('returns "npx" when npx is available in PATH', () => {
+      const result = Mcp.resolveNpxCommand();
+      expect(result).to.not.be.null;
+    });
+
+    it('returns a non-empty string when npx is resolvable', () => {
+      const result = Mcp.resolveNpxCommand();
+      if (result !== null) {
+        expect(result.length).to.be.greaterThan(0);
+      }
+    });
+
+    it('uses resolved npx path (or fallback) in written MCP config', async () => {
+      const npxCmd = Mcp.resolveNpxCommand() ?? 'npx';
+
+      await Mcp.run(['--target-org', 'myOrg']);
+
+      const config = JSON.parse(readFileSync(join(tmpDir, '.cursor', 'mcp.json'), 'utf8')) as {
+        mcpServers: Record<string, { command: string }>;
+      };
+      expect(config.mcpServers['salesforce-myOrg'].command).to.equal(npxCmd);
+    });
+
+    it('warns when npx cannot be resolved and writes "npx" as fallback', async () => {
+      $$.SANDBOX.stub(Mcp, 'resolveNpxCommand').returns(null);
+
+      await Mcp.run(['--target-org', 'myOrg']);
+
+      const warnCalls = sfCommandStubs.warn
+        .getCalls()
+        .flatMap((c) => c.args)
+        .join('\n');
+      expect(warnCalls).to.include('npx');
+
+      const config = JSON.parse(readFileSync(join(tmpDir, '.cursor', 'mcp.json'), 'utf8')) as {
+        mcpServers: Record<string, { command: string }>;
+      };
+      expect(config.mcpServers['salesforce-myOrg'].command).to.equal('npx');
+    });
+  });
+
   describe('--global flag', () => {
     let fakeHome: string;
     let originalHome: string | undefined;

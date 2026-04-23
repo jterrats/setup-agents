@@ -102,6 +102,10 @@ Could not retrieve org list via `sf org list`. Ensure you have authenticated org
 
 Could not parse existing MCP config at %s. Starting fresh.
 
+# warn.npxNotFound
+
+npx not found in PATH and could not be resolved to an absolute path. The MCP server entry will use "npx" as a fallback but may not start correctly. Install Node.js/npm and ensure npx is available in your PATH.
+
 # prompt.selectOrgs
 
 Select Salesforce org(s) to add as MCP servers:

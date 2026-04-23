@@ -1,7 +1,7 @@
 {
   "name": "@jterrats/setup-agents",
   "description": "A Salesforce CLI plugin to configure agent rules for AI coding assistants (Cursor, VS Code, Codex, and more).",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "author": "Jaime Terrats <jterrats@salesforce.com>",
   "bugs": "https://github.com/jterrats/setup-agents/issues",
   "dependencies": {
