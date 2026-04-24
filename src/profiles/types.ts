@@ -18,6 +18,7 @@ export type ProfileId =
   | 'developer'
   | 'architect'
   | 'ba'
+  | 'pm'
   | 'mulesoft'
   | 'ux'
   | 'cgcloud'

@@ -27,5 +27,16 @@ export {
   generateDevopsWorkflows,
   generateQaWorkflows,
   generateCrmaWorkflows,
+  generatePmWorkflows,
 } from './workflow-generator.js';
 export { stripMdcFrontmatter, toA4dContent } from './shared.js';
+export {
+  generateStoryMappingSkill,
+  generateDeploySkill,
+  generateDiagramExportSkill,
+  getPortableSkillSections,
+  getSharedSkillAssets,
+  STORY_MAP_PROFILES,
+  DEPLOY_PROFILES,
+} from './skill-generator.js';
+export type { SkillSection } from './skill-generator.js';

@@ -109,3 +109,27 @@ npx not found in PATH and could not be resolved to an absolute path. The MCP ser
 # prompt.selectOrgs
 
 Select Salesforce org(s) to add as MCP servers:
+
+# prompt.offerLogin
+
+No authenticated Salesforce orgs found. Would you like to log in to one now?
+
+# prompt.orgAlias
+
+Enter an alias for the org (e.g. myDevOrg):
+
+# error.aliasRequired
+
+An org alias is required.
+
+# info.loginStarting
+
+Starting web login for org "%s"... A browser window will open.
+
+# info.loginSuccess
+
+Successfully authenticated org "%s".
+
+# warn.loginFailed
+
+Web login did not complete successfully. No org was configured.

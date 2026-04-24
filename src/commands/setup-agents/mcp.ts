@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { execSync } from 'node:child_process';
+import { execSync, spawn } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir, platform } from 'node:os';
 import { join } from 'node:path';
@@ -46,6 +46,7 @@ const PROFILE_TOOLSETS: Record<ProfileId, string[]> = {
   developer: ['metadata', 'data', 'testing', 'users'],
   architect: ['metadata', 'data', 'testing', 'users'],
   ba: ['metadata', 'data'],
+  pm: ['metadata', 'data'],
   mulesoft: ['metadata', 'orgs'],
   ux: ['metadata', 'data'],
   cgcloud: ['metadata', 'data', 'testing', 'users'],
@@ -113,6 +114,23 @@ export default class Mcp extends SfCommand<SetupMcpResult> {
     return null;
   }
 
+  private static async spawnWebLogin(alias: string): Promise<boolean> {
+    return new Promise((resolve) => {
+      const child = spawn('sf', ['org', 'login', 'web', '--alias', alias], {
+        stdio: 'inherit',
+        shell: true,
+      });
+
+      child.on('close', (code) => {
+        resolve(code === 0);
+      });
+
+      child.on('error', () => {
+        resolve(false);
+      });
+    });
+  }
+
   private static resolveToolsets(profileFlag?: string): string[] {
     if (!profileFlag) return [...ALL_TOOLSETS];
     const ids = profileFlag.split(',').map((s) => s.trim()) as ProfileId[];
@@ -153,7 +171,20 @@ export default class Mcp extends SfCommand<SetupMcpResult> {
       return [];
     }
 
-    let orgAliases: string[] = [];
+    const orgAliases = this.listAuthenticatedOrgs();
+
+    if (orgAliases.length === 0) {
+      return this.offerWebLogin();
+    }
+
+    const { checkbox } = await import('@inquirer/prompts');
+    return checkbox<string>({
+      message: messages.getMessage('prompt.selectOrgs'),
+      choices: orgAliases.map((alias) => ({ value: alias, name: alias })),
+    });
+  }
+
+  private listAuthenticatedOrgs(): string[] {
     try {
       const raw = execSync('sf org list --json 2>/dev/null', { encoding: 'utf8' });
       const parsed = JSON.parse(raw) as {
@@ -163,21 +194,39 @@ export default class Mcp extends SfCommand<SetupMcpResult> {
         };
       };
       const all = [...(parsed.result?.nonScratchOrgs ?? []), ...(parsed.result?.scratchOrgs ?? [])];
-      orgAliases = all.map((o) => o.alias ?? o.username).filter(Boolean);
+      return all.map((o) => o.alias ?? o.username).filter(Boolean);
     } catch {
       this.warn(messages.getMessage('warn.orgListFailed'));
+      return [];
     }
+  }
 
-    if (orgAliases.length === 0) {
-      this.warn(messages.getMessage('warn.noOrgs'));
+  private async offerWebLogin(): Promise<string[]> {
+    const { confirm, input } = await import('@inquirer/prompts');
+
+    const shouldLogin = await confirm({
+      message: messages.getMessage('prompt.offerLogin'),
+      default: true,
+    });
+
+    if (!shouldLogin) return [];
+
+    const alias = await input({
+      message: messages.getMessage('prompt.orgAlias'),
+      validate: (v) => (v.trim().length > 0 ? true : messages.getMessage('error.aliasRequired')),
+    });
+
+    this.log(messages.getMessage('info.loginStarting', [alias.trim()]));
+
+    const loginSuccess = await Mcp.spawnWebLogin(alias.trim());
+
+    if (!loginSuccess) {
+      this.warn(messages.getMessage('warn.loginFailed'));
       return [];
     }
 
-    const { checkbox } = await import('@inquirer/prompts');
-    return checkbox<string>({
-      message: messages.getMessage('prompt.selectOrgs'),
-      choices: orgAliases.map((alias) => ({ value: alias, name: alias })),
-    });
+    this.log(messages.getMessage('info.loginSuccess', [alias.trim()]));
+    return [alias.trim()];
   }
 
   private writeMcpConfig(mcpFilePath: string, orgs: string[], toolsets: string[]): string[] {

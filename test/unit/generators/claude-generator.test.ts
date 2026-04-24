@@ -15,7 +15,9 @@
  */
 import { expect } from 'chai';
 import { generateClaudeMd } from '../../../src/generators/claude-generator.js';
+import { baProfile } from '../../../src/profiles/ba.js';
 import { developerProfile } from '../../../src/profiles/index.js';
+import { qaProfile } from '../../../src/profiles/qa.js';
 
 const VERSION = '0.1.0';
 
@@ -51,6 +53,25 @@ describe('claude-generator', () => {
     it('separates profiles with horizontal rules', () => {
       const content = generateClaudeMd([developerProfile], VERSION);
       expect(content).to.include('---');
+    });
+
+    it('includes deploy skill section for developer profile', () => {
+      const content = generateClaudeMd([developerProfile], VERSION);
+      expect(content).to.include('Salesforce Deploy & Validate');
+      expect(content).to.include('sf profiler retrieve');
+      expect(content).to.include('sf smart-deployment');
+    });
+
+    it('includes story mapping skill section for ba profile', () => {
+      const content = generateClaudeMd([baProfile], VERSION);
+      expect(content).to.include('Story Mapping');
+      expect(content).to.include('Jeff Patton');
+    });
+
+    it('does not include skill sections for profiles without matching skills', () => {
+      const content = generateClaudeMd([qaProfile], VERSION);
+      expect(content).to.not.include('Story Mapping');
+      expect(content).to.not.include('sf profiler retrieve');
     });
   });
 });

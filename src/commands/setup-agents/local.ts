@@ -23,7 +23,7 @@ import { Flags, SfCommand } from '@salesforce/sf-plugins-core';
 import { select } from '@inquirer/prompts';
 
 import type { Profile } from '../../profiles/index.js';
-import { FileWriter } from '../../services/file-writer.js';
+import { ensureDir, FileWriter } from '../../services/file-writer.js';
 import { setupAgentforce } from '../../setup/agentforce-setup.js';
 import { setupClaude } from '../../setup/claude-setup.js';
 import { setupCodex } from '../../setup/codex-setup.js';
@@ -32,6 +32,7 @@ import { setupVsCode } from '../../setup/vscode-setup.js';
 import type { SetupLocalResult, SupportedTool } from '../../types/index.js';
 import { SUPPORTED_TOOLS } from '../../types/index.js';
 import { detectTools, resolveProfiles } from '../../util/command-helpers.js';
+import { getSharedSkillAssets } from '../../generators/skill-generator.js';
 
 Messages.importMessagesDirectoryFromMetaUrl(import.meta.url);
 const messages = Messages.loadMessages('@jterrats/setup-agents', 'setup-agents.local');
@@ -51,7 +52,7 @@ export default class Local extends SfCommand<SetupLocalResult> {
     profile: Flags.string({
       summary: messages.getMessage('flags.profile.summary'),
       description: messages.getMessage('flags.profile.description'),
-      helpValue: 'developer|architect|ba|mulesoft|ux|cgcloud|devops|qa|crma|data360',
+      helpValue: 'developer|architect|ba|pm|mulesoft|ux|cgcloud|devops|qa|crma|data360',
     }),
     force: Flags.boolean({
       char: 'f',
@@ -89,6 +90,8 @@ export default class Local extends SfCommand<SetupLocalResult> {
       configured.push(tool);
     }
 
+    writeSharedSkillAssets(cwd, profiles, writer);
+
     if (usedDefault) this.warn(messages.getMessage('warn.profileDefault'));
 
     this.log(messages.getMessage('info.done', [configured.join(', ')]));
@@ -111,7 +114,7 @@ async function runSetup(
         writer,
         isSalesforceProject,
         promptScope: () => promptCursorScope(messages),
-        printToConsole: log,
+        logInfo: log,
       });
       break;
     case 'vscode':
@@ -138,4 +141,16 @@ async function promptCursorScope(msgs: AnyMessages): Promise<'project' | 'user'>
       { value: 'user', name: msgs.getMessage('prompt.cursorRuleScopeUser') },
     ],
   });
+}
+
+function writeSharedSkillAssets(cwd: string, profiles: Profile[], writer: FileWriter): void {
+  const assets = getSharedSkillAssets(profiles.map((p) => p.id));
+  if (Object.keys(assets).length === 0) return;
+
+  const skillsDir = join(cwd, '.setup-agents', 'skills');
+  for (const [relativePath, content] of Object.entries(assets)) {
+    const fullPath = join(skillsDir, relativePath);
+    ensureDir(join(fullPath, '..'));
+    writer.write(fullPath, content);
+  }
 }

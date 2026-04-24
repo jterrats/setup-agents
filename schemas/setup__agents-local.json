@@ -26,7 +26,7 @@
     },
     "ProfileId": {
       "type": "string",
-      "enum": ["developer", "architect", "ba", "mulesoft", "ux", "cgcloud", "devops", "qa", "crma", "data360"]
+      "enum": ["developer", "architect", "ba", "pm", "mulesoft", "ux", "cgcloud", "devops", "qa", "crma", "data360"]
     }
   }
 }

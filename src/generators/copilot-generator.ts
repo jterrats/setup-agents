@@ -16,6 +16,7 @@
 
 import type { Profile } from '../profiles/index.js';
 import { stripMdcFrontmatter } from './shared.js';
+import { getPortableSkillSections } from './skill-generator.js';
 
 /** Generates `.github/copilot-instructions.md` content. */
 export function generateCopilotInstructions(profiles: Profile[], version: string): string {
@@ -41,5 +42,7 @@ export function generateCopilotInstructions(profiles: Profile[], version: string
 
   const profileSections = profiles.flatMap((p) => ['', '---', '', stripMdcFrontmatter(p.ruleContent()).trimStart()]);
 
-  return [...base, ...profileSections].join('\n');
+  const skillSections = getPortableSkillSections(profiles.map((p) => p.id)).flatMap((s) => ['', '---', '', s.body]);
+
+  return [...base, ...profileSections, ...skillSections].join('\n');
 }
