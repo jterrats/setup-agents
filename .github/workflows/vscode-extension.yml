@@ -44,8 +44,11 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Test
+      - name: Unit tests
         run: npm test
+
+      - name: E2E tests (Playwright)
+        run: npx playwright install chromium --with-deps && npm run test:e2e
 
       - name: Install vsce
         run: npm install --no-save @vscode/vsce

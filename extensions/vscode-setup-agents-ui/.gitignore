@@ -1,4 +1,7 @@
 node_modules/
 out/
 .tmp-tests/
+.tmp-test-workspace/
 *.vsix
+playwright-report/
+test-results/

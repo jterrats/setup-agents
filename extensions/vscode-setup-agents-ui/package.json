@@ -49,17 +49,24 @@
     "build": "tsc -p .",
     "clean": "rm -rf out",
     "lint": "eslint src --ext .ts",
-    "test": "node --test out/test/**/*.test.js",
+    "test": "node --test out/test/ruleManagementService.test.js",
+    "test:e2e": "npx playwright test",
+    "test:e2e:vscode": "tsc -p tsconfig.e2e.json && node out/test/e2e/runTest.js",
     "pretest": "npm run build",
     "package": "vsce package"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^20.14.10",
     "@types/vscode": "^1.90.0",
     "@typescript-eslint/eslint-plugin": "^7.16.1",
     "@typescript-eslint/parser": "^7.16.1",
+    "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.2.2",
     "eslint": "^8.57.0",
+    "glob": "^13.0.6",
+    "mocha": "^11.7.5",
     "typescript": "^5.5.4"
   }
 }

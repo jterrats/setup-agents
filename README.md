@@ -13,13 +13,15 @@
 
 `setup-agents` is a Salesforce CLI plugin that sets up AI coding assistant rules and role-based profiles for any project. One command configures [Cursor](https://cursor.sh), [GitHub Copilot](https://code.visualstudio.com/docs/copilot/overview), [OpenAI Codex CLI](https://github.com/openai/codex), [Anthropic Claude Code](https://docs.anthropic.com/en/docs/claude-code), and [Agentforce Vibes](https://developer.salesforce.com/docs/platform/einstein-for-devs/guide/devagent-rules.html) simultaneously — with rules tailored to the specific roles working in the project.
 
-- **10 role profiles** — Developer, Architect, BA, MuleSoft, UX, CGCloud, DevOps, QA, CRMA, Data Cloud
+- **11 role profiles** — Developer, Architect, BA, PM, MuleSoft, UX, CGCloud, DevOps, QA, CRMA, Data Cloud
+- **3 AI skills** — Story Mapping, Diagram Export (Lucid/draw.io/local), Deploy & Validate
 - **Auto-detection** — detects `cgcloud__`, `WaveDashboard`, `DataStream`, Playwright config, and more
 - **Sub-agent orchestration** — generates a `sub-agent-protocol.mdc` mapping tasks to roles
 - **Extension recommendations** — writes `.vscode/extensions.json` with profile-specific extensions
 - **Combinable profiles** — `--profile developer,architect,crma` stacks rules from all selected roles
 - **Agentforce Workflows** — generates `.a4drules/workflows/*.md` for automated dev tasks (deploy, test, ADR, etc.)
-- **MCP integration** — `sf setup-agents mcp` wires `@salesforce/mcp` into Cursor for any Salesforce org
+- **MCP integration** — `sf setup-agents mcp` wires `@salesforce/mcp` into Cursor for any Salesforce org, with interactive login when no orgs are authenticated
+- **Scope control** — Cursor rules can be written at project level (`.cursor/rules/`) or user level (`~/.cursor/rules/`)
 - **Safe by default** — never overwrites existing rule files without `--force`
 
 ---
@@ -42,6 +44,7 @@ The command auto-detects your tools and prompts for role selection:
 ❯◉ Developer
  ◯ Architect
  ◯ Business Analyst
+ ◯ Project Manager
  ◯ MuleSoft
  ◯ UX / UI
  ◉ CGCloud  ← pre-selected (cgcloud__ detected)
@@ -148,6 +151,7 @@ Each profile generates a dedicated `.mdc` rule file in `.cursor/rules/` and cont
 | **Developer**        | `developer` | `developer-standards.mdc` | —                                                 |
 | **Architect**        | `architect` | `architect-standards.mdc` | —                                                 |
 | **Business Analyst** | `ba`        | `ba-standards.mdc`        | —                                                 |
+| **Project Manager**  | `pm`        | `pm-standards.mdc`        | —                                                 |
 | **MuleSoft**         | `mulesoft`  | `mulesoft-standards.mdc`  | `mule-artifact.json` / `pom.xml`                  |
 | **UX / UI**          | `ux`        | `ux-standards.mdc`        | —                                                 |
 | **CGCloud**          | `cgcloud`   | `cgcloud-standards.mdc`   | `cgcloud__` in `package.xml`                      |
@@ -199,7 +203,22 @@ When `--rules agentforce` is used on a Salesforce project, the plugin generates 
 | `create-scratch-org.md`   | DevOps    | Scratch org setup with permission sets        |
 | `run-playwright.md`       | QA        | Run Playwright tests and capture report       |
 | `generate-test-report.md` | QA        | Generate test coverage report                 |
+| `sprint-plan.md`          | PM        | Create sprint plan with Gantt timeline        |
+| `status-report.md`        | PM        | Generate weekly status report                 |
+| `risk-register.md`        | PM        | Maintain project risk register                |
 | `deploy-analytics.md`     | CRMA      | Deploy CRM Analytics dashboards and dataflows |
+
+---
+
+## AI Skills
+
+The plugin generates reusable AI skills (`.cursor/skills/` for Cursor, portable markdown for other tools) for profiles that need them.
+
+| Skill                 | Generated For                | Description                                                                                      |
+| --------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------ |
+| **Story Mapping**     | BA, PM, Architect            | Jeff Patton–style story maps rendered as Mermaid diagrams (PDF)                                  |
+| **Deploy & Validate** | Developer, Architect, DevOps | Guided deploy/validate using `@jterrats/profiler` and `@jterrats/smart-deployment` plugins       |
+| **Diagram Export**    | BA, PM, Architect, Developer | Export Mermaid diagrams to Lucidchart (API), draw.io (XML), or local SVG/PDF with auto-detection |
 
 ---
 
@@ -231,12 +250,12 @@ Configure AI agent rules for the local development environment.
 ```
 USAGE
   $ sf setup-agents local [--json] [--flags-dir <value>] [--rules cursor|vscode|codex|claude|agentforce] [--profile
-    developer|architect|ba|mulesoft|ux|cgcloud|devops|qa|crma|data360] [-f]
+    developer|architect|ba|pm|mulesoft|ux|cgcloud|devops|qa|crma|data360] [-f]
 
 FLAGS
-  -f, --force                                                                      Overwrite existing rule files.
-      --profile=developer|architect|ba|mulesoft|ux|cgcloud|devops|qa|crma|data360  Role profiles to configure
-                                                                                   (comma-separated).
+  -f, --force                                                                         Overwrite existing rule files.
+      --profile=developer|architect|ba|pm|mulesoft|ux|cgcloud|devops|qa|crma|data360  Role profiles to configure
+                                                                                      (comma-separated).
       --rules=cursor|vscode|codex|claude|agentforce                                Target AI tool to configure (cursor,
                                                                                    vscode, codex, claude, agentforce).
 
@@ -312,14 +331,14 @@ FLAG DESCRIPTIONS
     Force overwrite of all generated files, even if they already exist.
     Use this flag after updating your profiles or when the plugin version has changed.
 
-  --profile=developer|architect|ba|mulesoft|ux|cgcloud|devops|qa|crma|data360
+  --profile=developer|architect|ba|pm|mulesoft|ux|cgcloud|devops|qa|crma|data360
 
     Role profiles to configure (comma-separated).
 
     Specify one or more role profiles as a comma-separated list. Each profile generates a dedicated
     rule file with role-specific agent guidance and adds the relevant VS Code extensions.
 
-    Valid profiles: developer, architect, ba, mulesoft, ux, cgcloud, devops, qa, crma, data360
+    Valid profiles: developer, architect, ba, pm, mulesoft, ux, cgcloud, devops, qa, crma, data360
 
     When omitted, the command auto-detects profiles from the project structure and presents an
     interactive multi-select prompt. If no profile is selected, `developer` is used as the default.
@@ -340,16 +359,16 @@ Configure Cursor MCP servers for Salesforce orgs.
 ```
 USAGE
   $ sf setup-agents mcp [--json] [--flags-dir <value>] [--target-org myOrgAlias] [--profile
-    developer|architect|ba|mulesoft|ux|cgcloud|devops|qa|crma|data360] [--all-toolsets] [-g]
+    developer|architect|ba|pm|mulesoft|ux|cgcloud|devops|qa|crma|data360] [--all-toolsets] [-g]
 
 FLAGS
-  -g, --global                                                                     Write to the global
-                                                                                   ~/.cursor/mcp.json instead of the
-                                                                                   project-level .cursor/mcp.json.
-      --all-toolsets                                                               Enable all MCP toolsets regardless of
-                                                                                   profile.
-      --profile=developer|architect|ba|mulesoft|ux|cgcloud|devops|qa|crma|data360  Role profile(s) used to determine MCP
-                                                                                   toolsets.
+  -g, --global                                                                        Write to the global
+                                                                                      ~/.cursor/mcp.json instead of the
+                                                                                      project-level .cursor/mcp.json.
+      --all-toolsets                                                                  Enable all MCP toolsets regardless of
+                                                                                      profile.
+      --profile=developer|architect|ba|pm|mulesoft|ux|cgcloud|devops|qa|crma|data360  Role profile(s) used to determine MCP
+                                                                                      toolsets.
       --target-org=myOrgAlias                                                      Salesforce org alias or username to
                                                                                    configure.
 
@@ -375,6 +394,8 @@ DESCRIPTION
   - **users** — permission set and user management tools.
 
   If `--target-org` is omitted, all authenticated orgs are listed for interactive selection.
+  If no orgs are authenticated, the command offers an interactive web login flow — prompts for
+  an alias, opens `sf org login web`, and waits for authentication to complete before proceeding.
 
 EXAMPLES
   Configure MCP for all authenticated orgs (interactive):
@@ -407,7 +428,7 @@ FLAG DESCRIPTIONS
 
     Force-enable all available MCP toolsets for every org configured.
 
-  --profile=developer|architect|ba|mulesoft|ux|cgcloud|devops|qa|crma|data360
+  --profile=developer|architect|ba|pm|mulesoft|ux|cgcloud|devops|qa|crma|data360
 
     Role profile(s) used to determine MCP toolsets.
 
