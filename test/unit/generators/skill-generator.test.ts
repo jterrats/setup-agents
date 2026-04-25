@@ -216,6 +216,23 @@ describe('skill-generator', () => {
       expect(script).to.include('No diagram detected');
       expect(script).to.include('pdftotext');
     });
+
+    it('SKILL.md includes non-technical Lucidchart setup guide', () => {
+      const skillMd = generateDiagramExportSkill()['SKILL.md'];
+      expect(skillMd).to.include('Lucidchart Setup Guide (Non-Technical)');
+      expect(skillMd).to.include('Option A: Lucid MCP Server');
+      expect(skillMd).to.include('Option B: OAuth API Token');
+      expect(skillMd).to.include('lucid-mcp-server');
+      expect(skillMd).to.include('developer.lucid.co');
+      expect(skillMd).to.include('Which Option Should I Choose?');
+    });
+
+    it('SKILL.md instructs agent to present guide when Lucid is not configured', () => {
+      const skillMd = generateDiagramExportSkill()['SKILL.md'];
+      expect(skillMd).to.include('Agent Behavior');
+      expect(skillMd).to.include('Lucidchart Setup Guide');
+      expect(skillMd).to.include('non-technical');
+    });
   });
 
   describe('generateCodeAnalyzerSkill()', () => {
