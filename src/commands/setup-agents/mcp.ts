@@ -20,6 +20,8 @@ import { homedir, platform } from 'node:os';
 import { join } from 'node:path';
 import { Messages } from '@salesforce/core';
 import { SfCommand, Flags } from '@salesforce/sf-plugins-core';
+import { getRelevantIntegrations, buildMcpEntry } from '../../integrations/index.js';
+import type { McpIntegration, McpServerEntry } from '../../integrations/index.js';
 import type { ProfileId } from '../../profiles/index.js';
 
 Messages.importMessagesDirectoryFromMetaUrl(import.meta.url);
@@ -57,6 +59,23 @@ const PROFILE_TOOLSETS: Record<ProfileId, string[]> = {
 };
 
 const ALL_TOOLSETS = ['all'] as const;
+
+/* eslint-disable no-await-in-loop -- credential prompts must be sequential */
+async function collectCredentialsAndBuild(integration: McpIntegration): Promise<McpServerEntry> {
+  const credentials: Record<string, string> = {};
+
+  for (const envVar of integration.envVars) {
+    const { input } = await import('@inquirer/prompts');
+    const value = await input({
+      message: `${envVar.label}: ${envVar.description}`,
+      validate: (v: string) => (v.trim().length > 0 ? true : `${envVar.label} is required`),
+    });
+    credentials[envVar.name] = value.trim();
+  }
+
+  return buildMcpEntry(integration, credentials);
+}
+/* eslint-enable no-await-in-loop */
 
 export default class Mcp extends SfCommand<SetupMcpResult> {
   public static readonly summary = messages.getMessage('summary');
@@ -159,6 +178,10 @@ export default class Mcp extends SfCommand<SetupMcpResult> {
 
     const serversAdded = this.writeMcpConfig(mcpFilePath, orgs, toolsets);
 
+    // Phase 2: third-party MCP integrations
+    const thirdPartyAdded = await this.configureThirdPartyMcps(mcpFilePath, flags.profile);
+    serversAdded.push(...thirdPartyAdded);
+
     this.log(messages.getMessage('info.done', [mcpFilePath, serversAdded.join(', ')]));
     return { mcpFile: mcpFilePath, serversAdded, cwd };
   }
@@ -227,6 +250,59 @@ export default class Mcp extends SfCommand<SetupMcpResult> {
 
     this.log(messages.getMessage('info.loginSuccess', [alias.trim()]));
     return [alias.trim()];
+  }
+
+  /**
+   * Detects which third-party MCP integrations are relevant for the active
+   * profiles and prompts the user to configure them.
+   */
+  private async configureThirdPartyMcps(mcpFilePath: string, profileFlag?: string): Promise<string[]> {
+    const profileIds = profileFlag ? profileFlag.split(',').map((s) => s.trim()) : [];
+    const relevant = getRelevantIntegrations(profileIds);
+    if (relevant.length === 0 || !process.stdin.isTTY) return [];
+
+    const { checkbox } = await import('@inquirer/prompts');
+
+    const selected = await checkbox<string>({
+      message: 'These third-party integrations are available for your profiles. Which do you want to configure?',
+      choices: relevant.map((i) => ({ value: i.id, name: `${i.label} — profiles: ${[...i.profiles].join(', ')}` })),
+    });
+
+    if (selected.length === 0) return [];
+
+    const mcpDir = join(mcpFilePath, '..');
+    if (!existsSync(mcpDir)) mkdirSync(mcpDir, { recursive: true });
+
+    let existing: McpConfig = { mcpServers: {} };
+    if (existsSync(mcpFilePath)) {
+      try {
+        existing = JSON.parse(readFileSync(mcpFilePath, 'utf8')) as McpConfig;
+        if (!existing.mcpServers || typeof existing.mcpServers !== 'object') {
+          existing.mcpServers = {};
+        }
+      } catch {
+        // already handled in Salesforce phase
+      }
+    }
+
+    const added: string[] = [];
+
+    for (const integrationId of selected) {
+      const integration = relevant.find((i) => i.id === integrationId);
+      if (!integration) continue;
+
+      // eslint-disable-next-line no-await-in-loop -- sequential prompts are intentional (UX)
+      const entry = await collectCredentialsAndBuild(integration);
+      existing.mcpServers[integration.id] = entry as McpServerConfig;
+      added.push(integration.id);
+      this.log(`Added ${integration.label} MCP server.`);
+    }
+
+    if (added.length > 0) {
+      writeFileSync(mcpFilePath, JSON.stringify(existing, null, 2) + '\n', 'utf8');
+    }
+
+    return added;
   }
 
   private writeMcpConfig(mcpFilePath: string, orgs: string[], toolsets: string[]): string[] {
