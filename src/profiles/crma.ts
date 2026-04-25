@@ -18,6 +18,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { generateCrmaWorkflows } from '../generators/workflow-generator.js';
 import type { Profile } from './types.js';
+import { documentationStandards, interactionPreferences, semanticCommits } from './shared-sections.js';
 
 const CRMA_METADATA_TYPES = [
   'WaveApplication',
@@ -63,6 +64,10 @@ export const crmaProfile: Profile = {
       '> Role: Analytics Engineer — Salesforce Professional Services.',
       '> Inherits base rules from: salesforce-standards.mdc',
       '',
+      '## Codebase Contextualization',
+      '- **Always scan existing recipes, dataflows, dashboards, and SAQL queries** before creating new ones.',
+      '- Reuse existing dataset schemas, security predicates, and dashboard patterns.',
+      '',
       '## Consultative Design (CRITICAL)',
       '- **No Ninja Edits.** Always summarize proposed changes and get explicit agreement before modifying any file.',
       '- Discuss data architecture (lineage, security predicates) before building dashboards or recipes.',
@@ -106,24 +111,27 @@ export const crmaProfile: Profile = {
       '- Test each dashboard filter combination that appears in acceptance criteria.',
       '- Verify security predicates return correct data for at least 3 distinct user profiles.',
       '',
-      '## Documentation Standards',
-      '- Every `/docs/*.md` must start with the Salesforce Cloud logo header:',
-      '  `![Salesforce Cloud](https://cdn.prod.website-files.com/691f4b0505409df23e191b87/69416b267de7ae6888996981_logo.svg)`',
-      '- Author: **Salesforce Professional Services**. Version: increment on significant changes.',
-      '- Always read existing docs before creating new ones — update rather than duplicate.',
+      '## Dashboard Embedding',
+      '- Embed analytics dashboards in Lightning pages using the **CRM Analytics Dashboard** component.',
+      '- When embedding in a record page: pass the record ID as a filter to scope the dashboard to the current record.',
+      '- For custom LWC containers: use the `wave:waveDashboard` base component with `openLinksInNewWindow` for better UX.',
+      '- Test embedded dashboards at all three responsive breakpoints (320px, 768px, 1280px).',
       '',
-      '## Semantic Commits',
-      '- Ask for **Backlog Item ID** before suggesting any commit.',
-      '- Format: `type(ID): short description`.',
-      '- Body: numbered list of changes + value proposition paragraph.',
+      '## Einstein Discovery Integration',
+      '- Use Einstein Discovery for predictive models that surface insights inside Salesforce records.',
+      '- Story creation: define the outcome variable, candidate predictors, and the dataset. Review the generated story.',
+      '- Deploy models to Flows via **Einstein Prediction Builder** for real-time scoring on record save.',
+      '- Document model performance metrics (R², RMSE) and retrain cadence in `/docs/analytics/models.md`.',
+      '',
+      ...documentationStandards(),
+      '',
+      ...semanticCommits(),
       '',
       '## Sub-agent Handover',
       '- Pass to sub-agents: dataset lineage diagram, security predicate definitions,',
       '  recipe schedule, dashboard primary question, and the user personas being tested.',
       '',
-      '## Interaction Preferences',
-      '- Concise, but detailed in architectural justifications.',
-      '- Correct mistakes directly without apologizing.',
+      ...interactionPreferences(),
     ].join('\n');
   },
 };

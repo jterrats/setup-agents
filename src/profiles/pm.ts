@@ -15,6 +15,7 @@
  */
 
 import { generatePmWorkflows } from '../generators/workflow-generator.js';
+import { documentationStandards, interactionPreferences, semanticCommits } from './shared-sections.js';
 import type { Profile } from './types.js';
 
 export const pmProfile: Profile = {
@@ -77,29 +78,38 @@ export const pmProfile: Profile = {
       '- Tailor communication: executive summaries for leadership, technical details for the team.',
       '- Document all key decisions with date, participants, and rationale.',
       '',
+      '## Budget & SOW Tracking',
+      '- Track hours consumed vs allocated per work stream. Update weekly in the status report.',
+      '- Maintain a **burn rate chart** (actual vs planned) using Mermaid `xychart-beta` or a table.',
+      '- Change orders: any scope change that impacts budget requires a formal Change Request before work begins.',
+      '- Alert stakeholders when any work stream reaches 80% of budgeted hours.',
+      '',
+      '## Change Request Management',
+      '- All scope changes must go through a formal **Change Request (CR)** process.',
+      '- CR document must include: description, business justification, impact assessment (schedule, budget, risk), and approval chain.',
+      '- Track CRs in a register: CR ID | Title | Status (Submitted/Approved/Rejected) | Impact | Approver.',
+      '- Approved CRs update the sprint backlog, timeline, and budget. Rejected CRs are documented with rationale.',
+      '',
+      '## Project Closure',
+      '- Produce a **lessons learned** document at project end: what went well, what to improve, action items.',
+      '- Create a **knowledge transfer checklist**: documentation index, admin runbook, support escalation paths.',
+      '- Archive all project artifacts in `/docs/archive/` with a README summarizing the project scope and outcomes.',
+      '- Conduct a final retrospective with the team and key stakeholders.',
+      '',
       '## Mermaid Diagrams',
       '- Use `gantt` for timelines and release plans.',
       '- Use `graph TD` for dependency maps and escalation paths.',
       '- Validate Mermaid syntax: use double quotes for labels with special characters.',
       '',
-      '## Documentation Standards',
-      '- Every `/docs/*.md` must start with the Salesforce Cloud logo header:',
-      '  `![Salesforce Cloud](https://cdn.prod.website-files.com/691f4b0505409df23e191b87/69416b267de7ae6888996981_logo.svg)`',
-      '- Author: **Salesforce Professional Services**. Version: increment on significant changes.',
-      '- Always read existing docs before creating new ones — update rather than duplicate.',
+      ...documentationStandards(),
       '',
-      '## Semantic Commits',
-      '- Ask for **Backlog Item ID** before suggesting any commit.',
-      '- Format: `type(ID): short description`.',
-      '- Body: numbered list of changes + value proposition paragraph.',
+      ...semanticCommits(),
       '',
       '## Sub-agent Handover',
       '- Pass to sub-agents: sprint scope, current velocity, risk register snapshot,',
       '  and release calendar constraints.',
       '',
-      '## Interaction Preferences',
-      '- Concise, but detailed in schedule and risk justifications.',
-      '- Correct mistakes directly without apologizing.',
+      ...interactionPreferences('schedule and risk'),
     ].join('\n');
   },
 };

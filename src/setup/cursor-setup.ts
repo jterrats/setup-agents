@@ -19,8 +19,12 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { generateBaseGuidelines, generateSfStandards, generateSubAgentProtocol } from '../generators/mdc-generator.js';
 import {
+  BACKLOG_SYNC_PROFILES,
+  CODE_ANALYZER_PROFILES,
   DEPLOY_PROFILES,
   STORY_MAP_PROFILES,
+  generateBacklogSyncSkill,
+  generateCodeAnalyzerSkill,
   generateDeploySkill,
   generateDiagramExportSkill,
   generateStoryMappingSkill,
@@ -93,8 +97,10 @@ function setupSkills(cwd: string, profiles: Profile[], writer: FileWriter): void
 
   const needsStoryMap = [...profileIds].some((id) => STORY_MAP_PROFILES.has(id));
   const needsDeploy = [...profileIds].some((id) => DEPLOY_PROFILES.has(id));
+  const needsCodeAnalyzer = [...profileIds].some((id) => CODE_ANALYZER_PROFILES.has(id));
+  const needsBacklogSync = [...profileIds].some((id) => BACKLOG_SYNC_PROFILES.has(id));
 
-  if (!needsStoryMap && !needsDeploy) return;
+  if (!needsStoryMap && !needsDeploy && !needsCodeAnalyzer && !needsBacklogSync) return;
 
   ensureDir(skillsDir);
 
@@ -114,12 +120,23 @@ function setupSkills(cwd: string, profiles: Profile[], writer: FileWriter): void
   }
 
   if (needsDeploy) {
-    const deployDir = join(skillsDir, 'sf-deploy');
-    const files = generateDeploySkill();
-    for (const [relativePath, content] of Object.entries(files)) {
-      const fullPath = join(deployDir, relativePath);
-      ensureDir(join(fullPath, '..'));
-      writer.write(fullPath, content);
-    }
+    writeSkill(skillsDir, 'sf-deploy', generateDeploySkill(), writer);
+  }
+
+  if (needsCodeAnalyzer) {
+    writeSkill(skillsDir, 'sf-code-analyzer', generateCodeAnalyzerSkill(), writer);
+  }
+
+  if (needsBacklogSync) {
+    writeSkill(skillsDir, 'backlog-sync', generateBacklogSyncSkill(), writer);
+  }
+}
+
+function writeSkill(skillsDir: string, dirName: string, files: Record<string, string>, writer: FileWriter): void {
+  const dir = join(skillsDir, dirName);
+  for (const [relativePath, content] of Object.entries(files)) {
+    const fullPath = join(dir, relativePath);
+    ensureDir(join(fullPath, '..'));
+    writer.write(fullPath, content);
   }
 }

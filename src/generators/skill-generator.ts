@@ -25,11 +25,15 @@
  * provides tool-agnostic content that each tool's generator can embed.
  */
 
+import { backlogSyncSkillMd } from './backlog-sync-content.js';
+import { codeAnalyzerSkillMd } from './code-analyzer-content.js';
 import { diagramExportSkillMd, exportDiagramScript } from './diagram-export-content.js';
 import { stripMdcFrontmatter } from './shared.js';
 
 export const STORY_MAP_PROFILES = new Set(['ba', 'architect', 'pm']);
 export const DEPLOY_PROFILES = new Set(['developer', 'devops', 'architect']);
+export const CODE_ANALYZER_PROFILES = new Set(['developer', 'qa', 'architect', 'devops']);
+export const BACKLOG_SYNC_PROFILES = new Set(['pm', 'ba']);
 
 // ─── Portable API (tool-agnostic) ──────────────────────────────────────────
 
@@ -58,6 +62,20 @@ export function getPortableSkillSections(profileIds: string[]): SkillSection[] {
     sections.push({
       title: 'Salesforce Deploy & Validate',
       body: stripMdcFrontmatter(deploySkillMd()).trim(),
+    });
+  }
+
+  if ([...ids].some((id) => CODE_ANALYZER_PROFILES.has(id))) {
+    sections.push({
+      title: 'Salesforce Code Analyzer',
+      body: stripMdcFrontmatter(codeAnalyzerSkillMd()).trim(),
+    });
+  }
+
+  if ([...ids].some((id) => BACKLOG_SYNC_PROFILES.has(id))) {
+    sections.push({
+      title: 'Backlog Sync',
+      body: stripMdcFrontmatter(backlogSyncSkillMd()).trim(),
     });
   }
 
@@ -272,7 +290,9 @@ function renderPdfScript(): string {
     '  $CSS_FLAG \\',
     '  --pdfFit 2>&1 | tee "$LOG_FILE"',
     '',
-    'if grep -qi "no diagram detected" "$LOG_FILE"; then',
+    'ERROR_PATTERNS="No diagram detected|Syntax error in text|Parse error|UnknownDiagramError"',
+    '',
+    'if grep -qiE "$ERROR_PATTERNS" "$LOG_FILE"; then',
     '  echo ""',
     '  echo "ERROR: Mermaid could not parse the diagram. Check syntax in $INPUT."',
     '  echo "Common fixes:"',
@@ -286,6 +306,36 @@ function renderPdfScript(): string {
     '  echo "ERROR: PDF was not generated. Check mmdc output above."',
     '  exit 1',
     'fi',
+    '',
+    '# ── Output content validation ────────────────────────────────────────────',
+    'FILESIZE=$(wc -c < "$OUTPUT" | tr -d " ")',
+    'if [ "$FILESIZE" -lt 1024 ]; then',
+    '  echo "WARN: Output file is suspiciously small (${FILESIZE} bytes). Verify the diagram rendered correctly."',
+    'fi',
+    '',
+    'ERROR_PATTERNS="No diagram detected|Syntax error in text|Parse error|UnknownDiagramError"',
+    '',
+    'case "$OUTPUT" in',
+    '  *.svg)',
+    '    if grep -qiE "$ERROR_PATTERNS" "$OUTPUT" 2>/dev/null; then',
+    '      echo "ERROR: Output SVG contains error markers. The diagram was not rendered correctly."',
+    '      echo "Check the Mermaid syntax in $INPUT."',
+    '      rm -f "$OUTPUT"',
+    '      exit 1',
+    '    fi',
+    '    ;;',
+    '  *.pdf)',
+    '    if command -v pdftotext &>/dev/null; then',
+    '      PDF_TEXT=$(pdftotext "$OUTPUT" - 2>/dev/null || true)',
+    '      if echo "$PDF_TEXT" | grep -qiE "$ERROR_PATTERNS"; then',
+    '        echo "ERROR: Output PDF contains error text. The diagram was not rendered correctly."',
+    '        echo "Check the Mermaid syntax in $INPUT."',
+    '        rm -f "$OUTPUT"',
+    '        exit 1',
+    '      fi',
+    '    fi',
+    '    ;;',
+    'esac',
     '',
     'echo "PDF generated successfully: $OUTPUT"',
     '',
@@ -348,6 +398,20 @@ export function generateDeploySkill(): Record<string, string> {
   };
 }
 
+// ─── Code Analyzer Skill ───────────────────────────────────────────────────
+
+export function generateCodeAnalyzerSkill(): Record<string, string> {
+  return {
+    'SKILL.md': codeAnalyzerSkillMd(),
+  };
+}
+
+export function generateBacklogSyncSkill(): Record<string, string> {
+  return {
+    'SKILL.md': backlogSyncSkillMd(),
+  };
+}
+
 function deploySkillMd(): string {
   return `---
 name: sf-deploy
@@ -380,6 +444,25 @@ sf plugins inspect @jterrats/smart-deployment 2>/dev/null || sf plugins install 
 > **Note:** The \`--force\` flag is required because these are unsigned community plugins.
 > Without it, \`sf plugins install\` will prompt for interactive confirmation that blocks
 > non-interactive execution (e.g., when an AI agent runs the command).
+
+---
+
+## Active Job Monitoring (CRITICAL)
+
+When you execute **any** command from this skill (deploy, validate, test run, analyze),
+you MUST wait for it to complete. **Never** ask the user to check the result or suggest
+reviewing it later. You own the job from start to finish:
+
+- **Synchronous CLI commands:** Wait for the command to return and report the result.
+- **Async/long-running deploys:** Poll with \`sf project deploy report\` until status
+  is \`Succeeded\` or \`Failed\`.
+- **Test runs:** Wait for \`sf apex test run\` to complete. Report pass/fail count,
+  coverage, and any errors.
+- **GitHub Actions (if triggered):** Use \`gh run watch <run-id>\` or poll
+  \`gh run view <run-id>\` until the workflow concludes. Report the final conclusion.
+
+After completion, always report: **status**, **duration**, and **actionable next steps**
+if there were failures.
 
 ---
 
@@ -529,6 +612,10 @@ Share the validation result with the user. Only proceed if validation passes.
 \`\`\`bash
 sf smart-deployment start --target-org <alias>
 \`\`\`
+
+Wait for all waves to complete. If any wave fails, report which components
+failed and attempt \`sf smart-deployment resume --target-org <alias>\` before
+escalating.
 
 ### Step 5: Post-Deployment Verification
 

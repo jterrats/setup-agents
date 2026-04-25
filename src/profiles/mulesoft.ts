@@ -16,7 +16,14 @@
 
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { generateMulesoftWorkflows } from '../generators/workflow-generator.js';
 import type { Profile } from './types.js';
+import {
+  consultativeDesign,
+  documentationStandards,
+  interactionPreferences,
+  semanticCommits,
+} from './shared-sections.js';
 
 export const mulesoftProfile: Profile = {
   id: 'mulesoft',
@@ -29,6 +36,7 @@ export const mulesoftProfile: Profile = {
     'redhat.vscode-xml',
     'redhat.vscode-yaml',
   ],
+  workflows: generateMulesoftWorkflows,
   detect(cwd: string): boolean {
     return existsSync(join(cwd, 'mule-artifact.json')) || existsSync(join(cwd, 'pom.xml'));
   },
@@ -44,9 +52,11 @@ export const mulesoftProfile: Profile = {
       '',
       '> Role: MuleSoft Architect / Developer — Salesforce Professional Services.',
       '',
-      '## Consultative Design (CRITICAL)',
-      '- **No Ninja Edits.** Always summarize proposed changes and get explicit agreement before modifying any file.',
-      '- Provide pros/cons for API design decisions (RAML vs OAS, sync vs async) before implementing.',
+      '## Codebase Contextualization',
+      '- **Always scan existing Mule project files, RAML/OAS specs, and `mule-app.properties`** before proposing changes.',
+      '- Reuse existing API fragments, DataWeave modules, and error handling patterns.',
+      '',
+      ...consultativeDesign('API design decisions (RAML vs OAS, sync vs async)'),
       '',
       '## API Design First',
       '- Define APIs using **RAML** or **OAS 3.0** before implementing any Mule flow.',
@@ -80,24 +90,35 @@ export const mulesoftProfile: Profile = {
       '- Mock all external dependencies in MUnit tests (no live calls in tests).',
       '- Test both happy path and error scenarios.',
       '',
-      '## Documentation Standards',
-      '- Every `/docs/*.md` must start with the Salesforce Cloud logo header:',
-      '  `![Salesforce Cloud](https://cdn.prod.website-files.com/691f4b0505409df23e191b87/69416b267de7ae6888996981_logo.svg)`',
-      '- Author: **Salesforce Professional Services**. Version: increment on significant changes.',
-      '- Always read existing docs before creating new ones — update rather than duplicate.',
+      '## DataWeave Standards',
+      '- Name DataWeave modules descriptively: `transformContactToCanonical.dwl`, `mapOrderLineItems.dwl`.',
+      '- Extract reusable transformations into `/src/main/resources/dwl/` modules.',
+      '- Write DataWeave unit tests using MUnit `dw::test` framework for complex transformations.',
+      '- Avoid inline DataWeave in flows — externalize all non-trivial transformations to `.dwl` files.',
+      '- Handle null/missing fields explicitly with `default` operator — never assume field presence.',
       '',
-      '## Semantic Commits',
-      '- Ask for **Backlog Item ID** before suggesting any commit.',
-      '- Format: `type(ID): short description`.',
-      '- Body: numbered list of changes + value proposition paragraph.',
+      '## API Naming & Versioning',
+      '- Follow **API-led naming**: `sys-<system>-api`, `proc-<process>-api`, `exp-<experience>-api`.',
+      '- URL-based versioning: `/api/v1/`, `/api/v2/`. Never break existing consumers without version bump.',
+      '- Deprecation policy: announce deprecation 2 sprints before removal. Document in API spec.',
+      '- API lifecycle: Design → Implement → Test → Publish → Deprecate → Retire.',
+      '',
+      '## MuleSoft Deployment',
+      '- Target environments: **CloudHub** (SaaS), **Runtime Fabric** (container), or **on-premise** (standalone).',
+      '- CI/CD: use `mule-maven-plugin` for automated deployment. Pipeline: build → MUnit → deploy → health check.',
+      '- Never hardcode environment-specific values — use `mule-app.properties` with environment-specific overrides.',
+      '- After deployment: verify the health endpoint and check Anypoint Monitoring for errors.',
+      '- This replaces the standard `sf project deploy` workflow — MuleSoft has its own deployment lifecycle.',
+      '',
+      ...documentationStandards(),
+      '',
+      ...semanticCommits(),
       '',
       '## Sub-agent Handover',
       '- Pass to sub-agents: API spec location, API-led layer being implemented,',
       '  external system endpoints (from Named Credentials), and error handling strategy.',
       '',
-      '## Interaction Preferences',
-      '- Concise, but detailed in architectural justifications.',
-      '- Correct mistakes directly without apologizing.',
+      ...interactionPreferences(),
     ].join('\n');
   },
 };

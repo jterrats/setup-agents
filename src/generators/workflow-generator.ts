@@ -64,6 +64,11 @@ Ask user to confirm, then execute the deployment:
 sf project deploy start --target-org <alias>
 \`\`\`
 
+**IMPORTANT — Active Monitoring:** Do NOT leave this command unattended.
+Wait for the deployment to complete. If the command is long-running, poll
+status with \`sf project deploy report\` until it finishes. Report the final
+status (success/failure), component count, and any errors.
+
 ## 4. Post-Deployment Validation
 
 Run Apex tests to confirm nothing is broken:
@@ -72,7 +77,10 @@ Run Apex tests to confirm nothing is broken:
 sf apex test run --target-org <alias> --code-coverage --result-format human
 \`\`\`
 
-Report the deployment outcome and test coverage to the user.
+Wait for tests to complete. Report:
+- Total pass/fail count
+- Overall code coverage (must be ≥ 90%)
+- Any failing tests with error messages
 `
   );
 }
@@ -82,6 +90,13 @@ function runTestsWorkflow(version: string): string {
     version,
     'Run Apex Tests',
     `
+## 0. Pre-flight: Ensure Productive Code Is Deployed
+
+Before running any test class, verify the productive Apex class it covers has
+been deployed to the target org. If the class was modified locally but not yet
+deployed, deploy it first and wait for success. **Never run tests against stale
+code in the sandbox.**
+
 ## 1. Select Test Scope
 
 Ask whether to run all tests or specific classes. Then execute:
@@ -123,6 +138,9 @@ Ask which components or directory to validate. Default: \`force-app\`.
 \`\`\`bash
 sf project deploy validate -d force-app --target-org <alias> --test-level RunLocalTests
 \`\`\`
+
+**IMPORTANT — Active Monitoring:** Wait for the validation to complete.
+If the command is long-running, poll with \`sf project deploy report\` until finished.
 
 ## 3. Report Results
 
@@ -453,6 +471,103 @@ Proposed | Accepted | Deprecated | Superseded by ADR-NNN
 Present the ADR to the developer and confirm agreement before any implementation begins.
 `
     ),
+    'architecture-review.md': workflow(
+      version,
+      'Architecture Review',
+      `
+## 1. Gather Context
+
+Ask:
+- Which feature or change is being reviewed?
+- Which objects, APIs, or integrations are affected?
+
+Read related ADRs in \`/docs/adr/\` for prior decisions.
+
+## 2. Pattern Selection Review
+
+Evaluate the proposed solution against established patterns:
+- **Trigger strategy** — One trigger per object, Kevin O'Hara handler?
+- **Flow strategy** — Sub-flows? One RTF per object/context?
+- **Data layer** — JT_DynamicQueries or DataSelector?
+- **Async** — @future vs Queueable vs Batch vs Schedulable?
+
+Flag any deviations and require justification.
+
+## 3. Security Review
+
+- Sharing model: \`with sharing\` by default? Apex REST uses \`without sharing\`?
+- Validation rule bypass: Custom Permissions only (no hardcoded Profile names)?
+- Named Credentials for all external endpoints?
+- Permission Set Groups aligned to personas?
+
+## 4. Governor Limit Budget
+
+Estimate resource consumption for the proposed change:
+- SOQL queries (limit: 100 sync / 200 async)
+- DML statements (limit: 150)
+- Callouts (limit: 100)
+- CPU time impact
+
+Flag if the change pushes any limit above 60% of the governor cap.
+
+## 5. Produce Review Document
+
+Output a Mermaid diagram showing the solution architecture and write findings to
+\`/docs/architecture-reviews/<feature>-review.md\` with: summary, pattern compliance,
+security findings, governor limit assessment, and final recommendation (Approved / Needs Revision).
+`
+    ),
+    'data-model-design.md': workflow(
+      version,
+      'Data Model Design',
+      `
+## 1. Gather Requirements
+
+Ask:
+- Which business entities are involved?
+- What are the relationships between them (1:1, 1:N, N:M)?
+- Are there existing objects that can be extended?
+
+Read \`force-app/main/default/objects/\` to understand current data model.
+
+## 2. Design the ERD
+
+Produce a Mermaid ERD diagram:
+\\\`\\\`\\\`mermaid
+erDiagram
+    ACCOUNT ||--o{ CONTACT : has
+    ACCOUNT ||--o{ OPPORTUNITY : owns
+\\\`\\\`\\\`
+
+Include:
+- Standard vs custom objects (label custom objects clearly)
+- Junction objects for N:M relationships
+- Lookup vs Master-Detail relationship type for each link
+- Polymorphic lookups if needed
+
+## 3. Evaluate Design Patterns
+
+For each new object/relationship, consider:
+- **Junction objects** — needed for N:M? Or can a related list suffice?
+- **Big Objects** — data volume > 50M records? Consider Big Object archival.
+- **External Objects** — data lives outside Salesforce? Use Salesforce Connect.
+- **Custom Metadata Types** — configuration data? Use CMDT instead of Custom Objects.
+
+## 4. Field Standards
+
+- API Names: **PascalCase** (English). Labels: **Spanish**. Descriptions mandatory.
+- Standard picklists: use **StandardValueSets**.
+- Record Types: only when page layout or process branching requires it.
+
+## 5. Document
+
+Output to \`/docs/data-model/<feature>-erd.md\`:
+- Mermaid ERD diagram
+- Object table: API Name, Label, Type (Standard/Custom/Junction/Big), Record Types
+- Relationship table: Parent, Child, Type (Lookup/Master-Detail), Cascade delete?
+- Field inventory for new custom fields
+`
+    ),
   };
 }
 
@@ -497,6 +612,12 @@ npm version <major|minor|patch> --no-git-tag-version
 
 \`\`\`bash
 sf project deploy validate -d force-app --target-org <staging-alias> --test-level RunLocalTests
+\`\`\`
+
+**IMPORTANT — Active Monitoring:** Wait for validation to complete before tagging.
+Poll with \`sf project deploy report\` if needed. Only tag after successful validation.
+
+\`\`\`bash
 git tag -a v<version> -m "Release v<version>"
 git push origin v<version>
 \`\`\`
@@ -521,6 +642,9 @@ sf org create scratch --definition-file config/project-scratch-def.json --alias 
 \`\`\`bash
 sf project deploy start -d force-app --target-org <alias>
 \`\`\`
+
+**Active Monitoring:** Wait for the deployment to complete and report the result
+before moving to the next step.
 
 ## 4. Assign Permission Sets
 
@@ -674,6 +798,91 @@ sf project deploy start --target-org <alias> --metadata WaveDataset WaveRecipe W
 Report any manual post-deployment steps (schedule recipes, share app) to the developer.
 `
     ),
+    'create-recipe.md': workflow(
+      version,
+      'Create Analytics Recipe',
+      `
+## 1. Define Data Requirements
+
+Ask:
+- Which source objects/datasets feed this recipe?
+- What is the output dataset name and purpose?
+- Incremental or full refresh?
+
+## 2. Document Data Lineage
+
+Produce a Mermaid diagram showing the data flow:
+\\\`\\\`\\\`mermaid
+graph LR
+    Source1[Source Dataset 1] --> Recipe[Recipe Name]
+    Source2[Source Dataset 2] --> Recipe
+    Recipe --> Output[Output Dataset]
+\\\`\\\`\\\`
+
+## 3. Build the Recipe
+
+Follow these rules:
+- Filter early — reduce record count before joins or transformations.
+- Use **Recipes** (Data Prep), not legacy Dataflows.
+- Design for incremental loads when possible.
+- Dataset naming: **PascalCase** with source prefix (e.g., \`SF_OpportunityMetrics\`).
+
+## 4. Configure Schedule
+
+Set refresh frequency based on SLA:
+- Match or exceed upstream data stream refresh frequency.
+- Never leave schedule at default.
+
+## 5. Validate
+
+Run the recipe in sandbox and verify:
+- Output row count matches expectations.
+- No transformation errors in the recipe run log.
+- Downstream dashboards/lenses render correctly with the new dataset.
+
+Document the recipe in \`/docs/analytics/recipes.md\` with: name, sources, output, schedule, and lineage diagram.
+`
+    ),
+    'create-dashboard.md': workflow(
+      version,
+      'Create Analytics Dashboard',
+      `
+## 1. Define the Primary Question
+
+Every dashboard must answer a documented business question.
+
+Ask:
+- What is the primary question this dashboard answers?
+- Who is the audience (executive, manager, analyst)?
+- What datasets will be used?
+
+## 2. Design Layout
+
+Rules:
+- Maximum **12 widgets per page** — split into multiple pages if needed.
+- Follow SLDS color guidelines for chart palettes.
+- Use consistent chart types: bar for comparison, line for trends, KPI for single metrics.
+
+## 3. Build Widgets
+
+For each widget:
+- Write SAQL with explicit \`group by\` and \`order by\`.
+- Filter early in the query — never load all records and filter at render time.
+- Test SAQL in the lens editor before embedding in the dashboard.
+
+## 4. Security Predicates
+
+If the dashboard uses datasets with sensitive data:
+- Verify that a Security Predicate is defined on each dataset.
+- Test the dashboard under at least 3 user personas to confirm row-level security.
+
+## 5. Test and Document
+
+- Test on desktop and mobile viewports before release.
+- Document in \`/docs/analytics/dashboards.md\`:
+  primary question, audience, datasets used, security predicates applied, and page layout description.
+`
+    ),
   };
 }
 
@@ -824,6 +1033,478 @@ Update \`/docs/risk-register.md\` with new and modified entries. Never delete cl
 
 Risks with both High probability and High impact must be escalated immediately.
 Flag any blocker older than 3 business days.
+`
+    ),
+  };
+}
+
+/** BA profile workflows: story refinement, backlog grooming. */
+export function generateBaWorkflows(version: string): Record<string, string> {
+  return {
+    'refine-stories.md': workflow(
+      version,
+      'Refine User Stories',
+      `
+## 1. Identify Stories to Refine
+
+Ask: Which epic or set of user stories should we refine?
+
+Read the story map from \`/docs/story-maps/\` to identify candidate stories.
+
+## 2. Apply Refinement Checklist
+
+For each story, verify:
+
+1. **Persona** — Is a persona linked? If not, ask: *"Who is the primary user?"*
+2. **Acceptance Criteria** — Are they in Gherkin format (Given / When / Then)?
+3. **Fields & Objects** — Are impacted Salesforce objects and fields listed?
+4. **Dependencies** — Are cross-story or cross-epic dependencies documented?
+5. **T-shirt Size** — Is an estimate assigned (XS / S / M / L / XL)?
+6. **Architect Review** — For M+ stories, has the Architect confirmed feasibility?
+
+## 3. Output
+
+Update the story map with refined stories. Mark each story as **Ready** or **Not Ready**.
+Produce a summary table: US ID | Title | Status (Ready/Not Ready) | Missing Items.
+`
+    ),
+    'groom-backlog.md': workflow(
+      version,
+      'Groom Backlog',
+      `
+## 1. Load Current Backlog
+
+Read the story map from \`/docs/story-maps/\`.
+List all stories with: US ID, Title, MoSCoW, Priority, T-shirt Size, Sprint assignment.
+
+## 2. Prioritize
+
+Apply MoSCoW classification if not already assigned.
+Within each MoSCoW category, sort by Priority (P1 > P2 > P3).
+
+Present a **Value vs Effort Matrix**:
+- X-axis: Effort (T-shirt size)
+- Y-axis: Business Value (from MoSCoW + Priority)
+- Highlight quick wins (high value, low effort) and flag complex items (XL) for breakdown.
+
+## 3. Sprint Assignment
+
+Ask: Which sprint are we planning for? What is the team capacity?
+
+Assign stories to the sprint until capacity is filled, prioritizing P1 Must-haves.
+Produce the sprint backlog table: US ID | Title | Priority | Size | Assignee.
+
+## 4. Sync to Issue Tracker (Optional)
+
+If the user wants to push stories to an issue tracker, use the **Backlog Sync** skill.
+`
+    ),
+  };
+}
+
+/** MuleSoft profile workflows: API creation, MUnit testing, deployment. */
+export function generateMulesoftWorkflows(version: string): Record<string, string> {
+  return {
+    'create-mule-api.md': workflow(
+      version,
+      'Create MuleSoft API',
+      `
+## 1. Design the API Spec
+
+Ask:
+- API name, version, and API-led layer (\`sys-\`, \`proc-\`, or \`exp-\`).
+- HTTP methods and resource paths.
+- Request/response schemas.
+
+Create the RAML or OAS 3.0 spec in \`src/main/resources/api/\`.
+
+## 2. Scaffold the Mule Project
+
+If no project exists:
+\`\`\`bash
+mvn archetype:generate -DarchetypeGroupId=org.mule.tools \\
+  -DarchetypeArtifactId=mule-app-archetype -DarchetypeVersion=4.x
+\`\`\`
+
+Wire the API spec to the main flow using APIkit Router.
+
+## 3. Configure Error Handling
+
+Add an **On Error Propagate** scope in the main flow with:
+- 400 → Bad Request (validation errors)
+- 404 → Not Found
+- 500 → Internal Server Error with correlation ID
+
+## 4. Configure External Properties
+
+Move all environment-specific values to \`mule-app.properties\`:
+- API auto-discovery ID
+- External system endpoints
+- Timeout and retry configuration
+
+Never hardcode endpoints or credentials in flows.
+
+## 5. Publish to Exchange (Optional)
+
+If Anypoint Platform is available:
+\`\`\`bash
+mvn clean deploy -DmuleDeploy
+\`\`\`
+`
+    ),
+    'run-munit.md': workflow(
+      version,
+      'Run MUnit Tests',
+      `
+## 1. Identify Test Scope
+
+Ask: Which flows or API resources should be tested?
+
+## 2. Run MUnit Tests
+
+\`\`\`bash
+mvn clean test
+\`\`\`
+
+Wait for the command to complete. Report: total tests, passed, failed, and coverage percentage.
+
+## 3. Review Coverage
+
+Target **80% flow coverage** minimum.
+Identify uncovered flows and suggest MUnit test stubs for them.
+
+## 4. Review Failures
+
+For each failing test:
+- Show the test name, expected vs actual result.
+- Suggest a fix if the issue is apparent.
+
+## IMPORTANT — Active Monitoring
+
+Do NOT suggest running tests and leave the user to check. Wait for \`mvn test\` to finish and report the full result.
+`
+    ),
+    'deploy-mule-app.md': workflow(
+      version,
+      'Deploy MuleSoft Application',
+      `
+## 1. Pre-deployment Checks
+
+- Verify all MUnit tests pass: \`mvn clean test\`
+- Confirm target environment (CloudHub / Runtime Fabric / on-prem)
+- Verify \`mule-app.properties\` has correct values for target environment
+
+## 2. Deploy
+
+### CloudHub
+\`\`\`bash
+mvn clean deploy -DmuleDeploy \\
+  -Dcloudhub.environment=<env> \\
+  -Dcloudhub.workerType=MICRO \\
+  -Dcloudhub.workers=1
+\`\`\`
+
+### Runtime Fabric
+\`\`\`bash
+mvn clean deploy -DmuleDeploy -Drtf.target=<target-name>
+\`\`\`
+
+## 3. Monitor Deployment
+
+Wait for the deployment to complete. Poll status if needed.
+Report: deployment status, application URL, and any warnings.
+
+## 4. Verify Health
+
+After deployment succeeds, hit the health endpoint:
+\`\`\`bash
+curl -s <app-url>/api/health
+\`\`\`
+
+Report the response status.
+
+## IMPORTANT — Active Monitoring
+
+Monitor the deployment from start to finish. Never ask the user to check deployment status.
+`
+    ),
+  };
+}
+
+/** UX profile workflows: UX audits, design reviews. */
+export function generateUxWorkflows(version: string): Record<string, string> {
+  return {
+    'ux-audit.md': workflow(
+      version,
+      'UX Audit — LWC Interaction Checklist',
+      `
+## 1. Identify the Component
+
+Ask: Which LWC component should be audited?
+
+Read the component's HTML, JS, and CSS files.
+
+## 2. Run the LWC Interaction Checklist
+
+Evaluate every item and report pass/fail:
+
+1. **Click efficiency** — Does this require too many clicks? If yes, suggest a shortcut.
+2. **Cancel vs Submit separation** — Is Cancel clearly separated from Submit (different variant, adequate spacing)?
+3. **Empty state** — Is there a clear empty state if no data is present (message + CTA)?
+4. **Accessibility** — Contrast ratio (4.5:1), alt-text, aria-labels, keyboard navigation, screen-reader friendly.
+5. **Custom Labels** — Are all user-facing strings sourced from Custom Labels?
+6. **Feedback loops** — Are loading/success/error feedback loops defined (spinner + toast)?
+
+## 3. Cognitive UX Laws Check
+
+- **Jakob's Law** — Does it follow familiar Salesforce patterns?
+- **Hick's Law** — Are there more than 7 choices presented at once? If so, recommend grouping.
+- **Fitts's Law** — Are primary actions large enough and in predictable locations?
+
+## 4. Produce Report
+
+Create a findings document with:
+- Component name and purpose
+- Checklist results (pass/fail per item)
+- Cognitive law compliance
+- Recommended fixes with priority (Critical / High / Medium / Low)
+`
+    ),
+    'design-review.md': workflow(
+      version,
+      'Design Review',
+      `
+## 1. Gather Context
+
+Ask:
+- Which feature or LWC is under review?
+- Is there a mockup or wireframe? (file path or description)
+
+Read the component files if they already exist.
+
+## 2. Evaluate Against Standards
+
+### SLDS Compliance
+- Are SLDS components used instead of custom HTML?
+- Are Styling Hooks used instead of custom CSS overrides?
+- Are design tokens used for colors, spacing, and typography?
+
+### WCAG 2.1 AA Compliance
+- Text contrast ratios meet 4.5:1 (normal) / 3:1 (large)?
+- All interactive elements have accessible labels?
+- Keyboard navigation works for all interactions?
+
+### Responsive Design
+- Tested at 320px, 768px, and 1280px breakpoints?
+- SLDS grid used for layout?
+
+## 3. Produce Review Document
+
+Output to \`/docs/ux-reviews/<component-name>-review.md\`:
+- Summary of findings
+- SLDS compliance: pass/fail
+- Accessibility: pass/fail with specific issues
+- Responsive: pass/fail
+- Recommendations with severity
+- Sign-off: Ready for development / Needs revision
+`
+    ),
+  };
+}
+
+/** CGCloud profile workflows: deploy customizations, sandbox setup. */
+export function generateCgcloudWorkflows(version: string): Record<string, string> {
+  return {
+    'deploy-cgcloud.md': workflow(
+      version,
+      'Deploy CGCloud Customizations',
+      `
+## 1. Pre-deployment Validation
+
+- Verify no managed package components (\`cgcloud__\`) have been modified.
+- Confirm all Modeler CMDT records are included in the deployment package.
+- Check deployment order: CMDT records must deploy BEFORE dependent Apex.
+
+## 2. Deploy CMDT First
+
+\`\`\`bash
+sf project deploy start -d force-app/main/default/customMetadata -o <target-org>
+\`\`\`
+
+Wait for completion. If CMDT deployment fails, do NOT proceed to Apex.
+
+## 3. Deploy Custom Apex and Components
+
+\`\`\`bash
+sf project deploy start -d force-app -o <target-org>
+\`\`\`
+
+Monitor to completion. Report status, duration, and any errors.
+
+## 4. Validate in CGCloud-enabled Sandbox
+
+After deployment, verify:
+- Modeler configurations render correctly in the CGCloud UI.
+- Custom extension points execute as expected.
+- No managed package errors in Setup > Installed Packages.
+
+## IMPORTANT — Active Monitoring
+
+Monitor every deployment step to completion. Never leave a deployment unattended.
+`
+    ),
+    'setup-cgcloud-sandbox.md': workflow(
+      version,
+      'Setup CGCloud Development Sandbox',
+      `
+## 1. Verify Managed Package
+
+Check that the CGCloud managed package is installed and at the expected version:
+
+\`\`\`bash
+sf package installed list -o <sandbox-alias>
+\`\`\`
+
+If the package is missing or outdated, coordinate with the admin to install/upgrade.
+
+## 2. Apply Modeler Configuration
+
+Deploy all CMDT (Modeler) records:
+
+\`\`\`bash
+sf project deploy start -d force-app/main/default/customMetadata -o <sandbox-alias>
+\`\`\`
+
+## 3. Assign Permission Set Groups
+
+Assign CGCloud-specific PSGs to test users:
+- Field Rep PSG
+- Territory Manager PSG
+- Back Office PSG
+
+\`\`\`bash
+sf org assign permset --name <PSG_Name> --target-org <sandbox-alias>
+\`\`\`
+
+## 4. Seed Demo Data
+
+If a data plan exists in \`data/\`:
+
+\`\`\`bash
+sf data import tree --plan data/cgcloud-seed-plan.json -o <sandbox-alias>
+\`\`\`
+
+If no data plan exists, ask the user for the reference org to export from:
+
+\`\`\`bash
+sf data export tree --query "SELECT Id, Name FROM Account WHERE cgcloud__Account_Type__c != null LIMIT 50" -o <source-org> -d data/
+\`\`\`
+
+## 5. Verify Setup
+
+Confirm:
+- Managed package is active (no errors in Installed Packages).
+- Modeler configs are visible in the CGCloud admin UI.
+- Test users can log in and see CGCloud tabs.
+`
+    ),
+  };
+}
+
+/** Data360 profile workflows: data stream setup, identity resolution validation. */
+export function generateData360Workflows(version: string): Record<string, string> {
+  return {
+    'setup-data-stream.md': workflow(
+      version,
+      'Setup Data Stream',
+      `
+## 1. Identify Source and Target
+
+Ask:
+- Source system (Salesforce CRM, S3, Ingestion API, etc.)
+- Source object/entity name
+- Target Data Lake Object (DLO) or Data Model Object (DMO)
+
+## 2. Configure the Data Stream
+
+Name convention: \`<Source>_<Object>_Stream\` (e.g., \`SF_Contact_Stream\`).
+
+Document the field mapping in \`/docs/datacloud/stream-mappings.md\`:
+
+| Source Field | Target DLO Field | Transformation |
+|-------------|-----------------|---------------|
+| ... | ... | ... |
+
+## 3. Set Refresh Frequency
+
+Ask: What is the SLA for data freshness?
+- Real-time → use Change Data Capture or Ingestion API
+- Hourly/Daily → configure scheduled refresh
+
+Never leave refresh frequency at default.
+
+## 4. Run Initial Sync
+
+Trigger the first data stream sync and monitor to completion.
+
+After sync, verify row counts:
+- Expected records from source: N
+- Records in DLO: N (should match or be within accepted delta)
+
+Report any transformation errors or unmapped fields.
+
+## 5. Document
+
+Update \`/docs/datacloud/stream-mappings.md\` with:
+- Stream name, source, target DLO
+- Field mapping table
+- Refresh frequency and SLA
+- Initial sync date and row count
+`
+    ),
+    'validate-identity-resolution.md': workflow(
+      version,
+      'Validate Identity Resolution',
+      `
+## 1. Load Representative Sample
+
+Ask: Which Identity Resolution ruleset should we validate?
+
+Ensure the target DMO has a representative sample of records (at minimum 1,000 records with known duplicates).
+
+## 2. Review IR Configuration
+
+Document the current IR rules:
+
+| Rule Priority | Match Field(s) | Match Type | Reconciliation |
+|--------------|---------------|-----------|---------------|
+| 1 | Email | Exact | Most Recent |
+| 2 | Phone + LastName | Fuzzy | Source Priority |
+| ... | ... | ... | ... |
+
+## 3. Run IR and Analyze Results
+
+After running IR, report:
+- Total source records
+- Total unified profiles created
+- Match rate (% of records that merged)
+- Largest cluster size (flag if > 10 — may indicate over-matching)
+
+## 4. Spot-check Results
+
+Pick 5-10 merged profiles and verify:
+- Were the correct records merged?
+- Were reconciliation rules applied correctly (most recent, source priority)?
+- Are there false positives (records merged that should not have been)?
+
+## 5. Document Findings
+
+Output to \`/docs/datacloud/ir-validation-<ruleset>-<date>.md\`:
+- Ruleset configuration table
+- Match rate and cluster statistics
+- Spot-check results
+- Recommendations (adjust fuzzy threshold, add/remove match fields)
+- Sign-off: Approved for production / Needs adjustment
 `
     ),
   };

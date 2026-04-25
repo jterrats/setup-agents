@@ -18,6 +18,8 @@ import {
   generateStoryMappingSkill,
   generateDeploySkill,
   generateDiagramExportSkill,
+  generateCodeAnalyzerSkill,
+  generateBacklogSyncSkill,
   getPortableSkillSections,
   getSharedSkillAssets,
 } from '../../../src/generators/skill-generator.js';
@@ -86,9 +88,11 @@ describe('skill-generator', () => {
       expect(script).to.include('@mermaid-js/mermaid-cli mmdc');
     });
 
-    it('render-pdf.sh validates for "no diagram detected"', () => {
+    it('render-pdf.sh validates for error patterns in log and output', () => {
       const script = generateStoryMappingSkill()['scripts/render-pdf.sh'];
-      expect(script).to.include('no diagram detected');
+      expect(script).to.include('No diagram detected');
+      expect(script).to.include('ERROR_PATTERNS');
+      expect(script).to.include('pdftotext');
     });
 
     it('render-pdf.sh uses --pdfFit flag', () => {
@@ -167,6 +171,13 @@ describe('skill-generator', () => {
       expect(skillMd).to.include('Max components per wave');
     });
 
+    it('SKILL.md includes Active Job Monitoring section', () => {
+      const skillMd = generateDeploySkill()['SKILL.md'];
+      expect(skillMd).to.include('## Active Job Monitoring (CRITICAL)');
+      expect(skillMd).to.include('sf project deploy report');
+      expect(skillMd).to.include('gh run watch');
+    });
+
     it('SKILL.md includes combined pipeline workflow', () => {
       const skillMd = generateDeploySkill()['SKILL.md'];
       expect(skillMd).to.include('Step 1');
@@ -197,33 +208,233 @@ describe('skill-generator', () => {
       expect(script).to.include('command -v npx');
       expect(script).to.include('Node.js >= 18');
     });
+
+    it('export-diagram.sh includes output validation with error patterns', () => {
+      const script = generateDiagramExportSkill()['scripts/export-diagram.sh'];
+      expect(script).to.include('validate_output');
+      expect(script).to.include('ERROR_PATTERNS');
+      expect(script).to.include('No diagram detected');
+      expect(script).to.include('pdftotext');
+    });
+  });
+
+  describe('generateCodeAnalyzerSkill()', () => {
+    it('returns SKILL.md', () => {
+      const files = generateCodeAnalyzerSkill();
+      expect(files).to.have.key('SKILL.md');
+    });
+
+    it('SKILL.md contains valid YAML frontmatter with name and description', () => {
+      const skillMd = generateCodeAnalyzerSkill()['SKILL.md'];
+      expect(skillMd).to.match(/^---\nname: sf-code-analyzer/);
+      expect(skillMd).to.include('description:');
+    });
+
+    it('SKILL.md includes Prerequisites table with plugin install command', () => {
+      const skillMd = generateCodeAnalyzerSkill()['SKILL.md'];
+      expect(skillMd).to.include('## Prerequisites');
+      expect(skillMd).to.include('@salesforce/plugin-code-analyzer');
+      expect(skillMd).to.include('sf plugins install @salesforce/plugin-code-analyzer');
+    });
+
+    it('SKILL.md documents sf code-analyzer run command', () => {
+      const skillMd = generateCodeAnalyzerSkill()['SKILL.md'];
+      expect(skillMd).to.include('sf code-analyzer run');
+      expect(skillMd).to.include('--target');
+    });
+
+    it('SKILL.md documents sf code-analyzer rules list', () => {
+      const skillMd = generateCodeAnalyzerSkill()['SKILL.md'];
+      expect(skillMd).to.include('sf code-analyzer rules list');
+    });
+
+    it('SKILL.md documents rule selectors for all engines', () => {
+      const skillMd = generateCodeAnalyzerSkill()['SKILL.md'];
+      expect(skillMd).to.include('pmd:Recommended');
+      expect(skillMd).to.include('pmd:Security');
+      expect(skillMd).to.include('pmd:Performance');
+      expect(skillMd).to.include('pmd:Design');
+      expect(skillMd).to.include('eslint:Recommended');
+      expect(skillMd).to.include('eslint:Security');
+      expect(skillMd).to.include('retire-js:Recommended');
+      expect(skillMd).to.include('cpd:Recommended');
+    });
+
+    it('SKILL.md documents severity threshold and exit codes', () => {
+      const skillMd = generateCodeAnalyzerSkill()['SKILL.md'];
+      expect(skillMd).to.include('--severity-threshold');
+      expect(skillMd).to.include('Exit Code');
+      expect(skillMd).to.include('exit code 2');
+    });
+
+    it('SKILL.md documents output formats', () => {
+      const skillMd = generateCodeAnalyzerSkill()['SKILL.md'];
+      expect(skillMd).to.include('--output-format table');
+      expect(skillMd).to.include('--output-format json');
+      expect(skillMd).to.include('--output-format csv');
+      expect(skillMd).to.include('--output-format html');
+      expect(skillMd).to.include('--output-file');
+    });
+
+    it('SKILL.md includes common recipes', () => {
+      const skillMd = generateCodeAnalyzerSkill()['SKILL.md'];
+      expect(skillMd).to.include('Full Project Scan');
+      expect(skillMd).to.include('Staged Files Only');
+      expect(skillMd).to.include('Security-focused Scan');
+      expect(skillMd).to.include('Duplicate Code Detection');
+    });
+
+    it('SKILL.md includes Active Job Monitoring section', () => {
+      const skillMd = generateCodeAnalyzerSkill()['SKILL.md'];
+      expect(skillMd).to.include('## Active Job Monitoring (CRITICAL)');
+      expect(skillMd).to.include('wait for it to complete');
+    });
+
+    it('SKILL.md includes interpreting results guidance', () => {
+      const skillMd = generateCodeAnalyzerSkill()['SKILL.md'];
+      expect(skillMd).to.include('## 4. Interpreting Results');
+      expect(skillMd).to.include('Total violation count');
+      expect(skillMd).to.include('Top offending files');
+      expect(skillMd).to.include('Actionable recommendations');
+    });
+
+    it('SKILL.md includes quick reference table', () => {
+      const skillMd = generateCodeAnalyzerSkill()['SKILL.md'];
+      expect(skillMd).to.include('Quick Reference');
+      expect(skillMd).to.include('Full project scan');
+      expect(skillMd).to.include('Apex security scan');
+    });
+  });
+
+  describe('generateBacklogSyncSkill()', () => {
+    it('returns SKILL.md', () => {
+      const files = generateBacklogSyncSkill();
+      expect(files).to.have.key('SKILL.md');
+    });
+
+    it('SKILL.md contains valid YAML frontmatter with name and description', () => {
+      const skillMd = generateBacklogSyncSkill()['SKILL.md'];
+      expect(skillMd).to.match(/^---\nname: backlog-sync/);
+      expect(skillMd).to.include('description:');
+    });
+
+    it('SKILL.md includes Prerequisites table for all platforms', () => {
+      const skillMd = generateBacklogSyncSkill()['SKILL.md'];
+      expect(skillMd).to.include('## Prerequisites');
+      expect(skillMd).to.include('gh auth status');
+      expect(skillMd).to.include('glab auth status');
+      expect(skillMd).to.include('az account show');
+      expect(skillMd).to.include('JIRA_API_TOKEN');
+      expect(skillMd).to.include('BITBUCKET_TOKEN');
+    });
+
+    it('SKILL.md includes Platform Detection section', () => {
+      const skillMd = generateBacklogSyncSkill()['SKILL.md'];
+      expect(skillMd).to.include('## 1. Platform Detection');
+      expect(skillMd).to.include('.github/');
+      expect(skillMd).to.include('.gitlab-ci.yml');
+      expect(skillMd).to.include('azure-pipelines.yml');
+    });
+
+    it('SKILL.md includes Parsing the Story Map section', () => {
+      const skillMd = generateBacklogSyncSkill()['SKILL.md'];
+      expect(skillMd).to.include('## 2. Parsing the Story Map');
+      expect(skillMd).to.include('US ID');
+      expect(skillMd).to.include('US-NNN');
+    });
+
+    it('SKILL.md includes Idempotency Guard section', () => {
+      const skillMd = generateBacklogSyncSkill()['SKILL.md'];
+      expect(skillMd).to.include('## 3. Idempotency Guard (CRITICAL)');
+      expect(skillMd).to.include('gh issue list --search');
+      expect(skillMd).to.include('glab issue list --search');
+      expect(skillMd).to.include('already exists');
+    });
+
+    it('SKILL.md documents issue creation for all platforms', () => {
+      const skillMd = generateBacklogSyncSkill()['SKILL.md'];
+      expect(skillMd).to.include('### GitHub Issues');
+      expect(skillMd).to.include('### GitLab Issues');
+      expect(skillMd).to.include('### Azure DevOps');
+      expect(skillMd).to.include('### Jira (REST API)');
+      expect(skillMd).to.include('### Bitbucket Issues');
+    });
+
+    it('SKILL.md includes Active Job Monitoring section', () => {
+      const skillMd = generateBacklogSyncSkill()['SKILL.md'];
+      expect(skillMd).to.include('## Active Job Monitoring (CRITICAL)');
+      expect(skillMd).to.include('one by one');
+    });
+
+    it('SKILL.md includes Execution Flow with 6 steps', () => {
+      const skillMd = generateBacklogSyncSkill()['SKILL.md'];
+      expect(skillMd).to.include('## 5. Execution Flow');
+      expect(skillMd).to.include('Detect platform');
+      expect(skillMd).to.include('Verify authentication');
+      expect(skillMd).to.include('Parse');
+      expect(skillMd).to.include('Preview');
+      expect(skillMd).to.include('Create issues');
+      expect(skillMd).to.include('Final report');
+    });
+
+    it('SKILL.md includes Quick Reference table', () => {
+      const skillMd = generateBacklogSyncSkill()['SKILL.md'];
+      expect(skillMd).to.include('Quick Reference');
+      expect(skillMd).to.include('Auth check');
+      expect(skillMd).to.include('Create issue');
+    });
+
+    it('SKILL.md includes sandbox safety note for auth commands', () => {
+      const skillMd = generateBacklogSyncSkill()['SKILL.md'];
+      expect(skillMd).to.include('outside the sandbox');
+    });
   });
 
   describe('getPortableSkillSections()', () => {
-    it('returns story mapping and diagram export sections for ba profile', () => {
+    it('returns story mapping, diagram export and backlog sync sections for ba profile', () => {
       const sections = getPortableSkillSections(['ba']);
-      expect(sections).to.have.lengthOf(2);
-      expect(sections[0].title).to.equal('Story Mapping');
-      expect(sections[1].title).to.equal('Diagram Export');
-    });
-
-    it('returns deploy section for developer profile', () => {
-      const sections = getPortableSkillSections(['developer']);
-      expect(sections).to.have.lengthOf(1);
-      expect(sections[0].title).to.equal('Salesforce Deploy & Validate');
-    });
-
-    it('returns all sections for architect profile', () => {
-      const sections = getPortableSkillSections(['architect']);
       expect(sections).to.have.lengthOf(3);
       const titles = sections.map((s) => s.title);
       expect(titles).to.include('Story Mapping');
       expect(titles).to.include('Diagram Export');
+      expect(titles).to.include('Backlog Sync');
+    });
+
+    it('returns deploy and code-analyzer sections for developer profile', () => {
+      const sections = getPortableSkillSections(['developer']);
+      expect(sections).to.have.lengthOf(2);
+      const titles = sections.map((s) => s.title);
       expect(titles).to.include('Salesforce Deploy & Validate');
+      expect(titles).to.include('Salesforce Code Analyzer');
+    });
+
+    it('returns all sections for architect profile', () => {
+      const sections = getPortableSkillSections(['architect']);
+      expect(sections).to.have.lengthOf(4);
+      const titles = sections.map((s) => s.title);
+      expect(titles).to.include('Story Mapping');
+      expect(titles).to.include('Diagram Export');
+      expect(titles).to.include('Salesforce Deploy & Validate');
+      expect(titles).to.include('Salesforce Code Analyzer');
+    });
+
+    it('returns code-analyzer section for qa profile', () => {
+      const sections = getPortableSkillSections(['qa']);
+      expect(sections).to.have.lengthOf(1);
+      expect(sections[0].title).to.equal('Salesforce Code Analyzer');
+    });
+
+    it('returns story mapping, diagram export and backlog sync sections for pm profile', () => {
+      const sections = getPortableSkillSections(['pm']);
+      expect(sections).to.have.lengthOf(3);
+      const titles = sections.map((s) => s.title);
+      expect(titles).to.include('Story Mapping');
+      expect(titles).to.include('Diagram Export');
+      expect(titles).to.include('Backlog Sync');
     });
 
     it('returns empty array for profiles without skills', () => {
-      const sections = getPortableSkillSections(['qa', 'crma']);
+      const sections = getPortableSkillSections(['crma']);
       expect(sections).to.be.empty;
     });
 

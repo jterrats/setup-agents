@@ -42,6 +42,13 @@ export function generateBaseGuidelines(version: string): string {
     '- For changes affecting multiple files or architectural decisions, include a Mermaid diagram in the plan.',
     '- If the scope grows during execution, pause and re-confirm before continuing.',
     '',
+    '## Active Job Monitoring',
+    '- When you trigger a deployment, validation, test run, CI pipeline, or any long-running job,',
+    '  you MUST monitor it to completion. Never ask the user to check or suggest reviewing later.',
+    '- Poll or wait for the command to finish, then report: status, duration, and any errors.',
+    '- For CLI commands: wait for return or poll with the relevant report command.',
+    '- For GitHub Actions: use `gh run watch` or poll `gh run view` until `completed`.',
+    '',
     '## Code Quality',
     '- Ensure all new code is covered by tests.',
     '- Do not introduce linter errors or suppress warnings.',
@@ -49,7 +56,18 @@ export function generateBaseGuidelines(version: string): string {
     '',
     '## Security',
     '- Never hardcode credentials, tokens, or sensitive data.',
-    '- Use environment variables or secret managers for sensitive values.'
+    '- Use environment variables or secret managers for sensitive values.',
+    '',
+    '## Command Execution Safety (CRITICAL)',
+    '- **NEVER use `sudo`** — if a command requires elevated privileges, inform the user',
+    '  and let them run it manually. Do not attempt `sudo` in any script or terminal command.',
+    '- **Run CLI tools outside the sandbox** — tools like `gh`, `sf`, `glab`, `az`, `curl` to',
+    '  external APIs, and git push/pull may fail inside a sandboxed environment.',
+    '  When using Cursor, request `required_permissions: ["all"]` for shell commands that',
+    '  need network access or write to paths outside the workspace.',
+    '  When using other tools, instruct the user to run the command in their terminal directly.',
+    '- If a command fails with a permissions or network error, do NOT retry blindly —',
+    '  check whether sandbox restrictions are the cause and advise accordingly.'
   );
 }
 
@@ -152,7 +170,21 @@ export function generateSfStandards(version: string): string {
     '',
     '## 20. Sub-agent Orchestration',
     '- Pass architectural context and these rules to sub-agents.',
-    '- Sub-agents must follow: one assert per test, zero logic in triggers, Salesforce Professional Services authorship.'
+    '- Sub-agents must follow: one assert per test, zero logic in triggers, Salesforce Professional Services authorship.',
+    '',
+    '## 21. Setup Path Verification (CRITICAL)',
+    '- **NEVER document a Salesforce Setup path without user confirmation.**',
+    '- If you are unsure of the exact navigation path (e.g., Setup > Feature > Sub-feature),',
+    '  use the placeholder: `[Setup > VERIFY PATH > Feature Name]` and ask the user to confirm.',
+    '- Do not guess Setup menu locations — Salesforce UI changes across releases.',
+    '- Before documenting any configuration steps, ask: "Can you confirm the exact Setup path for this feature?"',
+    '',
+    '## 22. Salesforce Documentation Citation (CRITICAL)',
+    '- When explaining how to configure or implement any Salesforce feature, **always reference',
+    '  official Salesforce documentation** from `help.salesforce.com` or `developer.salesforce.com`.',
+    '- Include the URL in the documentation or configuration spec.',
+    '- If no official source is found, explicitly state: "No official Salesforce documentation found for this feature."',
+    '- Never present Salesforce configuration guidance without citing an authoritative source.'
   );
 }
 
@@ -161,6 +193,7 @@ export function generateSubAgentProtocol(profiles: Profile[], version: string): 
   const roleRegistry = profiles.map((p) => `| ${p.label} | \`${p.ruleFile}\` |`).join('\n');
   const taskRouting = buildTaskRouting(profiles);
   const handoverChecklist = buildHandoverChecklist(profiles);
+  const collaborationFlows = buildCollaborationFlows(profiles);
 
   return lines(
     mdcFrontmatter('Sub-agent orchestration protocol for this project', version),
@@ -192,6 +225,16 @@ export function generateSubAgentProtocol(profiles: Profile[], version: string): 
     '4. **Profile-specific context:**',
     '',
     handoverChecklist,
+    ...(collaborationFlows
+      ? [
+          '',
+          '## Collaboration Flows',
+          '',
+          'When one profile completes work that feeds into another, follow these handoff chains:',
+          '',
+          collaborationFlows,
+        ]
+      : []),
     '',
     '## Conflict Resolution',
     '',
@@ -311,6 +354,47 @@ function buildHandoverChecklist(profiles: Profile[]): string {
       return `**${p.label}:**\n  ${items}`;
     })
     .join('\n\n');
+}
+
+function buildCollaborationFlows(profiles: Profile[]): string {
+  const ids = new Set(profiles.map((p) => p.id));
+  const flows: string[] = [];
+
+  if (ids.has('pm') && ids.has('ba'))
+    flows.push(
+      '- **PM → BA:** PM defines sprint scope and priorities. BA refines stories with acceptance criteria and personas.'
+    );
+  if (ids.has('ba') && ids.has('architect'))
+    flows.push(
+      '- **BA → Architect:** BA passes refined stories. Architect produces technical breakdown and identifies impacted objects.'
+    );
+  if (ids.has('architect') && ids.has('developer'))
+    flows.push(
+      '- **Architect → Developer:** Architect hands off agreed patterns, ADR references, and data layer strategy. Developer implements.'
+    );
+  if (ids.has('architect') && ids.has('ux'))
+    flows.push(
+      '- **Architect → UX:** Architect defines component boundaries. UX designs within SLDS constraints and produces the LWC Interaction Checklist.'
+    );
+  if (ids.has('architect') && ids.has('mulesoft'))
+    flows.push(
+      '- **Architect → MuleSoft:** Architect defines integration points and Named Credentials. MuleSoft implements API-led flows.'
+    );
+  if (ids.has('developer') && ids.has('qa'))
+    flows.push(
+      '- **Developer → QA:** Developer deploys to sandbox and confirms test data. QA writes Playwright tests against the deployed feature.'
+    );
+  if (ids.has('qa') && ids.has('devops'))
+    flows.push(
+      '- **QA → DevOps:** QA confirms all tests pass. DevOps proceeds with validation and production deployment.'
+    );
+  if (ids.has('devops') && ids.has('pm'))
+    flows.push(
+      '- **DevOps → PM:** DevOps reports deployment result (pass/fail, duration). PM updates status report and release calendar.'
+    );
+
+  if (flows.length === 0) return '';
+  return flows.join('\n');
 }
 
 function lines(...parts: string[]): string {

@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import { generateUxWorkflows } from '../generators/workflow-generator.js';
+import { documentationStandards, interactionPreferences, semanticCommits } from './shared-sections.js';
 import type { Profile } from './types.js';
 
 export const uxProfile: Profile = {
@@ -26,6 +28,7 @@ export const uxProfile: Profile = {
     'dbaeumer.vscode-eslint',
     'esbenp.prettier-vscode',
   ],
+  workflows: generateUxWorkflows,
   ruleContent(): string {
     return [
       '---',
@@ -88,7 +91,6 @@ export const uxProfile: Profile = {
       '',
       '## Component Architecture',
       '- Prefer **base Lightning components** (`lightning-input`, `lightning-button`, etc.) over custom HTML.',
-      '- Use **Lightning Data Service (LDS)** for data operations. Avoid writing Apex for simple CRUD.',
       '- Compose UI with small, single-responsibility LWC components.',
       '- Co-locate styles: one `.css` file per component, scoped — no global stylesheets.',
       '',
@@ -121,25 +123,28 @@ export const uxProfile: Profile = {
       '- If the user suggests a bad UX practice, explain **why** it fails (e.g., "High vibration colors cause eye fatigue and hide errors") and offer a UX tip.',
       '- Be proactive: do not just answer; offer a related UX recommendation when relevant.',
       '',
-      '## Documentation Standards',
-      '- Every `/docs/*.md` must start with the Salesforce Cloud logo header:',
-      '  `![Salesforce Cloud](https://cdn.prod.website-files.com/691f4b0505409df23e191b87/69416b267de7ae6888996981_logo.svg)`',
-      '- Author: **Salesforce Professional Services**. Version: increment on significant changes.',
-      '- Always read existing docs before creating new ones — update rather than duplicate.',
+      '## Design Handoff',
+      '- Produce a **design spec** for every LWC before development: component name, SLDS blueprint, design tokens used, Custom Label keys.',
+      '- Include annotated mockups showing spacing (8px grid), color tokens, and responsive breakpoints.',
+      '- Pair with the Developer during handoff to walk through the spec — do not just send a document.',
+      '- After handoff, the UX designer remains available for clarification during the sprint.',
       '',
-      '## Semantic Commits',
-      '- Ask for **Backlog Item ID** before suggesting any commit.',
-      '- Format: `type(ID): short description`.',
-      '- Body: numbered list of changes + value proposition paragraph.',
+      '## Design Review Gate',
+      '- **No LWC enters a development sprint without a completed UX review.**',
+      '- The review must confirm: SLDS compliance, accessibility (WCAG 2.1 AA), responsive behavior, and Custom Label usage.',
+      '- Review output: "Ready for Development" or "Needs Revision" with specific action items.',
+      '- Track reviews in a log: Component Name | Review Date | Reviewer | Result | Action Items.',
+      '',
+      ...documentationStandards(),
+      '',
+      ...semanticCommits(),
       '',
       '## Sub-agent Handover',
       '- Pass to sub-agents: the SLDS component used as base, design token names,',
       '  accessibility requirements, Custom Label keys for all user-facing strings,',
       '  and a completed LWC Interaction Checklist (all 6 items verified).',
       '',
-      '## Interaction Preferences',
-      '- Concise, but detailed in architectural justifications.',
-      '- Correct mistakes directly without apologizing.',
+      ...interactionPreferences(),
     ].join('\n');
   },
 };
