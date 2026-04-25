@@ -151,6 +151,17 @@ not prevent the commit.
 The hook is **profile-agnostic** — it triggers on every commit, regardless of which
 developer profile is configured.
 
+## Prerequisites
+
+| Tool | Check | Install |
+|------|-------|---------|
+| Salesforce CLI | \`sf --version\` | [https://developer.salesforce.com/tools/salesforcecli](https://developer.salesforce.com/tools/salesforcecli) |
+| Code Analyzer | \`sf plugins inspect @salesforce/plugin-code-analyzer\` | \`sf plugins install @salesforce/plugin-code-analyzer\` |
+| Husky | \`npx husky --version\` | \`npm install --save-dev husky\` |
+
+If \`sf code-analyzer\` is not installed, the pre-commit hook will **skip analysis
+with a warning** instead of blocking commits.
+
 ## Setup
 
 Install Husky and create the hook file:
@@ -169,8 +180,15 @@ Then replace \`.husky/pre-commit\` with the script below.
 # ─────────────────────────────────────────────────────────────
 # Pre-commit: Salesforce Code Analyzer (Apex PMD + LWC ESLint)
 # Blocks on HIGH/critical only (--severity-threshold 1).
+# Skips gracefully if sf code-analyzer is not installed.
 # ─────────────────────────────────────────────────────────────
 set -euo pipefail
+
+if ! sf plugins inspect @salesforce/plugin-code-analyzer &>/dev/null 2>&1; then
+  echo "⚠️  sf code-analyzer not installed — skipping pre-commit analysis."
+  echo "   Install with: sf plugins install @salesforce/plugin-code-analyzer"
+  exit 0
+fi
 
 STAGED=$(git diff --cached --name-only --diff-filter=ACM)
 
@@ -533,6 +551,19 @@ export function generateQaWorkflows(version: string): Record<string, string> {
       version,
       'Run Playwright Tests',
       `
+## Prerequisites
+
+| Tool | Check | Install |
+|------|-------|---------|
+| Node.js >= 18 | \`node --version\` | [https://nodejs.org](https://nodejs.org) |
+| @playwright/test | \`npx playwright --version\` | \`npm install --save-dev @playwright/test && npx playwright install\` |
+
+Before running tests, verify Playwright is installed:
+
+\`\`\`bash
+npx playwright --version 2>/dev/null || (echo "Installing Playwright..." && npm install --save-dev @playwright/test && npx playwright install)
+\`\`\`
+
 ## 1. Confirm Environment
 
 Ask which org / environment to test against. Validate the \`.env\` file has the required credentials.
@@ -570,6 +601,12 @@ Report pass/fail summary and any accessibility violations found by axe-core.
       version,
       'Generate QA Test Report',
       `
+## Prerequisites
+
+| Tool | Check | Install |
+|------|-------|---------|
+| @playwright/test | \`npx playwright --version\` | \`npm install --save-dev @playwright/test && npx playwright install\` |
+
 ## 1. Run Full Suite with Trace
 
 \`\`\`bash

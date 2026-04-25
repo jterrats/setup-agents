@@ -17,6 +17,7 @@ import { expect } from 'chai';
 import {
   generateStoryMappingSkill,
   generateDeploySkill,
+  generateDiagramExportSkill,
   getPortableSkillSections,
   getSharedSkillAssets,
 } from '../../../src/generators/skill-generator.js';
@@ -62,9 +63,22 @@ describe('skill-generator', () => {
       expect(skillMd).to.include('render-pdf.sh');
     });
 
+    it('SKILL.md includes Prerequisites table', () => {
+      const skillMd = generateStoryMappingSkill()['SKILL.md'];
+      expect(skillMd).to.include('## Prerequisites');
+      expect(skillMd).to.include('Node.js >= 18');
+      expect(skillMd).to.include('npx');
+    });
+
     it('SKILL.md includes "no diagram detected" validation instructions', () => {
       const skillMd = generateStoryMappingSkill()['SKILL.md'];
       expect(skillMd).to.include('No diagram detected');
+    });
+
+    it('render-pdf.sh includes npx dependency guard', () => {
+      const script = generateStoryMappingSkill()['scripts/render-pdf.sh'];
+      expect(script).to.include('command -v npx');
+      expect(script).to.include('Node.js >= 18');
     });
 
     it('render-pdf.sh calls mermaid-cli mmdc', () => {
@@ -101,10 +115,19 @@ describe('skill-generator', () => {
       expect(skillMd).to.include('description:');
     });
 
-    it('SKILL.md includes plugin prerequisite check', () => {
+    it('SKILL.md includes Prerequisites table with --force flag', () => {
+      const skillMd = generateDeploySkill()['SKILL.md'];
+      expect(skillMd).to.include('## Prerequisites');
+      expect(skillMd).to.include('--force');
+      expect(skillMd).to.include('unsigned community plugins');
+    });
+
+    it('SKILL.md includes plugin prerequisite check with auto-install', () => {
       const skillMd = generateDeploySkill()['SKILL.md'];
       expect(skillMd).to.include('sf plugins inspect @jterrats/profiler');
       expect(skillMd).to.include('sf plugins inspect @jterrats/smart-deployment');
+      expect(skillMd).to.include('sf plugins install @jterrats/profiler --force');
+      expect(skillMd).to.include('sf plugins install @jterrats/smart-deployment --force');
     });
 
     it('SKILL.md documents sf profiler retrieve with key flags', () => {
@@ -158,6 +181,21 @@ describe('skill-generator', () => {
       expect(skillMd).to.include('Quick Reference');
       expect(skillMd).to.include('Retrieve profiles');
       expect(skillMd).to.include('Deploy waves');
+    });
+  });
+
+  describe('generateDiagramExportSkill()', () => {
+    it('SKILL.md includes Prerequisites table', () => {
+      const skillMd = generateDiagramExportSkill()['SKILL.md'];
+      expect(skillMd).to.include('## Prerequisites');
+      expect(skillMd).to.include('Node.js >= 18');
+      expect(skillMd).to.include('mermaid-to-drawio');
+    });
+
+    it('export-diagram.sh includes npx dependency guard', () => {
+      const script = generateDiagramExportSkill()['scripts/export-diagram.sh'];
+      expect(script).to.include('command -v npx');
+      expect(script).to.include('Node.js >= 18');
     });
   });
 

@@ -33,6 +33,33 @@ export function diagramExportSkillMd(): string {
     '',
     '# Diagram Export',
     '',
+    '## Prerequisites',
+    '',
+    '| Tool | Check | Install |',
+    '|------|-------|---------|',
+    '| Node.js >= 18 | ' + BT + 'node --version' + BT + ' | [https://nodejs.org](https://nodejs.org) |',
+    '| npx | ' + BT + 'npx --version' + BT + ' | Included with Node.js |',
+    '| mermaid-to-drawio (optional) | ' +
+      BT +
+      'command -v mermaid-to-drawio' +
+      BT +
+      ' | ' +
+      BT +
+      'npm install -g mermaid-to-drawio' +
+      BT +
+      ' |',
+    '| Lucid OAuth token (for lucid target) | ' +
+      BT +
+      'echo $LUCID_ACCESS_TOKEN' +
+      BT +
+      ' | See Lucidchart section below |',
+    '',
+    '> mermaid-cli is auto-downloaded via ' +
+      BT +
+      'npx -y' +
+      BT +
+      '. If mermaid-to-drawio is not installed, the script falls back to SVG wrapping.',
+    '',
     '## Overview',
     '',
     "This skill exports Mermaid diagrams to the user's preferred diagramming tool.",
@@ -180,6 +207,12 @@ export function exportDiagramScript(): string {
     '# Usage: export-diagram.sh <input.mmd> [--target lucid|drawio|local] [--title "Title"] [--format svg|pdf]',
     '# Auto-detection: LUCID_ACCESS_TOKEN set → lucid, else → drawio, else → local',
     'set -euo pipefail',
+    '',
+    '# ── Dependency guard ─────────────────────────────────────────────────────',
+    'if ! command -v npx &>/dev/null; then',
+    '  echo "ERROR: npx not found. Install Node.js >= 18 from https://nodejs.org"',
+    '  exit 1',
+    'fi',
     '',
     '# ── Parse arguments ──────────────────────────────────────────────────────',
     'INPUT=""',

@@ -104,6 +104,15 @@ description: >-
 
 # Story Mapping
 
+## Prerequisites
+
+| Tool | Check | Install |
+|------|-------|---------|
+| Node.js >= 18 | \`node --version\` | [https://nodejs.org](https://nodejs.org) |
+| npx | \`npx --version\` | Included with Node.js |
+
+> mermaid-cli is auto-downloaded via \`npx -y\` — no manual install needed.
+
 ## When to Use
 
 Use this skill when the user asks to create a story map, user story board,
@@ -224,8 +233,14 @@ function renderPdfScript(): string {
     '# Validates that the diagram was detected and parsed successfully.',
     '#',
     '# Usage: render-pdf.sh <input.mmd> [output.pdf]',
-    '# Dependencies: Node.js (npx)',
+    '# Dependencies: Node.js >= 18 (npx)',
     'set -euo pipefail',
+    '',
+    '# ── Dependency guard ─────────────────────────────────────────────────────',
+    'if ! command -v npx &>/dev/null; then',
+    '  echo "ERROR: npx not found. Install Node.js >= 18 from https://nodejs.org"',
+    '  exit 1',
+    'fi',
     '',
     'INPUT="${1:?Usage: render-pdf.sh <input.mmd> [output.pdf]}"',
     'OUTPUT="${2:-${INPUT%.mmd}.pdf}"',
@@ -349,14 +364,22 @@ description: >-
 
 ## Prerequisites
 
-Before using this skill, verify the plugins are installed:
+| Tool | Check | Install |
+|------|-------|---------|
+| Salesforce CLI | \`sf --version\` | [https://developer.salesforce.com/tools/salesforcecli](https://developer.salesforce.com/tools/salesforcecli) |
+| @jterrats/profiler | \`sf plugins inspect @jterrats/profiler\` | \`sf plugins install @jterrats/profiler --force\` |
+| @jterrats/smart-deployment | \`sf plugins inspect @jterrats/smart-deployment\` | \`sf plugins install @jterrats/smart-deployment --force\` |
+
+Before proceeding, run this check and install anything missing:
 
 \`\`\`bash
-sf plugins inspect @jterrats/profiler 2>/dev/null || echo "MISSING: Install with: sf plugins install @jterrats/profiler"
-sf plugins inspect @jterrats/smart-deployment 2>/dev/null || echo "MISSING: Install with: sf plugins install @jterrats/smart-deployment"
+sf plugins inspect @jterrats/profiler 2>/dev/null || sf plugins install @jterrats/profiler --force
+sf plugins inspect @jterrats/smart-deployment 2>/dev/null || sf plugins install @jterrats/smart-deployment --force
 \`\`\`
 
-If either plugin is missing, prompt the user to install before proceeding.
+> **Note:** The \`--force\` flag is required because these are unsigned community plugins.
+> Without it, \`sf plugins install\` will prompt for interactive confirmation that blocks
+> non-interactive execution (e.g., when an AI agent runs the command).
 
 ---
 
