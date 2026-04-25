@@ -90,6 +90,13 @@ describe('mdc-generator', () => {
       expect(content).to.include('Run CLI tools outside the sandbox');
       expect(content).to.include('required_permissions');
     });
+
+    it('includes Token-Efficient Visual Editing section', () => {
+      const content = generateBaseGuidelines(VERSION);
+      expect(content).to.include('## Token-Efficient Visual Editing');
+      expect(content).to.include('visual tool');
+      expect(content).to.include('mermaid-editor-live.vercel.app');
+    });
   });
 
   describe('generateSfStandards()', () => {

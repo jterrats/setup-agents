@@ -233,6 +233,14 @@ describe('skill-generator', () => {
       expect(skillMd).to.include('Lucidchart Setup Guide');
       expect(skillMd).to.include('non-technical');
     });
+
+    it('SKILL.md includes Token-Efficient Visual Editing directive', () => {
+      const skillMd = generateDiagramExportSkill()['SKILL.md'];
+      expect(skillMd).to.include('Token-Efficient Visual Editing (CRITICAL)');
+      expect(skillMd).to.include('push to the user');
+      expect(skillMd).to.include('Structural changes');
+      expect(skillMd).to.include('mermaid-editor-live.vercel.app');
+    });
   });
 
   describe('generateCodeAnalyzerSkill()', () => {
