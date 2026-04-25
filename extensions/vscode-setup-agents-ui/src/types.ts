@@ -18,7 +18,7 @@ export type ProfileDescriptor = {
   description: string;
 };
 
-export type ToolId = 'cursor' | 'vscode' | 'codex' | 'agentforce';
+export type ToolId = 'cursor' | 'vscode' | 'codex' | 'agentforce' | 'claude';
 
 export type ToolStatus = {
   id: ToolId;
@@ -36,6 +36,7 @@ export type RunLocalRequest = {
   profiles: ProfileId[];
   force: boolean;
   rules?: ToolId;
+  scope?: 'project' | 'user';
 };
 
 export type OrgDescriptor = {
@@ -50,6 +51,12 @@ export type ConfigureMcpRequest = {
   global: boolean;
 };
 
+export type ConfigureIntegrationsRequest = {
+  ids: string[];
+  credentials: Record<string, Record<string, string>>;
+  global: boolean;
+};
+
 export type UiToHostMessage =
   | { type: 'bootstrap' }
   | { type: 'runLocal'; payload: RunLocalRequest }
@@ -60,7 +67,10 @@ export type UiToHostMessage =
   | { type: 'importRuleFromFile'; payload: { tool: ToolId } }
   | { type: 'listOrgs' }
   | { type: 'loginOrg'; payload: { alias: string } }
-  | { type: 'configureMcp'; payload: ConfigureMcpRequest };
+  | { type: 'configureMcp'; payload: ConfigureMcpRequest }
+  | { type: 'configureIntegrations'; payload: ConfigureIntegrationsRequest }
+  | { type: 'checkForUpdates' }
+  | { type: 'runUpdate' };
 
 export type HostToUiMessage =
   | { type: 'bootstrapResult'; payload: { tools: ToolStatus[]; profiles: ProfileDescriptor[] } }
@@ -72,4 +82,7 @@ export type HostToUiMessage =
   | { type: 'operationSuccess'; payload: { message: string } }
   | { type: 'orgsResult'; payload: { orgs: OrgDescriptor[]; sfExtensionInstalled: boolean } }
   | { type: 'orgLoginResult'; payload: { success: boolean; alias: string } }
-  | { type: 'mcpConfigured'; payload: { mcpFile: string; serversAdded: string[] } };
+  | { type: 'mcpConfigured'; payload: { mcpFile: string; serversAdded: string[] } }
+  | { type: 'integrationsConfigured'; payload: { serversAdded: string[] } }
+  | { type: 'updateCheckResult'; payload: { staleFiles: string[] } }
+  | { type: 'updateComplete'; payload: { updated: string[] } };
