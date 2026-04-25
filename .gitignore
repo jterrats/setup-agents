@@ -2,6 +2,10 @@
 tmp/
 # use yarn by default, so ignore npm
 package-lock.json
+# …except the VS Code extension package, which is npm-based per
+# .github/workflows/vscode-extension.yml and needs its lockfile so
+# `npm ci` + `actions/setup-node` cache step succeed.
+!extensions/vscode-setup-agents-ui/package-lock.json
 
 # never checkin npm config
 .npmrc
