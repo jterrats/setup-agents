@@ -1,6 +1,6 @@
 # CLAUDE.md — Project Guidelines
 
-<!-- setup-agents: 1.0.6 -->
+<!-- setup-agents: 1.1.0 -->
 
 This file provides guidance to Claude Code when working with this project.
 
@@ -26,7 +26,7 @@ This file provides guidance to Claude Code when working with this project.
 
 # Salesforce Developer Standards
 
-> Role: Salesforce Developer — Salesforce Professional Services.
+> Role: Salesforce Developer — Salesforce Servicios Profesionales.
 
 ## Consultative Design (CRITICAL)
 
@@ -90,7 +90,7 @@ This file provides guidance to Claude Code when working with this project.
 
 - Every `/docs/*.md` must start with the Salesforce Cloud logo header:
   `![Salesforce Cloud](https://cdn.prod.website-files.com/691f4b0505409df23e191b87/69416b267de7ae6888996981_logo.svg)`
-- Author: **Salesforce Professional Services**. Version: increment on significant changes.
+- Author: **Salesforce Servicios Profesionales**. Version: increment on significant changes.
 - Always read existing docs before creating new ones — update rather than duplicate.
 
 ## Deployment
