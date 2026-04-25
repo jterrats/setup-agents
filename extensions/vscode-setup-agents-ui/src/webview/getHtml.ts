@@ -69,6 +69,30 @@ export function getHtml(webview: vscode.Webview, extensionUri: vscode.Uri): stri
     <p class="muted" id="profileDetailsText"></p>
   </div>
 
+  <div class="card" id="mcpCard">
+    <h3>MCP Configuration</h3>
+    <p class="muted" id="mcpStatus">Loading orgs...</p>
+    <div id="mcpOrgsSection" style="display:none">
+      <div class="profiles" id="mcpOrgs" role="group" aria-label="Org selection"></div>
+      <div class="row">
+        <label><input type="checkbox" id="mcpGlobal" /> Global (~/.cursor/mcp.json)</label>
+        <label><input type="checkbox" id="mcpAllToolsets" /> All toolsets</label>
+      </div>
+      <div class="row">
+        <button id="mcpConfigureBtn" disabled>Configure MCP</button>
+      </div>
+    </div>
+    <div id="mcpLoginSection" style="display:none">
+      <p class="muted">No authenticated Salesforce orgs found.</p>
+      <div class="row">
+        <input id="mcpLoginAlias" type="text" placeholder="Org alias (e.g. myOrg)" style="min-width:180px" />
+        <button id="mcpLoginBtn">Authenticate Org</button>
+      </div>
+      <p class="muted" id="mcpLoginStatus" style="display:none"></p>
+    </div>
+    <div id="mcpResult" style="display:none"></div>
+  </div>
+
   <div class="card">
     <h3>Rule Management</h3>
     <div class="row">
@@ -209,10 +233,107 @@ export function getHtml(webview: vscode.Webview, extensionUri: vscode.Uri): stri
       }
       if (message.type === 'operationError') appendConsole(\`[error] \${message.payload.message}\\n\`);
       if (message.type === 'operationSuccess') appendConsole(\`[ok] \${message.payload.message}\\n\`);
+
+      if (message.type === 'orgsResult') {
+        const { orgs, sfExtensionInstalled } = message.payload;
+        const mcpStatus = document.getElementById('mcpStatus');
+        const mcpOrgsSection = document.getElementById('mcpOrgsSection');
+        const mcpLoginSection = document.getElementById('mcpLoginSection');
+        const mcpOrgsEl = document.getElementById('mcpOrgs');
+        const mcpConfigureBtn = document.getElementById('mcpConfigureBtn');
+
+        if (orgs.length > 0) {
+          mcpStatus.textContent = orgs.length + ' org(s) found';
+          mcpOrgsSection.style.display = '';
+          mcpLoginSection.style.display = 'none';
+          mcpOrgsEl.innerHTML = '';
+          state.mcpSelectedOrgs = state.mcpSelectedOrgs || [];
+          for (const org of orgs) {
+            const isChecked = state.mcpSelectedOrgs.includes(org.alias);
+            const card = document.createElement('label');
+            card.className = 'profile-card' + (isChecked ? ' selected' : '');
+            card.setAttribute('role', 'checkbox');
+            card.setAttribute('aria-checked', String(isChecked));
+            card.setAttribute('tabindex', '0');
+            card.innerHTML = '<input type="checkbox" value="' + org.alias + '" ' + (isChecked ? 'checked' : '') + ' />'
+              + '<div class="profile-info"><span class="profile-name">' + org.alias + '</span>'
+              + '<span class="profile-desc">' + org.username + '</span></div>';
+            const cb = card.querySelector('input');
+            cb.addEventListener('change', () => {
+              card.classList.toggle('selected', cb.checked);
+              card.setAttribute('aria-checked', String(cb.checked));
+              state.mcpSelectedOrgs = [...mcpOrgsEl.querySelectorAll('input:checked')].map(n => n.value);
+              mcpConfigureBtn.disabled = state.mcpSelectedOrgs.length === 0;
+            });
+            card.addEventListener('keydown', (e) => {
+              if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); cb.checked = !cb.checked; cb.dispatchEvent(new Event('change')); }
+            });
+            mcpOrgsEl.appendChild(card);
+          }
+          mcpConfigureBtn.disabled = (state.mcpSelectedOrgs || []).length === 0;
+        } else {
+          mcpStatus.textContent = sfExtensionInstalled
+            ? 'No orgs found. The Salesforce Extension will handle the login.'
+            : 'No orgs found. Login via Salesforce CLI.';
+          mcpOrgsSection.style.display = 'none';
+          mcpLoginSection.style.display = '';
+        }
+      }
+
+      if (message.type === 'orgLoginResult') {
+        const loginStatus = document.getElementById('mcpLoginStatus');
+        const loginBtn = document.getElementById('mcpLoginBtn');
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Authenticate Org';
+        if (message.payload.success) {
+          loginStatus.textContent = 'Authenticated: ' + message.payload.alias;
+          loginStatus.style.display = '';
+          loginStatus.style.color = 'var(--vscode-charts-green)';
+        } else {
+          loginStatus.textContent = 'Authentication failed. Try again.';
+          loginStatus.style.display = '';
+          loginStatus.style.color = 'var(--vscode-errorForeground)';
+        }
+      }
+
+      if (message.type === 'mcpConfigured') {
+        const mcpResult = document.getElementById('mcpResult');
+        mcpResult.style.display = '';
+        mcpResult.innerHTML = '<p style="color:var(--vscode-charts-green)">MCP configured in <code>'
+          + message.payload.mcpFile + '</code></p><p class="muted">Servers: '
+          + message.payload.serversAdded.join(', ') + '</p>';
+        appendConsole('[ok] MCP configured: ' + message.payload.serversAdded.join(', ') + '\\n');
+      }
+    });
+
+    // MCP: login button
+    document.getElementById('mcpLoginBtn').addEventListener('click', () => {
+      const aliasInput = document.getElementById('mcpLoginAlias');
+      const alias = aliasInput.value.trim();
+      if (!alias) { aliasInput.focus(); return; }
+      const btn = document.getElementById('mcpLoginBtn');
+      btn.disabled = true;
+      btn.textContent = 'Authenticating...';
+      document.getElementById('mcpLoginStatus').style.display = 'none';
+      vscode.postMessage({ type: 'loginOrg', payload: { alias } });
+    });
+
+    // MCP: configure button
+    document.getElementById('mcpConfigureBtn').addEventListener('click', () => {
+      vscode.postMessage({
+        type: 'configureMcp',
+        payload: {
+          orgs: state.mcpSelectedOrgs || [],
+          profiles: selectedProfiles(),
+          allToolsets: document.getElementById('mcpAllToolsets').checked,
+          global: document.getElementById('mcpGlobal').checked,
+        }
+      });
     });
 
     vscode.postMessage({ type: 'bootstrap' });
     vscode.postMessage({ type: 'listRules' });
+    vscode.postMessage({ type: 'listOrgs' });
   </script>
 </body>
 </html>`;

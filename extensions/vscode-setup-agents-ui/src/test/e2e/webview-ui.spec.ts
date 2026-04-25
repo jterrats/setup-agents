@@ -216,3 +216,260 @@ test.describe('Webview UI — Accessibility', () => {
     expect(color).not.toBe('');
   });
 });
+
+function buildMcpTestHtml(orgs: Array<{ alias: string; username: string }>): string {
+  const orgsJson = JSON.stringify(orgs);
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MCP Test Harness</title>
+  <style>
+    :root {
+      --vscode-font-family: system-ui, sans-serif;
+      --vscode-foreground: #cccccc;
+      --vscode-editorWidget-border: #454545;
+      --vscode-focusBorder: #007fd4;
+      --vscode-list-activeSelectionBackground: rgba(4,57,94,.75);
+      --vscode-list-activeSelectionForeground: #fff;
+      --vscode-input-background: #3c3c3c;
+      --vscode-input-foreground: #cccccc;
+      --vscode-input-border: #3c3c3c;
+      --vscode-charts-green: #89d185;
+      --vscode-errorForeground: #f48771;
+    }
+    body { font-family: var(--vscode-font-family); color: var(--vscode-foreground); padding: 12px; background: #1e1e1e; }
+    .profiles { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 8px 0; }
+    .profile-card { display: flex; align-items: flex-start; gap: 6px; padding: 6px 8px; border: 1px solid var(--vscode-editorWidget-border); border-radius: 6px; cursor: pointer; }
+    .profile-card.selected { border-color: var(--vscode-focusBorder); background: var(--vscode-list-activeSelectionBackground); color: var(--vscode-list-activeSelectionForeground); }
+    .profile-card .profile-info { display: flex; flex-direction: column; }
+    .profile-card .profile-name { font-weight: bold; font-size: 0.92em; }
+    .profile-card .profile-desc { font-size: 0.8em; opacity: 0.75; }
+    .muted { opacity: 0.8; font-size: 0.9em; }
+    .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+    button, input { background: var(--vscode-input-background); color: var(--vscode-input-foreground); border: 1px solid var(--vscode-input-border); border-radius: 4px; padding: 6px 8px; }
+    button { cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div id="mcpCard">
+    <h3>MCP Configuration</h3>
+    <p class="muted" id="mcpStatus">Loading orgs...</p>
+    <div id="mcpOrgsSection" style="display:none">
+      <div class="profiles" id="mcpOrgs" role="group" aria-label="Org selection"></div>
+      <div class="row">
+        <label><input type="checkbox" id="mcpGlobal" /> Global (~/.cursor/mcp.json)</label>
+        <label><input type="checkbox" id="mcpAllToolsets" /> All toolsets</label>
+      </div>
+      <div class="row">
+        <button id="mcpConfigureBtn" disabled>Configure MCP</button>
+      </div>
+    </div>
+    <div id="mcpLoginSection" style="display:none">
+      <p class="muted">No authenticated Salesforce orgs found.</p>
+      <div class="row">
+        <input id="mcpLoginAlias" type="text" placeholder="Org alias (e.g. myOrg)" style="min-width:180px" />
+        <button id="mcpLoginBtn">Authenticate Org</button>
+      </div>
+      <p class="muted" id="mcpLoginStatus" style="display:none"></p>
+    </div>
+    <div id="mcpResult" style="display:none"></div>
+  </div>
+
+  <script>
+    const ORGS = ${orgsJson};
+    const state = { mcpSelectedOrgs: [] };
+
+    function renderOrgs(orgs) {
+      const mcpStatus = document.getElementById('mcpStatus');
+      const mcpOrgsSection = document.getElementById('mcpOrgsSection');
+      const mcpLoginSection = document.getElementById('mcpLoginSection');
+      const mcpOrgsEl = document.getElementById('mcpOrgs');
+      const mcpConfigureBtn = document.getElementById('mcpConfigureBtn');
+
+      if (orgs.length > 0) {
+        mcpStatus.textContent = orgs.length + ' org(s) found';
+        mcpOrgsSection.style.display = '';
+        mcpLoginSection.style.display = 'none';
+        mcpOrgsEl.innerHTML = '';
+        for (const org of orgs) {
+          const card = document.createElement('label');
+          card.className = 'profile-card';
+          card.setAttribute('role', 'checkbox');
+          card.setAttribute('aria-checked', 'false');
+          card.setAttribute('tabindex', '0');
+          card.innerHTML = '<input type="checkbox" value="' + org.alias + '" />'
+            + '<div class="profile-info"><span class="profile-name">' + org.alias + '</span>'
+            + '<span class="profile-desc">' + org.username + '</span></div>';
+          const cb = card.querySelector('input');
+          cb.addEventListener('change', () => {
+            card.classList.toggle('selected', cb.checked);
+            card.setAttribute('aria-checked', String(cb.checked));
+            state.mcpSelectedOrgs = [...mcpOrgsEl.querySelectorAll('input:checked')].map(n => n.value);
+            mcpConfigureBtn.disabled = state.mcpSelectedOrgs.length === 0;
+          });
+          card.addEventListener('keydown', (e) => {
+            if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); cb.checked = !cb.checked; cb.dispatchEvent(new Event('change')); }
+          });
+          mcpOrgsEl.appendChild(card);
+        }
+        mcpConfigureBtn.disabled = true;
+      } else {
+        mcpStatus.textContent = 'No orgs found. Login via Salesforce CLI.';
+        mcpOrgsSection.style.display = 'none';
+        mcpLoginSection.style.display = '';
+      }
+    }
+
+    document.getElementById('mcpLoginBtn').addEventListener('click', () => {
+      const aliasInput = document.getElementById('mcpLoginAlias');
+      const alias = aliasInput.value.trim();
+      if (!alias) { aliasInput.focus(); return; }
+      const btn = document.getElementById('mcpLoginBtn');
+      btn.disabled = true;
+      btn.textContent = 'Authenticating...';
+      document.getElementById('mcpLoginStatus').style.display = 'none';
+      // Simulate async login — simulate success after 100ms
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.textContent = 'Authenticate Org';
+        const loginStatus = document.getElementById('mcpLoginStatus');
+        loginStatus.textContent = 'Authenticated: ' + alias;
+        loginStatus.style.display = '';
+        loginStatus.style.color = 'var(--vscode-charts-green)';
+        renderOrgs([{ alias: alias, username: alias + '@example.com' }]);
+      }, 100);
+    });
+
+    document.getElementById('mcpConfigureBtn').addEventListener('click', () => {
+      const result = document.getElementById('mcpResult');
+      result.style.display = '';
+      result.innerHTML = '<p style="color:var(--vscode-charts-green)">MCP configured successfully</p>'
+        + '<p class="muted">Servers: ' + state.mcpSelectedOrgs.map(o => 'salesforce-' + o).join(', ') + '</p>';
+    });
+
+    renderOrgs(ORGS);
+  </script>
+</body>
+</html>`;
+}
+
+test.describe('Webview UI — MCP with orgs', () => {
+  const testOrgs = [
+    { alias: 'devOrg', username: 'admin@devorg.com' },
+    { alias: 'qaOrg', username: 'admin@qaorg.com' },
+    { alias: 'prodOrg', username: 'admin@prodorg.com' },
+  ];
+
+  test.beforeEach(async ({ page }) => {
+    await page.setContent(buildMcpTestHtml(testOrgs));
+    await page.waitForSelector('#mcpOrgsSection');
+  });
+
+  test('displays org count status', async ({ page }) => {
+    await expect(page.locator('#mcpStatus')).toHaveText('3 org(s) found');
+  });
+
+  test('renders org cards for each authenticated org', async ({ page }) => {
+    const cards = page.locator('#mcpOrgs .profile-card');
+    await expect(cards).toHaveCount(3);
+  });
+
+  test('each org card shows alias and username', async ({ page }) => {
+    for (const org of testOrgs) {
+      const card = page.locator(`#mcpOrgs .profile-card:has(input[value="${org.alias}"])`);
+      await expect(card.locator('.profile-name')).toHaveText(org.alias);
+      await expect(card.locator('.profile-desc')).toHaveText(org.username);
+    }
+  });
+
+  test('Configure MCP button is disabled until org selected', async ({ page }) => {
+    const btn = page.locator('#mcpConfigureBtn');
+    await expect(btn).toBeDisabled();
+
+    await page.locator('#mcpOrgs .profile-card:has(input[value="devOrg"])').click();
+    await expect(btn).toBeEnabled();
+  });
+
+  test('selecting multiple orgs works', async ({ page }) => {
+    await page.locator('#mcpOrgs .profile-card:has(input[value="devOrg"])').click();
+    await page.locator('#mcpOrgs .profile-card:has(input[value="qaOrg"])').click();
+
+    const checked = await page.locator('#mcpOrgs input:checked').count();
+    expect(checked).toBe(2);
+  });
+
+  test('Configure MCP shows result on click', async ({ page }) => {
+    await page.locator('#mcpOrgs .profile-card:has(input[value="devOrg"])').click();
+    await page.locator('#mcpConfigureBtn').click();
+
+    const result = page.locator('#mcpResult');
+    await expect(result).toBeVisible();
+    await expect(result).toContainText('MCP configured');
+    await expect(result).toContainText('salesforce-devOrg');
+  });
+
+  test('org cards have accessible role and aria-checked', async ({ page }) => {
+    const cards = page.locator('#mcpOrgs .profile-card');
+    const count = await cards.count();
+    for (let i = 0; i < count; i++) {
+      await expect(cards.nth(i)).toHaveAttribute('role', 'checkbox');
+      await expect(cards.nth(i)).toHaveAttribute('aria-checked', 'false');
+    }
+  });
+
+  test('keyboard toggles org selection', async ({ page }) => {
+    const card = page.locator('#mcpOrgs .profile-card:has(input[value="prodOrg"])');
+    await card.focus();
+    await page.keyboard.press('Space');
+    await expect(card).toHaveClass(/selected/);
+    await expect(card).toHaveAttribute('aria-checked', 'true');
+  });
+
+  test('global and all-toolsets checkboxes are present', async ({ page }) => {
+    await expect(page.locator('#mcpGlobal')).toBeVisible();
+    await expect(page.locator('#mcpAllToolsets')).toBeVisible();
+  });
+});
+
+test.describe('Webview UI — MCP without orgs (login flow)', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.setContent(buildMcpTestHtml([]));
+    await page.waitForSelector('#mcpLoginSection');
+  });
+
+  test('shows login section when no orgs', async ({ page }) => {
+    await expect(page.locator('#mcpLoginSection')).toBeVisible();
+    await expect(page.locator('#mcpOrgsSection')).not.toBeVisible();
+    await expect(page.locator('#mcpStatus')).toContainText('No orgs found');
+  });
+
+  test('login button requires alias', async ({ page }) => {
+    await page.locator('#mcpLoginBtn').click();
+    await expect(page.locator('#mcpLoginAlias')).toBeFocused();
+  });
+
+  test('login flow: enter alias, authenticate, see org card', async ({ page }) => {
+    await page.locator('#mcpLoginAlias').fill('myNewOrg');
+    await page.locator('#mcpLoginBtn').click();
+
+    await expect(page.locator('#mcpLoginBtn')).toHaveText('Authenticating...');
+
+    await page.waitForSelector('#mcpOrgsSection:not([style*="display: none"])');
+
+    await expect(page.locator('#mcpStatus')).toHaveText('1 org(s) found');
+    const card = page.locator('#mcpOrgs .profile-card');
+    await expect(card).toHaveCount(1);
+    await expect(card.locator('.profile-name')).toHaveText('myNewOrg');
+  });
+
+  test('after login, org section replaces login section', async ({ page }) => {
+    await page.locator('#mcpLoginAlias').fill('testOrg');
+    await page.locator('#mcpLoginBtn').click();
+
+    await page.waitForSelector('#mcpOrgsSection:not([style*="display: none"])');
+    await expect(page.locator('#mcpOrgsSection')).toBeVisible();
+    await expect(page.locator('#mcpStatus')).toHaveText('1 org(s) found');
+  });
+});

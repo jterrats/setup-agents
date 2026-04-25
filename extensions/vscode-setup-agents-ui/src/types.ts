@@ -38,6 +38,18 @@ export type RunLocalRequest = {
   rules?: ToolId;
 };
 
+export type OrgDescriptor = {
+  alias: string;
+  username: string;
+};
+
+export type ConfigureMcpRequest = {
+  orgs: string[];
+  profiles: ProfileId[];
+  allToolsets: boolean;
+  global: boolean;
+};
+
 export type UiToHostMessage =
   | { type: 'bootstrap' }
   | { type: 'runLocal'; payload: RunLocalRequest }
@@ -45,7 +57,10 @@ export type UiToHostMessage =
   | { type: 'readRule'; payload: { path: string } }
   | { type: 'saveRule'; payload: { path: string; content: string } }
   | { type: 'importRuleFromUrl'; payload: { url: string; tool: ToolId } }
-  | { type: 'importRuleFromFile'; payload: { tool: ToolId } };
+  | { type: 'importRuleFromFile'; payload: { tool: ToolId } }
+  | { type: 'listOrgs' }
+  | { type: 'loginOrg'; payload: { alias: string } }
+  | { type: 'configureMcp'; payload: ConfigureMcpRequest };
 
 export type HostToUiMessage =
   | { type: 'bootstrapResult'; payload: { tools: ToolStatus[]; profiles: ProfileDescriptor[] } }
@@ -54,4 +69,7 @@ export type HostToUiMessage =
   | { type: 'rulesResult'; payload: RuleSummary[] }
   | { type: 'ruleContent'; payload: { path: string; content: string } }
   | { type: 'operationError'; payload: { message: string } }
-  | { type: 'operationSuccess'; payload: { message: string } };
+  | { type: 'operationSuccess'; payload: { message: string } }
+  | { type: 'orgsResult'; payload: { orgs: OrgDescriptor[]; sfExtensionInstalled: boolean } }
+  | { type: 'orgLoginResult'; payload: { success: boolean; alias: string } }
+  | { type: 'mcpConfigured'; payload: { mcpFile: string; serversAdded: string[] } };
