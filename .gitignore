@@ -2,6 +2,8 @@
 tmp/
 # use yarn by default, so ignore npm
 package-lock.json
+# but keep it for the vscode extension (uses npm)
+!extensions/vscode-setup-agents-ui/package-lock.json
 
 # never checkin npm config
 .npmrc
