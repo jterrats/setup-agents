@@ -67,7 +67,15 @@ export function generateBaseGuidelines(version: string): string {
     '  need network access or write to paths outside the workspace.',
     '  When using other tools, instruct the user to run the command in their terminal directly.',
     '- If a command fails with a permissions or network error, do NOT retry blindly —',
-    '  check whether sandbox restrictions are the cause and advise accordingly.'
+    '  check whether sandbox restrictions are the cause and advise accordingly.',
+    '',
+    '## Token-Efficient Visual Editing',
+    "- When generating diagrams, push the output to the user's visual tool",
+    '  (Lucidchart, Figma, draw.io, or Mermaid Live Editor) instead of iterating via chat.',
+    '- Visual tweaks (layout, colors, positioning) should be done by the user in the visual tool.',
+    '- Only handle structural changes (add/remove nodes, rename, change relationships) via chat.',
+    '- If no visual tool is configured, suggest the Mermaid Live Editor',
+    '  (mermaid-editor-live.vercel.app) as a free, no-install fallback.'
   );
 }
 
