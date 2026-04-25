@@ -19,6 +19,7 @@ import { generateA4dBaseGuidelines } from '../generators/agentforce-generator.js
 import { generateSfStandards } from '../generators/mdc-generator.js';
 import { generateSubAgentProtocol } from '../generators/mdc-generator.js';
 import { toA4dContent } from '../generators/shared.js';
+import { getPortableSkillSections } from '../generators/skill-generator.js';
 import { generateBaseWorkflows } from '../generators/workflow-generator.js';
 import type { Profile } from '../profiles/index.js';
 import { ensureDir } from '../services/file-writer.js';
@@ -71,6 +72,19 @@ export function setupAgentforce(opts: AgentforceSetupOptions): void {
       for (const [filename, content] of Object.entries(profile.workflows(PLUGIN_VERSION))) {
         writer.write(join(workflowsDir, filename), content);
       }
+    }
+  }
+
+  const skillSections = getPortableSkillSections(profiles.map((p) => p.id));
+  if (skillSections.length > 0) {
+    ensureDir(workflowsDir);
+    for (const section of skillSections) {
+      const filename =
+        section.title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/-+$/, '') + '.md';
+      writer.write(join(workflowsDir, filename), `<!-- setup-agents: ${PLUGIN_VERSION} -->\n${section.body}`);
     }
   }
 }

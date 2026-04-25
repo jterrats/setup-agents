@@ -20,6 +20,12 @@ export const ALL_PROFILES: ProfileDescriptor[] = [
     description: 'Requirements and acceptance-criteria profile.',
   },
   {
+    id: 'pm',
+    label: 'Project Manager',
+    ruleFile: 'pm-standards.mdc',
+    description: 'Sprint planning, status reporting, and risk management profile.',
+  },
+  {
     id: 'mulesoft',
     label: 'MuleSoft',
     ruleFile: 'mulesoft-standards.mdc',

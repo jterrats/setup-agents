@@ -16,6 +16,8 @@
 
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { generateData360Workflows } from '../generators/workflow-generator.js';
+import { documentationStandards, interactionPreferences, semanticCommits } from './shared-sections.js';
 import type { Profile } from './types.js';
 
 const DATA_CLOUD_METADATA_TYPES = [
@@ -43,6 +45,7 @@ export const data360Profile: Profile = {
   detect(cwd: string): boolean {
     return hasDataCloudMetadata(cwd);
   },
+  workflows: generateData360Workflows,
   ruleContent(): string {
     return [
       '---',
@@ -55,6 +58,10 @@ export const data360Profile: Profile = {
       '',
       '> Role: Data Cloud Architect / Engineer — Salesforce Professional Services.',
       '> Inherits base rules from: salesforce-standards.mdc',
+      '',
+      '## Codebase Contextualization',
+      '- **Always scan existing Data Streams, DMOs, IR rulesets, and segment definitions** before proposing changes.',
+      '- Reuse existing field mappings, reconciliation rules, and activation target patterns.',
       '',
       '## Consultative Design (CRITICAL)',
       '- **No Ninja Edits.** Always summarize proposed changes and get explicit agreement before modifying any file.',
@@ -107,24 +114,27 @@ export const data360Profile: Profile = {
       '- Apply Data Cloud consent rules for any segment used in marketing activation.',
       '- Never activate segments containing PII to external targets without legal review.',
       '',
-      '## Documentation Standards',
-      '- Every `/docs/*.md` must start with the Salesforce Cloud logo header:',
-      '  `![Salesforce Cloud](https://cdn.prod.website-files.com/691f4b0505409df23e191b87/69416b267de7ae6888996981_logo.svg)`',
-      '- Author: **Salesforce Professional Services**. Version: increment on significant changes.',
-      '- Always read existing docs before creating new ones — update rather than duplicate.',
+      '## Data Cloud Connect',
+      '- Use **Data Cloud Connect** to surface DMO fields in CRM formulas, validation rules, and Flow conditions.',
+      '- Reference DMO fields using the `DataCloud__` prefix in formula syntax.',
+      '- Test Data Cloud Connect fields in both Lightning page layouts and reports to verify data availability.',
+      '- Document which DMO fields are exposed via Connect in `/docs/datacloud/connect-fields.md`.',
       '',
-      '## Semantic Commits',
-      '- Ask for **Backlog Item ID** before suggesting any commit.',
-      '- Format: `type(ID): short description`.',
-      '- Body: numbered list of changes + value proposition paragraph.',
+      '## Data Actions & Triggers',
+      '- Use **Data Actions** to trigger Flows or Platform Events when segment membership changes.',
+      '- Define activation targets for each Data Action: Flow, Apex, or external webhook.',
+      '- Test Data Actions with a small segment first — verify the trigger fires and the downstream action executes correctly.',
+      '- Document Data Actions in `/docs/datacloud/data-actions.md`: action name, trigger condition, target, expected behavior.',
+      '',
+      ...documentationStandards(),
+      '',
+      ...semanticCommits(),
       '',
       '## Sub-agent Handover',
       '- Pass to sub-agents: data lineage diagram, IR strategy document, DMO mapping,',
       '  segment business purpose, target activation system, and any known manual deployment steps.',
       '',
-      '## Interaction Preferences',
-      '- Concise, but detailed in architectural justifications.',
-      '- Correct mistakes directly without apologizing.',
+      ...interactionPreferences(),
     ].join('\n');
   },
 };

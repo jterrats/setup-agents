@@ -19,6 +19,7 @@ export type { Profile, ProfileId } from './types.js';
 export { developerProfile } from './developer.js';
 export { architectProfile } from './architect.js';
 export { baProfile } from './ba.js';
+export { pmProfile } from './pm.js';
 export { mulesoftProfile } from './mulesoft.js';
 export { uxProfile } from './ux.js';
 export { cgcloudProfile } from './cgcloud.js';
@@ -30,6 +31,7 @@ export { data360Profile } from './data360.js';
 import { developerProfile } from './developer.js';
 import { architectProfile } from './architect.js';
 import { baProfile } from './ba.js';
+import { pmProfile } from './pm.js';
 import { mulesoftProfile } from './mulesoft.js';
 import { uxProfile } from './ux.js';
 import { cgcloudProfile } from './cgcloud.js';
@@ -43,6 +45,7 @@ export const ALL_PROFILES: Profile[] = [
   developerProfile,
   architectProfile,
   baProfile,
+  pmProfile,
   mulesoftProfile,
   uxProfile,
   cgcloudProfile,

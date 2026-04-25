@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 import { expect } from 'chai';
+import { baProfile } from '../../../src/profiles/ba.js';
 import { developerProfile } from '../../../src/profiles/developer.js';
 import { architectProfile } from '../../../src/profiles/architect.js';
+import { qaProfile } from '../../../src/profiles/qa.js';
 import {
   generateBaseGuidelines,
   generateSfStandards,
@@ -37,6 +39,12 @@ describe('mdc-generator', () => {
 
     it('includes General Principles section', () => {
       expect(generateBaseGuidelines(VERSION)).to.include('## General Principles');
+    });
+
+    it('includes Active Job Monitoring section', () => {
+      const content = generateBaseGuidelines(VERSION);
+      expect(content).to.include('## Active Job Monitoring');
+      expect(content).to.include('monitor it to completion');
     });
 
     it('includes Planning section', () => {
@@ -66,6 +74,22 @@ describe('mdc-generator', () => {
       const content = generateBaseGuidelines(VERSION);
       expect(content).to.include('pause and re-confirm');
     });
+
+    it('includes Command Execution Safety section', () => {
+      const content = generateBaseGuidelines(VERSION);
+      expect(content).to.include('## Command Execution Safety (CRITICAL)');
+    });
+
+    it('Command Execution Safety forbids sudo', () => {
+      const content = generateBaseGuidelines(VERSION);
+      expect(content).to.include('NEVER use `sudo`');
+    });
+
+    it('Command Execution Safety recommends running CLI tools outside sandbox', () => {
+      const content = generateBaseGuidelines(VERSION);
+      expect(content).to.include('Run CLI tools outside the sandbox');
+      expect(content).to.include('required_permissions');
+    });
   });
 
   describe('generateSfStandards()', () => {
@@ -88,6 +112,19 @@ describe('mdc-generator', () => {
     it('includes documentation language guidance', () => {
       expect(generateSfStandards(VERSION)).to.include('Keep agent/tooling communication in English by default');
     });
+
+    it('includes Setup Path Verification rule', () => {
+      const content = generateSfStandards(VERSION);
+      expect(content).to.include('Setup Path Verification (CRITICAL)');
+      expect(content).to.include('VERIFY PATH');
+    });
+
+    it('includes Salesforce Documentation Citation rule', () => {
+      const content = generateSfStandards(VERSION);
+      expect(content).to.include('Documentation Citation (CRITICAL)');
+      expect(content).to.include('help.salesforce.com');
+      expect(content).to.include('developer.salesforce.com');
+    });
   });
 
   describe('generateSubAgentProtocol()', () => {
@@ -109,6 +146,19 @@ describe('mdc-generator', () => {
     it('shows fallback message when no profiles are provided', () => {
       const content = generateSubAgentProtocol([], VERSION);
       expect(content).to.include('No specific profiles active');
+    });
+
+    it('includes Collaboration Flows when multiple profiles are active', () => {
+      const content = generateSubAgentProtocol([baProfile, architectProfile, developerProfile, qaProfile], VERSION);
+      expect(content).to.include('## Collaboration Flows');
+      expect(content).to.include('BA → Architect');
+      expect(content).to.include('Architect → Developer');
+      expect(content).to.include('Developer → QA');
+    });
+
+    it('omits Collaboration Flows when no handoff pairs match', () => {
+      const content = generateSubAgentProtocol([developerProfile], VERSION);
+      expect(content).to.not.include('## Collaboration Flows');
     });
   });
 });

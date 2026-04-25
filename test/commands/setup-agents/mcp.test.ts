@@ -304,4 +304,28 @@ describe('setup-agents mcp', () => {
       expect(config.mcpServers['salesforce-prodOrg']).to.exist;
     });
   });
+
+  describe('login flow edge cases', () => {
+    it('warns and returns empty in non-TTY mode when no orgs exist', async () => {
+      const result = await Mcp.run([]);
+
+      const warnCalls = sfCommandStubs.warn
+        .getCalls()
+        .flatMap((c) => c.args)
+        .join('\n');
+      expect(warnCalls).to.include('org');
+      expect(result.serversAdded).to.be.empty;
+    });
+
+    it('still configures MCP when --target-org is provided even without authenticated orgs', async () => {
+      const result = await Mcp.run(['--target-org', 'manualOrg']);
+
+      expect(result.serversAdded).to.deep.equal(['salesforce-manualOrg']);
+      expect(existsSync(join(tmpDir, '.cursor', 'mcp.json'))).to.be.true;
+    });
+
+    it('spawnWebLogin is a static method on Mcp', () => {
+      expect(typeof (Mcp as unknown as Record<string, unknown>)['spawnWebLogin']).to.equal('function');
+    });
+  });
 });

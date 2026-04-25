@@ -3,3 +3,8 @@ tsconfig.json
 .eslintrc.cjs
 **/*.ts
 **/*.map
+out/test/**
+playwright.config.ts
+playwright-report/**
+.tmp-test-workspace/**
+.tmp-tests/**

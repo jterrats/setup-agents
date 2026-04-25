@@ -24,7 +24,14 @@ export function getHtml(webview: vscode.Webview, extensionUri: vscode.Uri): stri
     .header img { width: 18px; height: 18px; }
     .card { border: 1px solid var(--vscode-editorWidget-border); border-radius: 8px; padding: 10px; margin-bottom: 12px; }
     .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
-    .profiles { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .profiles { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 8px 0; }
+    .profile-card { display: flex; align-items: flex-start; gap: 6px; padding: 6px 8px; border: 1px solid var(--vscode-editorWidget-border); border-radius: 6px; cursor: pointer; transition: border-color 0.15s; }
+    .profile-card:hover { border-color: var(--vscode-focusBorder); }
+    .profile-card.selected { border-color: var(--vscode-focusBorder); background: var(--vscode-list-activeSelectionBackground); color: var(--vscode-list-activeSelectionForeground); }
+    .profile-card input[type=checkbox] { margin-top: 2px; }
+    .profile-card .profile-info { display: flex; flex-direction: column; }
+    .profile-card .profile-name { font-weight: bold; font-size: 0.92em; }
+    .profile-card .profile-desc { font-size: 0.8em; opacity: 0.75; }
     .muted { opacity: 0.8; font-size: 0.9em; }
     textarea { width: 100%; min-height: 170px; background: var(--vscode-input-background); color: var(--vscode-input-foreground); border: 1px solid var(--vscode-input-border); border-radius: 4px; padding: 8px; }
     select, input, button { background: var(--vscode-input-background); color: var(--vscode-input-foreground); border: 1px solid var(--vscode-input-border); border-radius: 4px; padding: 6px 8px; }
@@ -62,6 +69,30 @@ export function getHtml(webview: vscode.Webview, extensionUri: vscode.Uri): stri
     <p class="muted" id="profileDetailsText"></p>
   </div>
 
+  <div class="card" id="mcpCard">
+    <h3>MCP Configuration</h3>
+    <p class="muted" id="mcpStatus">Loading orgs...</p>
+    <div id="mcpOrgsSection" style="display:none">
+      <div class="profiles" id="mcpOrgs" role="group" aria-label="Org selection"></div>
+      <div class="row">
+        <label><input type="checkbox" id="mcpGlobal" /> Global (~/.cursor/mcp.json)</label>
+        <label><input type="checkbox" id="mcpAllToolsets" /> All toolsets</label>
+      </div>
+      <div class="row">
+        <button id="mcpConfigureBtn" disabled>Configure MCP</button>
+      </div>
+    </div>
+    <div id="mcpLoginSection" style="display:none">
+      <p class="muted">No authenticated Salesforce orgs found.</p>
+      <div class="row">
+        <input id="mcpLoginAlias" type="text" placeholder="Org alias (e.g. myOrg)" style="min-width:180px" />
+        <button id="mcpLoginBtn">Authenticate Org</button>
+      </div>
+      <p class="muted" id="mcpLoginStatus" style="display:none"></p>
+    </div>
+    <div id="mcpResult" style="display:none"></div>
+  </div>
+
   <div class="card">
     <h3>Rule Management</h3>
     <div class="row">
@@ -84,7 +115,8 @@ export function getHtml(webview: vscode.Webview, extensionUri: vscode.Uri): stri
 
   <script nonce="${nonce}">
     const vscode = acquireVsCodeApi();
-    const state = { profiles: [], selectedRulePath: null };
+    const persisted = vscode.getState() || {};
+    const state = { profiles: [], selectedRulePath: null, selectedProfileIds: persisted.selectedProfileIds || ['developer'] };
     const toolsEl = document.getElementById('tools');
     const profilesEl = document.getElementById('profiles');
     const consoleEl = document.getElementById('console');
@@ -160,12 +192,21 @@ export function getHtml(webview: vscode.Webview, extensionUri: vscode.Uri): stri
           .map((t) => \`\${t.id}: \${t.detected ? 'detected' : 'not detected'} (\${t.reason})\`)
           .join(' | ');
         state.profiles = message.payload.profiles;
+        const savedSelections = state.selectedProfileIds;
         profilesEl.innerHTML = '';
         profileDetailsSelect.innerHTML = '';
         for (const profile of message.payload.profiles) {
-          const label = document.createElement('label');
-          label.innerHTML = \`<input type="checkbox" value="\${profile.id}" \${profile.id === 'developer' ? 'checked' : ''} /> \${profile.label}\`;
-          profilesEl.appendChild(label);
+          const isChecked = savedSelections.includes(profile.id);
+          const card = document.createElement('label');
+          card.className = 'profile-card' + (isChecked ? ' selected' : '');
+          card.innerHTML = \`<input type="checkbox" value="\${profile.id}" \${isChecked ? 'checked' : ''} /><div class="profile-info"><span class="profile-name">\${profile.label}</span><span class="profile-desc">\${profile.description}</span></div>\`;
+          const checkbox = card.querySelector('input');
+          checkbox.addEventListener('change', () => {
+            card.classList.toggle('selected', checkbox.checked);
+            state.selectedProfileIds = selectedProfiles();
+            vscode.setState({ selectedProfileIds: state.selectedProfileIds });
+          });
+          profilesEl.appendChild(card);
           const option = document.createElement('option');
           option.value = profile.id;
           option.textContent = profile.label;
@@ -192,10 +233,107 @@ export function getHtml(webview: vscode.Webview, extensionUri: vscode.Uri): stri
       }
       if (message.type === 'operationError') appendConsole(\`[error] \${message.payload.message}\\n\`);
       if (message.type === 'operationSuccess') appendConsole(\`[ok] \${message.payload.message}\\n\`);
+
+      if (message.type === 'orgsResult') {
+        const { orgs, sfExtensionInstalled } = message.payload;
+        const mcpStatus = document.getElementById('mcpStatus');
+        const mcpOrgsSection = document.getElementById('mcpOrgsSection');
+        const mcpLoginSection = document.getElementById('mcpLoginSection');
+        const mcpOrgsEl = document.getElementById('mcpOrgs');
+        const mcpConfigureBtn = document.getElementById('mcpConfigureBtn');
+
+        if (orgs.length > 0) {
+          mcpStatus.textContent = orgs.length + ' org(s) found';
+          mcpOrgsSection.style.display = '';
+          mcpLoginSection.style.display = 'none';
+          mcpOrgsEl.innerHTML = '';
+          state.mcpSelectedOrgs = state.mcpSelectedOrgs || [];
+          for (const org of orgs) {
+            const isChecked = state.mcpSelectedOrgs.includes(org.alias);
+            const card = document.createElement('label');
+            card.className = 'profile-card' + (isChecked ? ' selected' : '');
+            card.setAttribute('role', 'checkbox');
+            card.setAttribute('aria-checked', String(isChecked));
+            card.setAttribute('tabindex', '0');
+            card.innerHTML = '<input type="checkbox" value="' + org.alias + '" ' + (isChecked ? 'checked' : '') + ' />'
+              + '<div class="profile-info"><span class="profile-name">' + org.alias + '</span>'
+              + '<span class="profile-desc">' + org.username + '</span></div>';
+            const cb = card.querySelector('input');
+            cb.addEventListener('change', () => {
+              card.classList.toggle('selected', cb.checked);
+              card.setAttribute('aria-checked', String(cb.checked));
+              state.mcpSelectedOrgs = [...mcpOrgsEl.querySelectorAll('input:checked')].map(n => n.value);
+              mcpConfigureBtn.disabled = state.mcpSelectedOrgs.length === 0;
+            });
+            card.addEventListener('keydown', (e) => {
+              if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); cb.checked = !cb.checked; cb.dispatchEvent(new Event('change')); }
+            });
+            mcpOrgsEl.appendChild(card);
+          }
+          mcpConfigureBtn.disabled = (state.mcpSelectedOrgs || []).length === 0;
+        } else {
+          mcpStatus.textContent = sfExtensionInstalled
+            ? 'No orgs found. The Salesforce Extension will handle the login.'
+            : 'No orgs found. Login via Salesforce CLI.';
+          mcpOrgsSection.style.display = 'none';
+          mcpLoginSection.style.display = '';
+        }
+      }
+
+      if (message.type === 'orgLoginResult') {
+        const loginStatus = document.getElementById('mcpLoginStatus');
+        const loginBtn = document.getElementById('mcpLoginBtn');
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Authenticate Org';
+        if (message.payload.success) {
+          loginStatus.textContent = 'Authenticated: ' + message.payload.alias;
+          loginStatus.style.display = '';
+          loginStatus.style.color = 'var(--vscode-charts-green)';
+        } else {
+          loginStatus.textContent = 'Authentication failed. Try again.';
+          loginStatus.style.display = '';
+          loginStatus.style.color = 'var(--vscode-errorForeground)';
+        }
+      }
+
+      if (message.type === 'mcpConfigured') {
+        const mcpResult = document.getElementById('mcpResult');
+        mcpResult.style.display = '';
+        mcpResult.innerHTML = '<p style="color:var(--vscode-charts-green)">MCP configured in <code>'
+          + message.payload.mcpFile + '</code></p><p class="muted">Servers: '
+          + message.payload.serversAdded.join(', ') + '</p>';
+        appendConsole('[ok] MCP configured: ' + message.payload.serversAdded.join(', ') + '\\n');
+      }
+    });
+
+    // MCP: login button
+    document.getElementById('mcpLoginBtn').addEventListener('click', () => {
+      const aliasInput = document.getElementById('mcpLoginAlias');
+      const alias = aliasInput.value.trim();
+      if (!alias) { aliasInput.focus(); return; }
+      const btn = document.getElementById('mcpLoginBtn');
+      btn.disabled = true;
+      btn.textContent = 'Authenticating...';
+      document.getElementById('mcpLoginStatus').style.display = 'none';
+      vscode.postMessage({ type: 'loginOrg', payload: { alias } });
+    });
+
+    // MCP: configure button
+    document.getElementById('mcpConfigureBtn').addEventListener('click', () => {
+      vscode.postMessage({
+        type: 'configureMcp',
+        payload: {
+          orgs: state.mcpSelectedOrgs || [],
+          profiles: selectedProfiles(),
+          allToolsets: document.getElementById('mcpAllToolsets').checked,
+          global: document.getElementById('mcpGlobal').checked,
+        }
+      });
     });
 
     vscode.postMessage({ type: 'bootstrap' });
     vscode.postMessage({ type: 'listRules' });
+    vscode.postMessage({ type: 'listOrgs' });
   </script>
 </body>
 </html>`;

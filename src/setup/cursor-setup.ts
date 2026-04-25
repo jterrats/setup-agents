@@ -15,8 +15,20 @@
  */
 
 import { existsSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { generateBaseGuidelines, generateSfStandards, generateSubAgentProtocol } from '../generators/mdc-generator.js';
+import {
+  BACKLOG_SYNC_PROFILES,
+  CODE_ANALYZER_PROFILES,
+  DEPLOY_PROFILES,
+  STORY_MAP_PROFILES,
+  generateBacklogSyncSkill,
+  generateCodeAnalyzerSkill,
+  generateDeploySkill,
+  generateDiagramExportSkill,
+  generateStoryMappingSkill,
+} from '../generators/skill-generator.js';
 import type { Profile } from '../profiles/index.js';
 import { ensureDir } from '../services/file-writer.js';
 import type { FileWriter } from '../services/file-writer.js';
@@ -29,54 +41,45 @@ export type CursorSetupOptions = {
   isSalesforceProject: boolean;
   /** Prompts the user to choose project vs user-level scope. */
   promptScope(this: void): Promise<'project' | 'user'>;
-  /** Prints content to the console for manual paste (user-level option). */
-  printToConsole(this: void, content: string): void;
+  /** Logs informational messages to the user. */
+  logInfo(this: void, msg: string): void;
 };
 
 export async function setupCursor(opts: CursorSetupOptions): Promise<void> {
-  const { cwd, profiles, writer, isSalesforceProject, promptScope, printToConsole } = opts;
-  const rulesDir = join(cwd, '.cursor', 'rules');
+  const { cwd, profiles, writer, isSalesforceProject, promptScope, logInfo } = opts;
+  const projectRulesDir = join(cwd, '.cursor', 'rules');
 
-  ensureDir(rulesDir);
-  writer.write(join(rulesDir, 'agent-guidelines.mdc'), generateBaseGuidelines(PLUGIN_VERSION));
-  writer.write(join(rulesDir, 'sub-agent-protocol.mdc'), generateSubAgentProtocol(profiles, PLUGIN_VERSION));
-
-  if (!isSalesforceProject) {
-    for (const profile of profiles) {
-      writer.write(join(rulesDir, profile.ruleFile), profile.ruleContent());
-    }
-    return;
-  }
-
-  const scope = await promptScope();
-
-  if (scope === 'project') {
-    writer.write(join(rulesDir, 'salesforce-standards.mdc'), generateSfStandards(PLUGIN_VERSION));
-    for (const profile of profiles) {
-      writer.write(join(rulesDir, profile.ruleFile), profile.ruleContent());
-    }
-  } else {
-    printToConsole(
-      [
-        '─'.repeat(60),
-        generateSfStandards(PLUGIN_VERSION),
-        ...profiles.map((p) => p.ruleContent()),
-        '─'.repeat(60),
-        '→ Cursor Settings (Ctrl+Shift+J) → Rules for AI → paste above.',
-      ].join('\n')
-    );
-  }
+  ensureDir(projectRulesDir);
+  writer.write(join(projectRulesDir, 'agent-guidelines.mdc'), generateBaseGuidelines(PLUGIN_VERSION));
+  writer.write(join(projectRulesDir, 'sub-agent-protocol.mdc'), generateSubAgentProtocol(profiles, PLUGIN_VERSION));
 
   if (isSalesforceProject) {
+    const scope = await promptScope();
+    const targetRulesDir = scope === 'user' ? join(homedir(), '.cursor', 'rules') : projectRulesDir;
+
+    if (scope === 'user') {
+      ensureDir(targetRulesDir);
+      logInfo(`Writing Salesforce rules to user-level directory: ${targetRulesDir}`);
+    }
+
+    writer.write(join(targetRulesDir, 'salesforce-standards.mdc'), generateSfStandards(PLUGIN_VERSION));
+    for (const profile of profiles) {
+      writer.write(join(targetRulesDir, profile.ruleFile), profile.ruleContent());
+    }
+
     setupWorkflows(cwd, profiles, writer);
+  } else {
+    for (const profile of profiles) {
+      writer.write(join(projectRulesDir, profile.ruleFile), profile.ruleContent());
+    }
   }
+
+  setupSkills(cwd, profiles, writer);
 }
 
 function setupWorkflows(cwd: string, profiles: Profile[], writer: FileWriter): void {
   const workflowsDir = join(cwd, '.a4drules', 'workflows');
   if (!existsSync(workflowsDir)) {
-    // Only create the workflows dir if .a4drules already exists or is being created by agentforce setup
-    // Cursor setup only populates workflows when .a4drules is already present
     return;
   }
   for (const profile of profiles) {
@@ -85,5 +88,55 @@ function setupWorkflows(cwd: string, profiles: Profile[], writer: FileWriter): v
     for (const [filename, content] of Object.entries(workflowFiles)) {
       writer.write(join(workflowsDir, filename), content);
     }
+  }
+}
+
+function setupSkills(cwd: string, profiles: Profile[], writer: FileWriter): void {
+  const profileIds = new Set(profiles.map((p) => p.id));
+  const skillsDir = join(cwd, '.cursor', 'skills');
+
+  const needsStoryMap = [...profileIds].some((id) => STORY_MAP_PROFILES.has(id));
+  const needsDeploy = [...profileIds].some((id) => DEPLOY_PROFILES.has(id));
+  const needsCodeAnalyzer = [...profileIds].some((id) => CODE_ANALYZER_PROFILES.has(id));
+  const needsBacklogSync = [...profileIds].some((id) => BACKLOG_SYNC_PROFILES.has(id));
+
+  if (!needsStoryMap && !needsDeploy && !needsCodeAnalyzer && !needsBacklogSync) return;
+
+  ensureDir(skillsDir);
+
+  if (needsStoryMap) {
+    for (const [dirName, generator] of [
+      ['story-mapping', generateStoryMappingSkill],
+      ['diagram-export', generateDiagramExportSkill],
+    ] as const) {
+      const dir = join(skillsDir, dirName);
+      const files = generator();
+      for (const [relativePath, content] of Object.entries(files)) {
+        const fullPath = join(dir, relativePath);
+        ensureDir(join(fullPath, '..'));
+        writer.write(fullPath, content);
+      }
+    }
+  }
+
+  if (needsDeploy) {
+    writeSkill(skillsDir, 'sf-deploy', generateDeploySkill(), writer);
+  }
+
+  if (needsCodeAnalyzer) {
+    writeSkill(skillsDir, 'sf-code-analyzer', generateCodeAnalyzerSkill(), writer);
+  }
+
+  if (needsBacklogSync) {
+    writeSkill(skillsDir, 'backlog-sync', generateBacklogSyncSkill(), writer);
+  }
+}
+
+function writeSkill(skillsDir: string, dirName: string, files: Record<string, string>, writer: FileWriter): void {
+  const dir = join(skillsDir, dirName);
+  for (const [relativePath, content] of Object.entries(files)) {
+    const fullPath = join(dir, relativePath);
+    ensureDir(join(fullPath, '..'));
+    writer.write(fullPath, content);
   }
 }

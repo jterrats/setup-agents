@@ -4,19 +4,13 @@
     "module": "Node16",
     "moduleResolution": "Node16",
     "lib": ["ES2022"],
-    "rootDir": "src",
     "outDir": "out",
+    "rootDir": "src",
     "strict": true,
     "sourceMap": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "types": ["node", "vscode"]
+    "types": ["node", "vscode", "mocha"]
   },
-  "include": ["src/**/*.ts"],
-  "exclude": [
-    "src/test/e2e/webview-ui.spec.ts",
-    "playwright.config.ts",
-    "src/test/e2e/runTest.ts",
-    "src/test/e2e/suite/**"
-  ]
+  "include": ["src/test/e2e/runTest.ts", "src/test/e2e/suite/**/*.ts"]
 }

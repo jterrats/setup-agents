@@ -516,34 +516,36 @@ describe('setup-agents local', () => {
       writeFileSync(join(tmpDir, 'sfdx-project.json'), '{"packageDirectories":[]}');
     });
 
-    it('does not create profile-specific workflow files for ba profile', async () => {
+    it('does not create unexpected workflow files for ba profile', async () => {
       await Local.run(['--rules', 'agentforce', '--profile', 'ba']);
 
       const workflowsDir = join(tmpDir, '.a4drules', 'workflows');
       const baseFiles = ['deploy.md', 'run-tests.md', 'validate.md', 'code-quality.md'];
+      const skillFiles = ['story-mapping.md', 'diagram-export.md', 'backlog-sync.md'];
+      const baWorkflows = ['refine-stories.md', 'groom-backlog.md'];
+      const expectedFiles = [...baseFiles, ...skillFiles, ...baWorkflows];
       const allFiles = existsSync(workflowsDir) ? readdirSync(workflowsDir) : [];
-      const nonBaseFiles = allFiles.filter((f) => !baseFiles.includes(f));
-      expect(nonBaseFiles).to.be.empty;
+      const unexpectedFiles = allFiles.filter((f) => !expectedFiles.includes(f));
+      expect(unexpectedFiles).to.be.empty;
     });
 
-    it('does not create profile-specific workflow files for mulesoft profile', async () => {
+    it('creates mulesoft-specific workflow files for mulesoft profile', async () => {
       await Local.run(['--rules', 'agentforce', '--profile', 'mulesoft']);
 
       const workflowsDir = join(tmpDir, '.a4drules', 'workflows');
-      const baseFiles = ['deploy.md', 'run-tests.md', 'validate.md', 'code-quality.md'];
       const allFiles = existsSync(workflowsDir) ? readdirSync(workflowsDir) : [];
-      const nonBaseFiles = allFiles.filter((f) => !baseFiles.includes(f));
-      expect(nonBaseFiles).to.be.empty;
+      expect(allFiles).to.include('create-mule-api.md');
+      expect(allFiles).to.include('run-munit.md');
+      expect(allFiles).to.include('deploy-mule-app.md');
     });
 
-    it('does not create profile-specific workflow files for ux profile', async () => {
+    it('creates ux-specific workflow files for ux profile', async () => {
       await Local.run(['--rules', 'agentforce', '--profile', 'ux']);
 
       const workflowsDir = join(tmpDir, '.a4drules', 'workflows');
-      const baseFiles = ['deploy.md', 'run-tests.md', 'validate.md', 'code-quality.md'];
       const allFiles = existsSync(workflowsDir) ? readdirSync(workflowsDir) : [];
-      const nonBaseFiles = allFiles.filter((f) => !baseFiles.includes(f));
-      expect(nonBaseFiles).to.be.empty;
+      expect(allFiles).to.include('ux-audit.md');
+      expect(allFiles).to.include('design-review.md');
     });
   });
 
@@ -554,10 +556,11 @@ describe('setup-agents local', () => {
       expect(existsSync(join(tmpDir, '.a4drules', '01-salesforce-standards.md'))).to.be.false;
     });
 
-    it('does NOT create the workflows/ directory for non-Salesforce project', async () => {
+    it('creates workflows/ directory for non-Salesforce project when skills apply', async () => {
       await Local.run(['--rules', 'agentforce', '--profile', 'developer']);
 
-      expect(existsSync(join(tmpDir, '.a4drules', 'workflows'))).to.be.false;
+      expect(existsSync(join(tmpDir, '.a4drules', 'workflows'))).to.be.true;
+      expect(existsSync(join(tmpDir, '.a4drules', 'workflows', 'salesforce-deploy-validate.md'))).to.be.true;
     });
 
     it('still creates 00-base-guidelines.md for non-Salesforce project', async () => {

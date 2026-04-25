@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 import { ALL_PROFILES } from './constants';
 import { CliService } from './services/cliService';
+import { McpConfigService } from './services/mcpConfigService';
+import { OrgService } from './services/orgService';
 import { RuleManagementService } from './services/ruleManagementService';
 import type { HostToUiMessage, ToolStatus, UiToHostMessage } from './types';
 import { getHtml } from './webview/getHtml';
@@ -27,6 +29,8 @@ export function deactivate(): void {
 class SetupAgentsViewProvider implements vscode.WebviewViewProvider {
   private view?: vscode.WebviewView;
   private readonly cliService = new CliService();
+  private readonly orgService = new OrgService();
+  private readonly mcpService = new McpConfigService();
   private readonly ruleService = new RuleManagementService();
 
   public constructor(private readonly context: vscode.ExtensionContext) {}
@@ -117,6 +121,44 @@ class SetupAgentsViewProvider implements vscode.WebviewViewProvider {
           this.post({ type: 'operationSuccess', payload: { message: `Imported: ${target}` } });
           const rules = await this.ruleService.listRules(workspacePath);
           this.post({ type: 'rulesResult', payload: rules });
+          return;
+        }
+        case 'listOrgs': {
+          const orgs = this.orgService.listOrgs();
+          const sfExtensionInstalled = this.orgService.isSfExtensionInstalled();
+          this.post({ type: 'orgsResult', payload: { orgs, sfExtensionInstalled } });
+          return;
+        }
+        case 'loginOrg': {
+          const alias = message.payload.alias.trim();
+          const success = await this.orgService.loginOrg(alias);
+          this.post({ type: 'orgLoginResult', payload: { success, alias } });
+          if (success) {
+            const orgs = this.orgService.listOrgs();
+            const sfExtensionInstalled = this.orgService.isSfExtensionInstalled();
+            this.post({ type: 'orgsResult', payload: { orgs, sfExtensionInstalled } });
+          }
+          return;
+        }
+        case 'configureMcp': {
+          const ws = this.requireWorkspacePath();
+          const npx = this.orgService.resolveNpxCommand();
+          if (!npx) {
+            this.post({
+              type: 'operationError',
+              payload: { message: 'npx not found. Install Node.js and ensure npx is in PATH.' },
+            });
+            return;
+          }
+          const toolsets = this.mcpService.resolveToolsets(message.payload.profiles, message.payload.allToolsets);
+          const result = this.mcpService.writeMcpConfig(
+            message.payload.orgs,
+            toolsets,
+            npx,
+            message.payload.global,
+            ws
+          );
+          this.post({ type: 'mcpConfigured', payload: result });
           return;
         }
       }

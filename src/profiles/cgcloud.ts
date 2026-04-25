@@ -16,6 +16,8 @@
 
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { generateCgcloudWorkflows } from '../generators/workflow-generator.js';
+import { documentationStandards, interactionPreferences, semanticCommits } from './shared-sections.js';
 import type { Profile } from './types.js';
 
 function hasCGCloudNamespace(cwd: string): boolean {
@@ -42,6 +44,7 @@ export const cgcloudProfile: Profile = {
   detect(cwd: string): boolean {
     return hasCGCloudNamespace(cwd);
   },
+  workflows: generateCgcloudWorkflows,
   ruleContent(): string {
     return [
       '---',
@@ -53,6 +56,10 @@ export const cgcloudProfile: Profile = {
       '# Consumer Goods Cloud (CGCloud) Standards',
       '',
       '> Role: CGCloud Developer / Configurator — Salesforce Professional Services.',
+      '',
+      '## Codebase Contextualization',
+      '- **Always scan existing CGCloud CMDT records, Modeler configuration, and `cgcloud__` references** before proposing changes.',
+      '- Reuse existing extension point implementations and Modeler config patterns.',
       '',
       '## Consultative Design (CRITICAL)',
       '- **No Ninja Edits.** Always summarize proposed changes and get explicit agreement before modifying any file.',
@@ -88,24 +95,28 @@ export const cgcloudProfile: Profile = {
       '- Always test business logic under each relevant persona using `System.runAs()`.',
       '- Never bypass CGCloud sharing rules — they enforce territory-based data visibility.',
       '',
-      '## Documentation Standards',
-      '- Every `/docs/*.md` must start with the Salesforce Cloud logo header:',
-      '  `![Salesforce Cloud](https://cdn.prod.website-files.com/691f4b0505409df23e191b87/69416b267de7ae6888996981_logo.svg)`',
-      '- Author: **Salesforce Professional Services**. Version: increment on significant changes.',
-      '- Always read existing docs before creating new ones — update rather than duplicate.',
+      '## Product Variant Awareness',
+      '- CGCloud covers three product variants — configuration patterns differ significantly:',
+      '  - **TPM (Trade Promotion Management):** Promotion Types, Funds, Spending, KPI definitions.',
+      '  - **Retail Execution:** Activity Plans, Store Surveys, Visit Templates, Planogram compliance.',
+      '  - **Route Optimization:** Territory definitions, Route Plans, visit frequency rules.',
+      '- Always confirm which variant is in scope before configuring. Never mix configuration patterns across variants.',
       '',
-      '## Semantic Commits',
-      '- Ask for **Backlog Item ID** before suggesting any commit.',
-      '- Format: `type(ID): short description`.',
-      '- Body: numbered list of changes + value proposition paragraph.',
+      '## CGCloud Test Data',
+      '- Test data for `cgcloud__` objects requires specific parent records (Account → Territory → Route).',
+      '- Use a namespace-aware **TestDataFactory** that creates the full CGCloud object hierarchy.',
+      '- Test under each CGCloud persona: Field Rep (mobile), Territory Manager (supervisor), Back Office (admin).',
+      '- Modeler config (CMDT) must be deployed to the test org BEFORE running tests that depend on CGCloud logic.',
+      '',
+      ...documentationStandards(),
+      '',
+      ...semanticCommits(),
       '',
       '## Sub-agent Handover',
       '- Pass to sub-agents: which CGCloud product (TPM / Retail Execution / Route Optimization),',
       '  the extension point being used, the Modeler config already in place, and the PSG for test users.',
       '',
-      '## Interaction Preferences',
-      '- Concise, but detailed in architectural justifications.',
-      '- Correct mistakes directly without apologizing.',
+      ...interactionPreferences(),
     ].join('\n');
   },
 };
