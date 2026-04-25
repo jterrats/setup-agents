@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { ALL_PROFILES } from './constants';
+import { ALL_PROFILES, MCP_INTEGRATIONS } from './constants';
 import { CliService } from './services/cliService';
 import { McpConfigService } from './services/mcpConfigService';
 import { OrgService } from './services/orgService';
@@ -124,7 +124,7 @@ class SetupAgentsViewProvider implements vscode.WebviewViewProvider {
           return;
         }
         case 'listOrgs': {
-          const orgs = this.orgService.listOrgs();
+          const orgs = await this.orgService.listOrgs();
           const sfExtensionInstalled = this.orgService.isSfExtensionInstalled();
           this.post({ type: 'orgsResult', payload: { orgs, sfExtensionInstalled } });
           return;
@@ -134,7 +134,7 @@ class SetupAgentsViewProvider implements vscode.WebviewViewProvider {
           const success = await this.orgService.loginOrg(alias);
           this.post({ type: 'orgLoginResult', payload: { success, alias } });
           if (success) {
-            const orgs = this.orgService.listOrgs();
+            const orgs = await this.orgService.listOrgs();
             const sfExtensionInstalled = this.orgService.isSfExtensionInstalled();
             this.post({ type: 'orgsResult', payload: { orgs, sfExtensionInstalled } });
           }
@@ -159,6 +159,54 @@ class SetupAgentsViewProvider implements vscode.WebviewViewProvider {
             ws
           );
           this.post({ type: 'mcpConfigured', payload: result });
+          return;
+        }
+        case 'configureIntegrations': {
+          const ws = this.requireWorkspacePath();
+          const entries: Record<
+            string,
+            { command?: string; args?: string[]; env?: Record<string, string>; url?: string; type?: string }
+          > = {};
+          for (const id of message.payload.ids) {
+            const integration = MCP_INTEGRATIONS.find((i) => i.id === id);
+            if (!integration) continue;
+            if (integration.transport === 'http') {
+              entries[id] = { url: integration.url };
+            } else {
+              const env: Record<string, string> = {};
+              for (const spec of integration.envVars) {
+                env[spec.name] = message.payload.credentials[id]?.[spec.name] ?? '';
+              }
+              entries[id] = { command: integration.command, args: [...(integration.args ?? [])], env, type: 'stdio' };
+            }
+          }
+          const intResult = this.mcpService.writeIntegrationConfig(entries, message.payload.global, ws);
+          this.post({ type: 'integrationsConfigured', payload: { serversAdded: intResult.serversAdded } });
+          return;
+        }
+        case 'checkForUpdates': {
+          const workspacePath = this.requireWorkspacePath();
+          this.runCliJson(workspacePath, ['setup-agents', 'update', '--dry-run', '--json'], (result) => {
+            const inner = (result as { result?: { updated?: string[] } })?.result;
+            const staleFiles: string[] = inner?.updated ?? [];
+            this.post({ type: 'updateCheckResult', payload: { staleFiles } });
+          });
+          return;
+        }
+        case 'runUpdate': {
+          const workspacePath = this.requireWorkspacePath();
+          this.cliService.runSetupAgentsLocal(
+            workspacePath,
+            { profiles: [], force: true },
+            {
+              onStdout: (text) => this.post({ type: 'commandOutput', payload: { stream: 'stdout', text } }),
+              onStderr: (text) => this.post({ type: 'commandOutput', payload: { stream: 'stderr', text } }),
+              onClose: (code) => {
+                const updated = code === 0 ? ['update completed'] : [];
+                this.post({ type: 'updateComplete', payload: { updated } });
+              },
+            }
+          );
           return;
         }
       }
@@ -192,12 +240,27 @@ class SetupAgentsViewProvider implements vscode.WebviewViewProvider {
       }
     };
 
+    const claudeDetected = (await exists(['CLAUDE.md'])) || (await exists(['.claude']));
+
     return [
       { id: 'cursor', detected: await exists(['.cursor']), reason: '.cursor directory' },
       { id: 'vscode', detected: await exists(['.vscode']), reason: '.vscode directory' },
       { id: 'codex', detected: await exists(['AGENTS.md']), reason: 'AGENTS.md file' },
       { id: 'agentforce', detected: await exists(['.a4drules']), reason: '.a4drules directory' },
+      { id: 'claude', detected: claudeDetected, reason: 'CLAUDE.md or .claude/ directory' },
     ];
+  }
+
+  private runCliJson(cwd: string, args: string[], callback: (result: Record<string, unknown>) => void): void {
+    const { execFile } = require('node:child_process') as typeof import('node:child_process');
+    execFile('sf', args, { cwd, timeout: 30_000 }, (error: Error | null, stdout: string) => {
+      try {
+        const parsed = JSON.parse(stdout || '{}') as Record<string, unknown>;
+        callback(parsed);
+      } catch {
+        callback({});
+      }
+    });
   }
 
   private requireWorkspacePath(): string {

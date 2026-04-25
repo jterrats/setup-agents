@@ -1,6 +1,9 @@
-import { execSync, spawn } from 'node:child_process';
+import { exec, execSync, spawn } from 'node:child_process';
+import { promisify } from 'node:util';
 import { platform } from 'node:os';
 import * as vscode from 'vscode';
+
+const execAsync = promisify(exec);
 
 export type OrgInfo = {
   alias: string;
@@ -19,10 +22,10 @@ const POLL_INTERVAL_MS = 2_000;
 const POLL_TIMEOUT_MS = 120_000;
 
 export class OrgService {
-  public listOrgs(): OrgInfo[] {
+  public async listOrgs(): Promise<OrgInfo[]> {
     try {
-      const raw = execSync('sf org list --json 2>/dev/null', { encoding: 'utf8', timeout: 15_000 });
-      const parsed = JSON.parse(raw) as OrgListResult;
+      const { stdout } = await execAsync('sf org list --json 2>/dev/null', { encoding: 'utf8', timeout: 15_000 });
+      const parsed = JSON.parse(stdout) as OrgListResult;
       const all = [...(parsed.result?.nonScratchOrgs ?? []), ...(parsed.result?.scratchOrgs ?? [])];
       return all.map((o) => ({ alias: o.alias ?? o.username, username: o.username })).filter((o) => o.alias);
     } catch {
@@ -47,7 +50,7 @@ export class OrgService {
       await ext.activate();
     }
 
-    const orgsBefore = new Set(this.listOrgs().map((o) => o.username));
+    const orgsBefore = new Set((await this.listOrgs()).map((o) => o.username));
 
     try {
       await vscode.commands.executeCommand('sf.org.login.web');
@@ -83,7 +86,7 @@ export class OrgService {
     const start = Date.now();
     while (Date.now() - start < POLL_TIMEOUT_MS) {
       await this.sleep(POLL_INTERVAL_MS);
-      const current = this.listOrgs();
+      const current = await this.listOrgs();
       const newOrg = current.find((o) => !knownUsernames.has(o.username));
       if (newOrg) return newOrg.username;
     }

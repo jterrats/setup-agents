@@ -4,15 +4,18 @@ import { join } from 'node:path';
 import type { ProfileId } from '../types';
 
 type McpServerConfig = {
-  command: string;
-  args: string[];
-  type: string;
+  command?: string;
+  args?: string[];
+  env?: Record<string, string>;
+  url?: string;
+  type?: string;
 };
 
 type McpConfig = {
   mcpServers: Record<string, McpServerConfig>;
 };
 
+// Source of truth: src/profiles/toolsets.ts — keep in sync (verified by test)
 const PROFILE_TOOLSETS: Record<ProfileId, string[]> = {
   developer: ['metadata', 'data', 'testing', 'users'],
   architect: ['metadata', 'data', 'testing', 'users'],
@@ -77,6 +80,37 @@ export class McpConfigService {
         type: 'stdio',
       };
       serversAdded.push(serverKey);
+    }
+
+    writeFileSync(mcpFilePath, JSON.stringify(existing, null, 2) + '\n', 'utf8');
+    return { mcpFile: mcpFilePath, serversAdded };
+  }
+
+  public writeIntegrationConfig(
+    entries: Record<string, McpServerConfig>,
+    global: boolean,
+    workspacePath: string
+  ): McpWriteResult {
+    const mcpFilePath = global ? join(homedir(), '.cursor', 'mcp.json') : join(workspacePath, '.cursor', 'mcp.json');
+    const mcpDir = join(mcpFilePath, '..');
+    if (!existsSync(mcpDir)) mkdirSync(mcpDir, { recursive: true });
+
+    let existing: McpConfig = { mcpServers: {} };
+    if (existsSync(mcpFilePath)) {
+      try {
+        existing = JSON.parse(readFileSync(mcpFilePath, 'utf8')) as McpConfig;
+        if (!existing.mcpServers || typeof existing.mcpServers !== 'object') {
+          existing.mcpServers = {};
+        }
+      } catch {
+        existing = { mcpServers: {} };
+      }
+    }
+
+    const serversAdded: string[] = [];
+    for (const [key, config] of Object.entries(entries)) {
+      existing.mcpServers[key] = config;
+      serversAdded.push(key);
     }
 
     writeFileSync(mcpFilePath, JSON.stringify(existing, null, 2) + '\n', 'utf8');

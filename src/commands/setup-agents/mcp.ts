@@ -22,6 +22,7 @@ import { Messages } from '@salesforce/core';
 import { SfCommand, Flags } from '@salesforce/sf-plugins-core';
 import { getRelevantIntegrations, buildMcpEntry } from '../../integrations/index.js';
 import type { McpIntegration, McpServerEntry } from '../../integrations/index.js';
+import { PROFILE_TOOLSETS } from '../../profiles/toolsets.js';
 import type { ProfileId } from '../../profiles/index.js';
 
 Messages.importMessagesDirectoryFromMetaUrl(import.meta.url);
@@ -42,20 +43,6 @@ type McpServerConfig = {
 
 type McpConfig = {
   mcpServers: Record<string, McpServerConfig>;
-};
-
-const PROFILE_TOOLSETS: Record<ProfileId, string[]> = {
-  developer: ['metadata', 'data', 'testing', 'users'],
-  architect: ['metadata', 'data', 'testing', 'users'],
-  ba: ['metadata', 'data'],
-  pm: ['metadata', 'data'],
-  mulesoft: ['metadata', 'orgs'],
-  ux: ['metadata', 'data'],
-  cgcloud: ['metadata', 'data', 'testing', 'users'],
-  devops: ['metadata', 'orgs', 'users'],
-  qa: ['metadata', 'data', 'testing', 'users'],
-  crma: ['metadata', 'data'],
-  data360: ['metadata', 'data'],
 };
 
 const ALL_TOOLSETS = ['all'] as const;

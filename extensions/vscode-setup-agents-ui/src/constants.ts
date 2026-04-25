@@ -1,4 +1,4 @@
-import type { ProfileDescriptor } from './types';
+import type { ProfileDescriptor, ProfileId } from './types';
 
 export const ALL_PROFILES: ProfileDescriptor[] = [
   {
@@ -71,3 +71,45 @@ export const ALL_PROFILES: ProfileDescriptor[] = [
 
 export const GENERATED_RULE_DIRS = ['.cursor/rules', '.a4drules', '.a4drules/workflows'];
 export const CUSTOM_RULE_DIRS = ['.cursor/rules/custom', '.a4drules/custom'];
+
+export type McpEnvVarSpec = {
+  name: string;
+  label: string;
+  secret: boolean;
+};
+
+export type McpIntegrationDescriptor = {
+  id: string;
+  label: string;
+  profiles: ProfileId[];
+  envVars: McpEnvVarSpec[];
+  transport: 'http' | 'stdio';
+  url?: string;
+  command?: string;
+  args?: string[];
+};
+
+// Source of truth: src/integrations/mcp-registry.ts — keep IDs in sync (verified by test)
+export const MCP_INTEGRATIONS: McpIntegrationDescriptor[] = [
+  {
+    id: 'figma',
+    label: 'Figma',
+    profiles: ['ux', 'ba', 'architect'],
+    envVars: [],
+    transport: 'http',
+    url: 'https://mcp.figma.com/mcp',
+  },
+  {
+    id: 'jira',
+    label: 'Jira Cloud',
+    profiles: ['pm', 'ba', 'developer', 'qa', 'devops'],
+    envVars: [
+      { name: 'JIRA_BASE_URL', label: 'Jira URL', secret: false },
+      { name: 'JIRA_EMAIL', label: 'Email', secret: false },
+      { name: 'JIRA_API_TOKEN', label: 'API Token', secret: true },
+    ],
+    transport: 'stdio',
+    command: 'npx',
+    args: ['-y', '@nexus2520/jira-mcp-server'],
+  },
+];

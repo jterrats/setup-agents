@@ -14,6 +14,7 @@ export class CliService {
     if (request.rules) args.push('--rules', request.rules);
     if (request.profiles.length > 0) args.push('--profile', request.profiles.join(','));
     if (request.force) args.push('--force');
+    if (request.scope === 'user') args.push('--scope', 'user');
 
     this.run(cwd, args, handlers);
   }
