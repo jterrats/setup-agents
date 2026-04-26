@@ -1,0 +1,187 @@
+---
+layout: default
+title: VS Code Extension
+permalink: /extension/
+description: Visual UI companion for setup-agents — configure AI agent rules, MCP connections, and third-party integrations from the VS Code sidebar.
+---
+
+<!-- Hero -->
+<header>
+  <h1>🧩 VS Code Extension</h1>
+  <p class="tagline">A visual companion that brings setup-agents into the VS Code sidebar.</p>
+  <p style="font-size:0.82rem;color:#999">Personal open-source project — not an official Salesforce product.</p>
+</header>
+
+<!-- Overview -->
+<section class="hero-section" style="margin-top:0">
+  <h2>Point-and-click AI agent configuration</h2>
+  <p style="font-size:1.1rem; line-height:1.8; color:#333; margin-bottom:1.5rem">
+    The <strong>Setup Agents UI</strong> extension lets you configure profiles, connect Salesforce orgs, 
+    wire MCP servers, and manage rule files — all without touching the terminal. 
+    It wraps the same CLI plugin in a guided, sidebar-based workflow designed for teams where 
+    not everyone is comfortable running shell commands.
+  </p>
+</section>
+
+<!-- Demo GIF -->
+<section>
+  <h2>🎬 In Action</h2>
+  <div style="display:flex;flex-direction:column;gap:2rem;align-items:center">
+    <div style="max-width:460px;width:100%">
+      <h3 style="font-size:1.1rem;margin:0 0 0.5rem">Guided Setup + MCP Configuration</h3>
+      <p style="font-size:0.9rem;color:#666;margin-bottom:0.75rem">
+        Select role profiles, apply rules, connect a Salesforce org, and browse third-party integrations — all from the sidebar.
+      </p>
+      <img src="{{ site.baseurl }}/assets/extension-guided-setup.gif" alt="Extension demo: guided setup and MCP configuration" 
+           style="width:100%;border-radius:10px;border:2px solid #e0e0e0;box-shadow:0 4px 12px rgba(0,0,0,0.1)" />
+    </div>
+    <div style="max-width:460px;width:100%">
+      <h3 style="font-size:1.1rem;margin:0 0 0.5rem">Salesforce CLI Not Found</h3>
+      <p style="font-size:0.9rem;color:#666;margin-bottom:0.75rem">
+        If SF CLI is missing, the extension shows a clear error with installation instructions instead of silently failing.
+      </p>
+      <img src="{{ site.baseurl }}/assets/extension-sf-cli-missing.gif" alt="Extension demo: SF CLI missing banner" 
+           style="width:100%;border-radius:10px;border:2px solid #e0e0e0;box-shadow:0 4px 12px rgba(0,0,0,0.1)" />
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section>
+  <h2>✨ Features</h2>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <h4>🎯 Guided Setup</h4>
+      <p>Auto-detects installed AI tools (Cursor, VS Code, Codex, Claude, Agentforce) and lets you select role profiles visually.</p>
+    </div>
+    <div class="feature-card">
+      <h4>🔌 MCP Configuration</h4>
+      <p>Lists authenticated Salesforce orgs, lets you select which to connect, and writes the MCP config — project or global scope.</p>
+    </div>
+    <div class="feature-card">
+      <h4>🔗 Third-Party Integrations</h4>
+      <p>Profile-filtered integrations for Figma, Jira, draw.io, and GitHub. Select, enter credentials, and connect in one click.</p>
+    </div>
+    <div class="feature-card">
+      <h4>🔄 Update Agent Rules</h4>
+      <p>Detects stale rule files and lets you update them to the latest plugin version without re-running the full setup.</p>
+    </div>
+    <div class="feature-card">
+      <h4>📝 Rule Management</h4>
+      <p>Import rules from URL or file, browse existing rule files, edit them inline, and save — all inside the sidebar panel.</p>
+    </div>
+    <div class="feature-card">
+      <h4>🛡️ Health Checks</h4>
+      <p>Verifies SF CLI and the setup-agents plugin are installed. Shows actionable banners with install instructions when something is missing.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Prerequisites -->
+<section>
+  <h2>📋 Prerequisites</h2>
+  <div class="card-grid">
+    <div class="card">
+      <h4>1. Salesforce CLI</h4>
+      <p>Install the SF CLI (<code>sf</code> v2+) from <a href="https://developer.salesforce.com/tools/salesforcecli" style="color:#667eea">developer.salesforce.com</a> or via npm:</p>
+      <pre><code>npm install -g @salesforce/cli</code></pre>
+    </div>
+    <div class="card">
+      <h4>2. CLI Plugin</h4>
+      <p>Install the setup-agents plugin:</p>
+      <pre><code>sf plugins install @jterrats/setup-agents</code></pre>
+    </div>
+    <div class="card">
+      <h4>3. Extension</h4>
+      <p>Build and install the extension from source (VS Code Marketplace publishing coming soon):</p>
+      <pre><code>cd extensions/vscode-setup-agents-ui
+npm install && npm run build</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- Sections Walkthrough -->
+<section>
+  <h2>🗂️ UI Sections</h2>
+
+  <div class="command-block">
+    <div class="command-block-header">
+      <h3>Update Agent Rules</h3>
+      <span class="cmd-badge">TOP</span>
+    </div>
+    <div class="command-block-body">
+      <p>Runs <code>sf setup-agents update --dry-run</code> on load. If stale files are found, shows a count and an <strong>Update Now</strong> button.</p>
+    </div>
+  </div>
+
+  <div class="command-block">
+    <div class="command-block-header">
+      <h3>Guided Setup</h3>
+      <span class="cmd-badge">PROFILES + TOOLS</span>
+    </div>
+    <div class="command-block-body">
+      <p>Shows detected AI tools as badges, renders 11 role profile cards with multi-select, and provides scope control (project vs user) and tool targeting. Click <strong>Apply Configuration</strong> to generate rule files — output streams to a live console.</p>
+    </div>
+  </div>
+
+  <div class="command-block">
+    <div class="command-block-header">
+      <h3>MCP Configuration</h3>
+      <span class="cmd-badge">ORGS + INTEGRATIONS</span>
+    </div>
+    <div class="command-block-body">
+      <p>Lists authenticated Salesforce orgs (alias only, username on hover). Orgs already configured via CLI are pre-selected with a <em>(connected)</em> badge. Below the orgs section, third-party integrations (Figma, Jira, draw.io, GitHub) appear based on the profiles selected above.</p>
+      <table class="flags-table">
+        <thead><tr><th>Integration</th><th>Profiles</th><th>Transport</th><th>Credentials</th></tr></thead>
+        <tbody>
+          <tr><td>Figma</td><td>UX, BA, Architect</td><td>HTTP</td><td>None</td></tr>
+          <tr><td>Jira Cloud</td><td>PM, BA, Developer, QA, DevOps</td><td>stdio</td><td>URL, Email, API Token</td></tr>
+          <tr><td>draw.io</td><td>Architect, BA, UX, Developer</td><td>stdio</td><td>None</td></tr>
+          <tr><td>GitHub</td><td>Developer, Architect, DevOps, QA, PM</td><td>stdio</td><td>Personal Access Token</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="command-block">
+    <div class="command-block-header">
+      <h3>Rule Management</h3>
+      <span class="cmd-badge">IMPORT + EDIT</span>
+    </div>
+    <div class="command-block-body">
+      <p>Import rule files from a URL or local file (supports Cursor, Agentforce, and Claude formats). Browse existing rule files with a dropdown, open them in an inline editor, and save changes directly.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Testing -->
+<section>
+  <h2>🧪 Testing</h2>
+  <div class="card-grid">
+    <div class="card">
+      <h4>E2E Tests (27 specs)</h4>
+      <p>Playwright-based tests covering profile cards, MCP org cards, accessibility, keyboard navigation, and login flows.</p>
+      <pre><code>cd extensions/vscode-setup-agents-ui
+npm run test:e2e</code></pre>
+    </div>
+    <div class="card">
+      <h4>Demo Recordings</h4>
+      <p>Generate GIF recordings of the extension for documentation using Playwright video capture + ffmpeg:</p>
+      <pre><code># Record + convert in one step
+npm run demo
+
+# Or separately:
+npm run demo:record
+npm run demo:gifs</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-section">
+  <h2>Want to try it?</h2>
+  <p>Build the extension from source and open the Setup Agents sidebar in VS Code.</p>
+  <a href="{{ site.baseurl }}/commands/" class="cta-button">CLI Commands</a>
+  <a href="{{ site.baseurl }}/profiles/" class="cta-button secondary">Browse Profiles</a>
+  <a href="https://github.com/{{ site.repository }}/tree/main/extensions/vscode-setup-agents-ui" class="cta-button secondary" target="_blank" rel="noopener">Source Code ↗</a>
+</div>

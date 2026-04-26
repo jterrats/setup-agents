@@ -7,6 +7,8 @@
 [![License](https://img.shields.io/npm/l/@jterrats/setup-agents.svg)](https://github.com/jterrats/setup-agents/blob/main/LICENSE.txt)
 [![Node.js](https://img.shields.io/node/v/@jterrats/setup-agents.svg?logo=node.js)](https://nodejs.org)
 
+> **Disclaimer:** This is a **personal open-source project** by [Jaime Terrats](https://github.com/jterrats). It is **not** an official Salesforce product, nor is it endorsed, supported, or affiliated with Salesforce, Inc. Use at your own discretion.
+
 ---
 
 ## About
@@ -14,6 +16,7 @@
 `setup-agents` is a Salesforce CLI plugin that sets up AI coding assistant rules and role-based profiles for any project. One command configures [Cursor](https://cursor.sh), [GitHub Copilot](https://code.visualstudio.com/docs/copilot/overview), [OpenAI Codex CLI](https://github.com/openai/codex), [Anthropic Claude Code](https://docs.anthropic.com/en/docs/claude-code), and [Agentforce Vibes](https://developer.salesforce.com/docs/platform/einstein-for-devs/guide/devagent-rules.html) simultaneously — with rules tailored to the specific roles working in the project.
 
 - **11 role profiles** — Developer, Architect, BA, PM, MuleSoft, UX, CGCloud, DevOps, QA, CRMA, Data Cloud
+- **VS Code Extension** — visual sidebar UI for guided setup, MCP config, integrations, and rule management
 - **3 AI skills** — Story Mapping, Diagram Export (Lucid/draw.io/local), Deploy & Validate
 - **Auto-detection** — detects `cgcloud__`, `WaveDashboard`, `DataStream`, Playwright config, and more
 - **Sub-agent orchestration** — generates a `sub-agent-protocol.mdc` mapping tasks to roles
@@ -62,16 +65,37 @@ The command auto-detects your tools and prompts for role selection:
 > # or add to allowlist in ~/.config/sf/unsignedPluginAllowList.json
 > ```
 
-### VS Code UI Extension (Preview)
+### VS Code Extension (Preview)
 
-This repository now includes a UI companion extension for VS Code at
-`extensions/vscode-setup-agents-ui`.
+A visual sidebar UI that wraps the CLI plugin for teams that prefer point-and-click over terminal commands.
+
+<p align="center">
+  <img src="docs/assets/extension-guided-setup.gif" alt="Extension demo: guided setup and MCP configuration" width="420" />
+</p>
+
+**Features:**
+
+- **Guided Setup** — auto-detects tools, displays 11 profile cards, scope selector, live console output
+- **MCP Configuration** — lists authenticated orgs, pre-selects already-connected ones, one-click connect
+- **Third-Party Integrations** — profile-filtered cards for Figma, Jira, draw.io, GitHub with credential input
+- **Update Agent Rules** — detects stale files and updates in one click
+- **Rule Management** — import from URL/file, browse, edit, and save rule files inline
+- **Health Checks** — verifies SF CLI and plugin installation with actionable error banners
+
+<details>
+<summary>SF CLI not installed?</summary>
+<p align="center">
+  <img src="docs/assets/extension-sf-cli-missing.gif" alt="Extension: SF CLI missing banner" width="420" />
+</p>
+</details>
 
 ```sh
 cd extensions/vscode-setup-agents-ui
-npm install
-npm run build
+npm install && npm run build
+# Then press F5 or open the Setup Agents sidebar in VS Code
 ```
+
+> **Full documentation:** see the [Extension page](https://jterrats.github.io/setup-agents/extension/) on the docs site.
 
 ---
 
@@ -529,7 +553,7 @@ sf setup-agents local
 ### Running Tests
 
 ```sh
-# Unit tests
+# Unit tests (225 specs)
 node --loader ts-node/esm --no-warnings=ExperimentalWarning \
   ./node_modules/mocha/bin/mocha.js "test/**/*.test.ts"
 
@@ -538,6 +562,19 @@ npm run test:e2e
 
 # Full suite (lint + compile + tests)
 npm test
+```
+
+### Extension Development
+
+```sh
+cd extensions/vscode-setup-agents-ui
+npm install && npm run build
+
+# E2E tests (27 Playwright specs)
+npm run test:e2e
+
+# Generate demo GIFs (requires ffmpeg)
+npm run demo
 ```
 
 ### Package Validation Before Publish
@@ -580,4 +617,6 @@ Apache-2.0 — see [LICENSE.txt](LICENSE.txt).
 
 <div align="center">
   Built by <strong>Jaime Terrats</strong> · <a href="https://github.com/jterrats/setup-agents">GitHub</a>
+  <br>
+  <sub>This is a personal open-source project, not an official Salesforce product.</sub>
 </div>

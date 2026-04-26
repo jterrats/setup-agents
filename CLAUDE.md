@@ -1,6 +1,8 @@
 # CLAUDE.md — Project Guidelines
 
-<!-- setup-agents: 1.1.0 -->
+<!-- setup-agents: 1.2.0 -->
+
+> **Note:** This is a personal open-source project by Jaime Terrats, not an official Salesforce product.
 
 This file provides guidance to Claude Code when working with this project.
 

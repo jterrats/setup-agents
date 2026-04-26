@@ -17,9 +17,9 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { Messages } from '@salesforce/core';
-import type { AnyMessages } from '../../util/command-helpers.js';
 import { Flags, SfCommand } from '@salesforce/sf-plugins-core';
 import { select } from '@inquirer/prompts';
+import type { AnyMessages } from '../../util/command-helpers.js';
 
 import type { Profile } from '../../profiles/index.js';
 import { ensureDir, FileWriter } from '../../services/file-writer.js';
