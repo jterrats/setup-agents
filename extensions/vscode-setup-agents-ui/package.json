@@ -1,10 +1,35 @@
 {
   "name": "setup-agents-ui",
   "displayName": "Setup Agents UI",
-  "description": "UI companion for sf setup-agents (profiles, rules, and guided setup).",
+  "description": "Configure AI coding assistants for Salesforce projects — profiles, rules, MCP integrations, and guided setup.",
   "version": "0.1.0",
   "publisher": "jterrats",
   "license": "Apache-2.0",
+  "icon": "media/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jterrats/setup-agents",
+    "directory": "extensions/vscode-setup-agents-ui"
+  },
+  "homepage": "https://jterrats.github.io/setup-agents/extension.html",
+  "bugs": {
+    "url": "https://github.com/jterrats/setup-agents/issues"
+  },
+  "keywords": [
+    "salesforce",
+    "ai",
+    "agents",
+    "cursor",
+    "copilot",
+    "claude",
+    "mcp",
+    "profiles",
+    "setup"
+  ],
+  "galleryBanner": {
+    "color": "#4f63d9",
+    "theme": "dark"
+  },
   "engines": {
     "vscode": "^1.90.0"
   },

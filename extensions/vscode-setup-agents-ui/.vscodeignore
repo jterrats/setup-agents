@@ -1,10 +1,23 @@
+# Source & config
 src/**
 tsconfig.json
-.eslintrc.cjs
-**/*.ts
-**/*.map
-out/test/**
+tsconfig.e2e.json
+.eslintrc.json
+
+# Tests
+test/**
 playwright.config.ts
-playwright-report/**
-.tmp-test-workspace/**
-.tmp-tests/**
+playwright.demo.config.ts
+playwright-report/
+test-results/
+demo-recordings/
+demo-gifs/
+
+# Scripts & tooling
+scripts/**
+node_modules/**
+.gitignore
+
+# Dev artifacts
+*.map
+.vscode/**
