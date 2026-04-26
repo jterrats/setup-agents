@@ -18,7 +18,11 @@
           "type": "string"
         }
       },
-      "required": ["mcpFile", "serversAdded", "cwd"],
+      "required": [
+        "mcpFile",
+        "serversAdded",
+        "cwd"
+      ],
       "additionalProperties": false
     }
   }

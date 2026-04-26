@@ -21,12 +21,32 @@
           "type": "string"
         }
       },
-      "required": ["configured", "profiles", "cwd"],
+      "required": [
+        "configured",
+        "profiles",
+        "cwd"
+      ],
       "additionalProperties": false
     },
     "ProfileId": {
       "type": "string",
-      "enum": ["developer", "architect", "ba", "pm", "mulesoft", "ux", "cgcloud", "devops", "qa", "crma", "data360"]
+      "enum": [
+        "developer",
+        "architect",
+        "ba",
+        "pm",
+        "mulesoft",
+        "ux",
+        "cgcloud",
+        "devops",
+        "qa",
+        "crma",
+        "commerce",
+        "data360",
+        "admin",
+        "sfmc",
+        "security"
+      ]
     }
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2026, Salesforce, Inc.
+ * Copyright 2026, Jaime Terrats.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,5 +31,9 @@ export const PROFILE_TOOLSETS: Record<ProfileId, string[]> = {
   devops: ['metadata', 'orgs', 'users'],
   qa: ['metadata', 'data', 'testing', 'users'],
   crma: ['metadata', 'data'],
+  commerce: ['metadata', 'data'],
   data360: ['metadata', 'data'],
+  admin: ['metadata', 'data', 'users'],
+  sfmc: ['metadata', 'data'],
+  security: ['metadata', 'data', 'testing', 'users'],
 };

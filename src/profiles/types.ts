@@ -1,5 +1,5 @@
 /*
- * Copyright 2026, Salesforce, Inc.
+ * Copyright 2026, Jaime Terrats.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,11 @@ export type ProfileId =
   | 'devops'
   | 'qa'
   | 'crma'
-  | 'data360';
+  | 'commerce'
+  | 'data360'
+  | 'admin'
+  | 'sfmc'
+  | 'security';
 
 export type Profile = {
   id: ProfileId;

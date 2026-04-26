@@ -1,5 +1,5 @@
 /*
- * Copyright 2026, Salesforce, Inc.
+ * Copyright 2026, Jaime Terrats.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,4 +24,8 @@ export { generateBaWorkflows } from './ba.js';
 export { generateMulesoftWorkflows } from './mulesoft.js';
 export { generateUxWorkflows } from './ux.js';
 export { generateCgcloudWorkflows } from './cgcloud.js';
+export { generateCommerceWorkflows } from './commerce.js';
 export { generateData360Workflows } from './data360.js';
+export { generateSecurityWorkflows } from './security.js';
+export { generateSfmcWorkflows } from './sfmc.js';
+export { generateAdminWorkflows } from './admin.js';

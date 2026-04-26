@@ -1,5 +1,5 @@
 /*
- * Copyright 2026, Salesforce, Inc.
+ * Copyright 2026, Jaime Terrats.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,11 @@ export { cgcloudProfile } from './cgcloud.js';
 export { devopsProfile } from './devops.js';
 export { qaProfile } from './qa.js';
 export { crmaProfile } from './crma.js';
+export { commerceProfile } from './commerce.js';
 export { data360Profile } from './data360.js';
+export { adminProfile } from './admin.js';
+export { sfmcProfile } from './sfmc.js';
+export { securityProfile } from './security.js';
 
 import { developerProfile } from './developer.js';
 import { architectProfile } from './architect.js';
@@ -39,7 +43,11 @@ import { cgcloudProfile } from './cgcloud.js';
 import { devopsProfile } from './devops.js';
 import { qaProfile } from './qa.js';
 import { crmaProfile } from './crma.js';
+import { commerceProfile } from './commerce.js';
 import { data360Profile } from './data360.js';
+import { adminProfile } from './admin.js';
+import { sfmcProfile } from './sfmc.js';
+import { securityProfile } from './security.js';
 import type { Profile } from './types.js';
 
 export const ALL_PROFILES: Profile[] = [
@@ -53,5 +61,9 @@ export const ALL_PROFILES: Profile[] = [
   devopsProfile,
   qaProfile,
   crmaProfile,
+  commerceProfile,
   data360Profile,
+  adminProfile,
+  sfmcProfile,
+  securityProfile,
 ];

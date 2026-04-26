@@ -9,7 +9,11 @@ export type ProfileId =
   | 'devops'
   | 'qa'
   | 'crma'
-  | 'data360';
+  | 'commerce'
+  | 'data360'
+  | 'admin'
+  | 'sfmc'
+  | 'security';
 
 export type ProfileDescriptor = {
   id: ProfileId;

@@ -21,7 +21,11 @@
           "type": "string"
         }
       },
-      "required": ["updated", "skipped", "cwd"],
+      "required": [
+        "updated",
+        "skipped",
+        "cwd"
+      ],
       "additionalProperties": false
     }
   }

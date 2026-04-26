@@ -62,10 +62,34 @@ export const ALL_PROFILES: ProfileDescriptor[] = [
     description: 'Analytics dataflow and dashboard profile.',
   },
   {
+    id: 'commerce',
+    label: 'Commerce Cloud (B2B / B2C)',
+    ruleFile: 'commerce-standards.mdc',
+    description: 'B2B Lightning and B2C SFCC/SFRA commerce profile.',
+  },
+  {
     id: 'data360',
     label: 'Data Cloud',
     ruleFile: 'data360-standards.mdc',
     description: 'Data stream and identity profile.',
+  },
+  {
+    id: 'admin',
+    label: 'Admin / Configurator',
+    ruleFile: 'admin-standards.mdc',
+    description: 'Declarative automation, permissions, and configuration profile.',
+  },
+  {
+    id: 'sfmc',
+    label: 'Marketing Cloud (SFMC)',
+    ruleFile: 'sfmc-standards.mdc',
+    description: 'AMPscript, SSJS, Journey Builder, and Data Extension profile.',
+  },
+  {
+    id: 'security',
+    label: 'Security / Compliance',
+    ruleFile: 'security-standards.mdc',
+    description: 'Security, FLS, encryption, and compliance profile.',
   },
 ];
 

@@ -27,7 +27,11 @@ const PROFILE_TOOLSETS: Record<ProfileId, string[]> = {
   devops: ['metadata', 'orgs', 'users'],
   qa: ['metadata', 'data', 'testing', 'users'],
   crma: ['metadata', 'data'],
+  commerce: ['metadata', 'data'],
   data360: ['metadata', 'data'],
+  admin: ['metadata', 'data', 'users'],
+  sfmc: ['metadata', 'data'],
+  security: ['metadata', 'data', 'testing', 'users'],
 };
 
 export type McpWriteResult = {
