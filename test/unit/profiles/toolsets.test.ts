@@ -1,5 +1,5 @@
 /*
- * Copyright 2026, Salesforce, Inc.
+ * Copyright 2026, Jaime Terrats.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,11 @@ describe('PROFILE_TOOLSETS (shared)', () => {
       'devops',
       'qa',
       'crma',
+      'commerce',
       'data360',
+      'admin',
+      'sfmc',
+      'security',
     ];
     expect(Object.keys(PROFILE_TOOLSETS).sort()).to.deep.equal(expected.sort());
   });

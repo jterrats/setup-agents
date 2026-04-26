@@ -1,5 +1,5 @@
 /*
- * Copyright 2026, Salesforce, Inc.
+ * Copyright 2026, Jaime Terrats.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 import { expect } from 'chai';
 import { generateBaseWorkflows } from '../../../src/generators/workflow-generator.js';
 import {
+  generateAdminWorkflows,
   generateBaWorkflows,
   generateCgcloudWorkflows,
   generateCrmaWorkflows,
@@ -25,6 +26,7 @@ import {
   generateDevopsWorkflows,
   generateMulesoftWorkflows,
   generateQaWorkflows,
+  generateSecurityWorkflows,
   generateUxWorkflows,
 } from '../../../src/generators/workflows/index.js';
 
@@ -309,6 +311,40 @@ describe('workflow-generator', () => {
     });
   });
 
+  describe('generateAdminWorkflows()', () => {
+    it('returns create-flow, create-validation-rule and permission-set-setup files', () => {
+      expect(generateAdminWorkflows(VERSION)).to.have.keys([
+        'create-flow.md',
+        'create-validation-rule.md',
+        'permission-set-setup.md',
+      ]);
+    });
+
+    it('create-flow workflow references Sub-flow modularity', () => {
+      expect(generateAdminWorkflows(VERSION)['create-flow.md']).to.include('Sub-flow');
+    });
+
+    it('create-flow workflow references Before Save and After Save', () => {
+      expect(generateAdminWorkflows(VERSION)['create-flow.md']).to.include('Before Save');
+    });
+
+    it('create-validation-rule workflow includes Bypass_Validation_Rules pattern', () => {
+      expect(generateAdminWorkflows(VERSION)['create-validation-rule.md']).to.include('Bypass_Validation_Rules');
+    });
+
+    it('create-validation-rule workflow references Custom Labels for error messages', () => {
+      expect(generateAdminWorkflows(VERSION)['create-validation-rule.md']).to.include('Custom Label');
+    });
+
+    it('permission-set-setup workflow includes least-privilege principle', () => {
+      expect(generateAdminWorkflows(VERSION)['permission-set-setup.md']).to.include('least-privilege');
+    });
+
+    it('permission-set-setup workflow references Permission Set Groups', () => {
+      expect(generateAdminWorkflows(VERSION)['permission-set-setup.md']).to.include('Permission Set Group');
+    });
+  });
+
   describe('generateCrmaWorkflows()', () => {
     it('returns deploy-analytics, create-recipe and create-dashboard files', () => {
       expect(generateCrmaWorkflows(VERSION)).to.have.keys([
@@ -332,6 +368,52 @@ describe('workflow-generator', () => {
 
     it('create-dashboard workflow includes 12 widgets limit', () => {
       expect(generateCrmaWorkflows(VERSION)['create-dashboard.md']).to.include('12 widgets');
+    });
+  });
+
+  describe('generateSecurityWorkflows()', () => {
+    it('returns sharing-model-review, fls-audit and encryption-strategy files', () => {
+      expect(generateSecurityWorkflows(VERSION)).to.have.keys([
+        'sharing-model-review.md',
+        'fls-audit.md',
+        'encryption-strategy.md',
+      ]);
+    });
+
+    it('sharing-model-review workflow includes OWD analysis', () => {
+      expect(generateSecurityWorkflows(VERSION)['sharing-model-review.md']).to.include('Organization-Wide Defaults');
+    });
+
+    it('sharing-model-review workflow includes Criteria-Based Sharing Rules', () => {
+      expect(generateSecurityWorkflows(VERSION)['sharing-model-review.md']).to.include('Criteria-Based Sharing');
+    });
+
+    it('sharing-model-review workflow includes System.runAs testing', () => {
+      expect(generateSecurityWorkflows(VERSION)['sharing-model-review.md']).to.include('System.runAs()');
+    });
+
+    it('fls-audit workflow includes SECURITY_ENFORCED', () => {
+      expect(generateSecurityWorkflows(VERSION)['fls-audit.md']).to.include('SECURITY_ENFORCED');
+    });
+
+    it('fls-audit workflow includes stripInaccessible', () => {
+      expect(generateSecurityWorkflows(VERSION)['fls-audit.md']).to.include('stripInaccessible');
+    });
+
+    it('fls-audit workflow includes SOQL injection prevention', () => {
+      expect(generateSecurityWorkflows(VERSION)['fls-audit.md']).to.include('injection');
+    });
+
+    it('encryption-strategy workflow includes deterministic encryption', () => {
+      expect(generateSecurityWorkflows(VERSION)['encryption-strategy.md']).to.include('Deterministic');
+    });
+
+    it('encryption-strategy workflow includes probabilistic encryption', () => {
+      expect(generateSecurityWorkflows(VERSION)['encryption-strategy.md']).to.include('Probabilistic');
+    });
+
+    it('encryption-strategy workflow includes Tenant Secret rotation', () => {
+      expect(generateSecurityWorkflows(VERSION)['encryption-strategy.md']).to.include('Tenant Secret');
     });
   });
 });
