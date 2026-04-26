@@ -11,6 +11,9 @@
   "categories": [
     "Other"
   ],
+  "activationEvents": [
+    "onView:setupAgentsUi.sidebar"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
@@ -40,7 +43,8 @@
       "setupAgentsUi": [
         {
           "id": "setupAgentsUi.sidebar",
-          "name": "Control Center"
+          "name": "Control Center",
+          "type": "webview"
         }
       ]
     }
@@ -51,6 +55,9 @@
     "lint": "eslint src --ext .ts",
     "test": "node --test out/test/ruleManagementService.test.js",
     "test:e2e": "npx playwright test",
+    "demo:record": "npx playwright test --config playwright.demo.config.ts",
+    "demo:gifs": "bash scripts/webm-to-gif.sh",
+    "demo": "npm run demo:record && npm run demo:gifs",
     "test:e2e:vscode": "tsc -p tsconfig.e2e.json && node out/test/e2e/runTest.js",
     "pretest": "npm run build",
     "package": "vsce package"

@@ -5,6 +5,7 @@ const isCI = !!process.env.CI;
 export default defineConfig({
   testDir: './src/test/e2e',
   testMatch: '**/*.spec.ts',
+  testIgnore: '**/webview-demo.spec.ts',
   timeout: 30_000,
   retries: isCI ? 1 : 0,
   reporter: isCI

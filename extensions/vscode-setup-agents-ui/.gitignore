@@ -5,3 +5,5 @@ out/
 *.vsix
 playwright-report/
 test-results/
+demo-recordings/
+demo-gifs/
