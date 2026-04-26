@@ -18,8 +18,10 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { Messages } from '@salesforce/core';
 import { checkbox, confirm } from '@inquirer/prompts';
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyMessages = Messages<any>;
+// @salesforce/core Messages requires a generic that leaks into consumer signatures.
+// Using `any` here is the only viable escape hatch until the upstream type is fixed.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- https://github.com/forcedotcom/sfdx-core/issues/1062
+export type AnyMessages = Messages<any>;
 import type { Profile, ProfileId } from '../profiles/index.js';
 import { ALL_PROFILES, developerProfile } from '../profiles/index.js';
 import type { SupportedTool } from '../types/index.js';
@@ -35,6 +37,7 @@ const PROFILE_FILE_MAP: Record<string, ProfileId> = {
   'developer-standards.mdc': 'developer',
   'architect-standards.mdc': 'architect',
   'ba-standards.mdc': 'ba',
+  'pm-standards.mdc': 'pm',
   'mulesoft-standards.mdc': 'mulesoft',
   'ux-standards.mdc': 'ux',
   'cgcloud-standards.mdc': 'cgcloud',
@@ -96,19 +99,10 @@ export async function resolveProfiles(
 export function findStaleFiles(cwd: string): Array<{ file: string; tool: SupportedTool; version: string | null }> {
   const stale: Array<{ file: string; tool: SupportedTool; version: string | null }> = [];
 
-  const checkMdc = (filePath: string, tool: SupportedTool): void => {
+  const checkFile = (filePath: string, tool: SupportedTool, pattern: RegExp): void => {
     if (!existsSync(filePath)) return;
     const content = readFileSync(filePath, 'utf8');
-    const match = STALE_VERSION_MDC.exec(content);
-    if (!match || match[1] !== PLUGIN_VERSION) {
-      stale.push({ file: filePath, tool, version: match?.[1] ?? null });
-    }
-  };
-
-  const checkFlat = (filePath: string, tool: SupportedTool): void => {
-    if (!existsSync(filePath)) return;
-    const content = readFileSync(filePath, 'utf8');
-    const match = STALE_VERSION_FLAT.exec(content);
+    const match = pattern.exec(content);
     if (!match || match[1] !== PLUGIN_VERSION) {
       stale.push({ file: filePath, tool, version: match?.[1] ?? null });
     }
@@ -117,23 +111,23 @@ export function findStaleFiles(cwd: string): Array<{ file: string; tool: Support
   const rulesDir = join(cwd, '.cursor', 'rules');
   if (existsSync(rulesDir)) {
     for (const file of readdirSync(rulesDir).filter((f) => f.endsWith('.mdc'))) {
-      checkMdc(join(rulesDir, file), 'cursor');
+      checkFile(join(rulesDir, file), 'cursor', STALE_VERSION_MDC);
     }
   }
 
-  checkFlat(join(cwd, '.github', 'copilot-instructions.md'), 'vscode');
-  checkFlat(join(cwd, 'AGENTS.md'), 'codex');
-  checkFlat(join(cwd, 'CLAUDE.md'), 'claude');
+  checkFile(join(cwd, '.github', 'copilot-instructions.md'), 'vscode', STALE_VERSION_FLAT);
+  checkFile(join(cwd, 'AGENTS.md'), 'codex', STALE_VERSION_FLAT);
+  checkFile(join(cwd, 'CLAUDE.md'), 'claude', STALE_VERSION_FLAT);
 
   const a4dDir = join(cwd, '.a4drules');
   if (existsSync(a4dDir)) {
     for (const file of readdirSync(a4dDir).filter((f) => f.endsWith('.md'))) {
-      checkFlat(join(a4dDir, file), 'agentforce');
+      checkFile(join(a4dDir, file), 'agentforce', STALE_VERSION_FLAT);
     }
     const workflowsDir = join(a4dDir, 'workflows');
     if (existsSync(workflowsDir)) {
       for (const file of readdirSync(workflowsDir).filter((f) => f.endsWith('.md'))) {
-        checkFlat(join(workflowsDir, file), 'agentforce');
+        checkFile(join(workflowsDir, file), 'agentforce', STALE_VERSION_FLAT);
       }
     }
   }

@@ -163,6 +163,79 @@ const JIRA: McpIntegration = {
   },
 };
 
+// ─── Draw.io ────────────────────────────────────────────────────────────────
+
+const DRAWIO: McpIntegration = {
+  id: 'drawio',
+  label: 'draw.io',
+  profiles: new Set<ProfileId>(['architect', 'ba', 'ux', 'developer']),
+  config: {
+    transport: 'stdio',
+    command: 'npx',
+    args: ['-y', 'drawio-mcp'],
+  },
+  envVars: [],
+  setupGuide: {
+    steps: [
+      [
+        '**Step 1 — No installation needed**',
+        'The draw.io MCP server runs via `npx` — nothing to install globally.',
+        'It will be downloaded automatically on first use.',
+      ].join('\n'),
+      [
+        '**Step 2 — Prepare your diagrams**',
+        'Create `.drawio` or `.drawio.svg` files in your project.',
+        'The agent can read, create, and modify diagrams for you.',
+      ].join('\n'),
+    ],
+    learnMore: 'https://github.com/jgraph/drawio-mcp',
+  },
+};
+
+// ─── GitHub ─────────────────────────────────────────────────────────────────
+
+const GITHUB: McpIntegration = {
+  id: 'github',
+  label: 'GitHub',
+  profiles: new Set<ProfileId>(['developer', 'architect', 'devops', 'qa', 'pm']),
+  config: {
+    transport: 'stdio',
+    command: 'npx',
+    args: ['-y', '@modelcontextprotocol/server-github'],
+    env: {
+      GITHUB_PERSONAL_ACCESS_TOKEN: '',
+    },
+  },
+  envVars: [
+    {
+      name: 'GITHUB_PERSONAL_ACCESS_TOKEN',
+      label: 'Personal Access Token',
+      description: 'A GitHub PAT with repo, read:org, and read:user scopes',
+      secret: true,
+      obtainUrl: 'https://github.com/settings/tokens',
+    },
+  ],
+  setupGuide: {
+    steps: [
+      [
+        '**Step 1 — Create a Personal Access Token**',
+        '1. Go to [github.com/settings/tokens](https://github.com/settings/tokens)',
+        '2. Click **"Generate new token (classic)"**',
+        '3. Select scopes: `repo`, `read:org`, `read:user`',
+        '4. Click **"Generate token"** and copy it immediately',
+        '',
+        '*Store the token safely — GitHub will not show it again.*',
+      ].join('\n'),
+      [
+        '**Step 2 — Provide the token**',
+        'The agent will ask for your **Personal Access Token**.',
+        'It is stored locally in your editor config and never shared.',
+      ].join('\n'),
+    ],
+    learnMore: 'https://github.com/modelcontextprotocol/servers/tree/main/src/github',
+  },
+};
+
 // ─── Registry ───────────────────────────────────────────────────────────────
 
-export const MCP_INTEGRATIONS: McpIntegration[] = [FIGMA, JIRA];
+export const MCP_INTEGRATIONS: McpIntegration[] = [FIGMA, JIRA, DRAWIO, GITHUB];

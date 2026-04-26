@@ -54,36 +54,15 @@ export class McpConfigService {
     global: boolean,
     workspacePath: string
   ): McpWriteResult {
-    const mcpFilePath = global ? join(homedir(), '.cursor', 'mcp.json') : join(workspacePath, '.cursor', 'mcp.json');
-
-    const mcpDir = join(mcpFilePath, '..');
-    if (!existsSync(mcpDir)) mkdirSync(mcpDir, { recursive: true });
-
-    let existing: McpConfig = { mcpServers: {} };
-    if (existsSync(mcpFilePath)) {
-      try {
-        existing = JSON.parse(readFileSync(mcpFilePath, 'utf8')) as McpConfig;
-        if (!existing.mcpServers || typeof existing.mcpServers !== 'object') {
-          existing.mcpServers = {};
-        }
-      } catch {
-        existing = { mcpServers: {} };
-      }
-    }
-
-    const serversAdded: string[] = [];
+    const entries: Record<string, McpServerConfig> = {};
     for (const org of orgs) {
-      const serverKey = `salesforce-${org}`;
-      existing.mcpServers[serverKey] = {
+      entries[`salesforce-${org}`] = {
         command: npxCmd,
         args: ['@salesforce/mcp@latest', '--orgs', org, '--toolsets', toolsets.join(',')],
         type: 'stdio',
       };
-      serversAdded.push(serverKey);
     }
-
-    writeFileSync(mcpFilePath, JSON.stringify(existing, null, 2) + '\n', 'utf8');
-    return { mcpFile: mcpFilePath, serversAdded };
+    return this.mergeAndWrite(this.resolveMcpPath(global, workspacePath), entries);
   }
 
   public writeIntegrationConfig(
@@ -91,7 +70,30 @@ export class McpConfigService {
     global: boolean,
     workspacePath: string
   ): McpWriteResult {
-    const mcpFilePath = global ? join(homedir(), '.cursor', 'mcp.json') : join(workspacePath, '.cursor', 'mcp.json');
+    return this.mergeAndWrite(this.resolveMcpPath(global, workspacePath), entries);
+  }
+
+  public readConfiguredServers(workspacePath: string): string[] {
+    const servers: Set<string> = new Set();
+    for (const path of [join(workspacePath, '.cursor', 'mcp.json'), join(homedir(), '.cursor', 'mcp.json')]) {
+      if (!existsSync(path)) continue;
+      try {
+        const config = JSON.parse(readFileSync(path, 'utf8')) as McpConfig;
+        for (const key of Object.keys(config.mcpServers ?? {})) {
+          servers.add(key);
+        }
+      } catch {
+        // corrupt or unreadable mcp.json — skip
+      }
+    }
+    return [...servers];
+  }
+
+  private resolveMcpPath(global: boolean, workspacePath: string): string {
+    return global ? join(homedir(), '.cursor', 'mcp.json') : join(workspacePath, '.cursor', 'mcp.json');
+  }
+
+  private mergeAndWrite(mcpFilePath: string, entries: Record<string, McpServerConfig>): McpWriteResult {
     const mcpDir = join(mcpFilePath, '..');
     if (!existsSync(mcpDir)) mkdirSync(mcpDir, { recursive: true });
 

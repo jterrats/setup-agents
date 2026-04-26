@@ -20,6 +20,23 @@ export type ProfileDescriptor = {
 
 export type ToolId = 'cursor' | 'vscode' | 'codex' | 'agentforce' | 'claude';
 
+export type McpEnvVarSpec = {
+  name: string;
+  label: string;
+  secret: boolean;
+};
+
+export type McpIntegrationDescriptor = {
+  id: string;
+  label: string;
+  profiles: ProfileId[];
+  envVars: McpEnvVarSpec[];
+  transport: 'http' | 'stdio';
+  url?: string;
+  command?: string;
+  args?: string[];
+};
+
 export type ToolStatus = {
   id: ToolId;
   detected: boolean;
@@ -70,10 +87,11 @@ export type UiToHostMessage =
   | { type: 'configureMcp'; payload: ConfigureMcpRequest }
   | { type: 'configureIntegrations'; payload: ConfigureIntegrationsRequest }
   | { type: 'checkForUpdates' }
-  | { type: 'runUpdate' };
+  | { type: 'runUpdate' }
+  | { type: 'installPlugin' };
 
 export type HostToUiMessage =
-  | { type: 'bootstrapResult'; payload: { tools: ToolStatus[]; profiles: ProfileDescriptor[] } }
+  | { type: 'bootstrapResult'; payload: { tools: ToolStatus[]; profiles: ProfileDescriptor[]; activeProfiles: ProfileId[] } }
   | { type: 'commandOutput'; payload: { stream: 'stdout' | 'stderr'; text: string } }
   | { type: 'commandComplete'; payload: { code: number | null; command: string } }
   | { type: 'rulesResult'; payload: RuleSummary[] }
@@ -85,4 +103,6 @@ export type HostToUiMessage =
   | { type: 'mcpConfigured'; payload: { mcpFile: string; serversAdded: string[] } }
   | { type: 'integrationsConfigured'; payload: { serversAdded: string[] } }
   | { type: 'updateCheckResult'; payload: { staleFiles: string[] } }
-  | { type: 'updateComplete'; payload: { updated: string[] } };
+  | { type: 'updateComplete'; payload: { updated: string[] } }
+  | { type: 'pluginStatus'; payload: { installed: boolean; installing?: boolean; sfCliMissing?: boolean } }
+  | { type: 'mcpSyncResult'; payload: { configuredServers: string[] } };

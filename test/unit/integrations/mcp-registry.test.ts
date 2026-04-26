@@ -40,23 +40,50 @@ describe('MCP Integration Registry', () => {
     it('each integration has a setup guide with at least one step', () => {
       for (const integration of MCP_INTEGRATIONS) {
         expect(integration.setupGuide.steps.length).to.be.greaterThan(0);
+      }
+    });
+
+    it('each integration has a non-empty learn more link', () => {
+      for (const integration of MCP_INTEGRATIONS) {
         expect(integration.setupGuide.learnMore).to.be.a('string').and.not.be.empty;
       }
     });
 
-    it('Figma uses http transport with no env vars', () => {
+    it('Figma uses http transport', () => {
       const figma = MCP_INTEGRATIONS.find((i) => i.id === 'figma')!;
       expect(figma.config.transport).to.equal('http');
+    });
+
+    it('Figma has no env vars', () => {
+      const figma = MCP_INTEGRATIONS.find((i) => i.id === 'figma')!;
       expect(figma.envVars).to.be.empty;
     });
 
-    it('Jira uses stdio transport with 3 env vars', () => {
+    it('Jira uses stdio transport', () => {
       const jira = MCP_INTEGRATIONS.find((i) => i.id === 'jira')!;
       expect(jira.config.transport).to.equal('stdio');
+    });
+
+    it('Jira has exactly 3 env vars', () => {
+      const jira = MCP_INTEGRATIONS.find((i) => i.id === 'jira')!;
       expect(jira.envVars).to.have.lengthOf(3);
+    });
+
+    it('Jira env vars include JIRA_BASE_URL', () => {
+      const jira = MCP_INTEGRATIONS.find((i) => i.id === 'jira')!;
       const names = jira.envVars.map((v) => v.name);
       expect(names).to.include('JIRA_BASE_URL');
+    });
+
+    it('Jira env vars include JIRA_EMAIL', () => {
+      const jira = MCP_INTEGRATIONS.find((i) => i.id === 'jira')!;
+      const names = jira.envVars.map((v) => v.name);
       expect(names).to.include('JIRA_EMAIL');
+    });
+
+    it('Jira env vars include JIRA_API_TOKEN', () => {
+      const jira = MCP_INTEGRATIONS.find((i) => i.id === 'jira')!;
+      const names = jira.envVars.map((v) => v.name);
       expect(names).to.include('JIRA_API_TOKEN');
     });
 
@@ -87,10 +114,27 @@ describe('MCP Integration Registry', () => {
       expect(ids).to.include('jira');
     });
 
-    it('returns Jira but not Figma for developer profile', () => {
+    it('returns Jira for developer profile', () => {
       const result = getRelevantIntegrations(['developer']);
       const ids = result.map((i) => i.id);
       expect(ids).to.include('jira');
+    });
+
+    it('returns drawio for developer profile', () => {
+      const result = getRelevantIntegrations(['developer']);
+      const ids = result.map((i) => i.id);
+      expect(ids).to.include('drawio');
+    });
+
+    it('returns github for developer profile', () => {
+      const result = getRelevantIntegrations(['developer']);
+      const ids = result.map((i) => i.id);
+      expect(ids).to.include('github');
+    });
+
+    it('does not return Figma for developer profile', () => {
+      const result = getRelevantIntegrations(['developer']);
+      const ids = result.map((i) => i.id);
       expect(ids).to.not.include('figma');
     });
 
@@ -111,8 +155,8 @@ describe('MCP Integration Registry', () => {
     });
 
     it('returns all integrations when profiles span all', () => {
-      const result = getRelevantIntegrations(['ux', 'pm']);
-      expect(result).to.have.lengthOf(2);
+      const result = getRelevantIntegrations(['ux', 'pm', 'developer']);
+      expect(result).to.have.lengthOf(MCP_INTEGRATIONS.length);
     });
   });
 
@@ -125,7 +169,7 @@ describe('MCP Integration Registry', () => {
       expect(entry.args).to.be.undefined;
     });
 
-    it('builds stdio entry for Jira with credentials', () => {
+    it('Jira stdio entry sets command to npx', () => {
       const jira = MCP_INTEGRATIONS.find((i) => i.id === 'jira')!;
       const entry = buildMcpEntry(jira, {
         JIRA_BASE_URL: 'https://acme.atlassian.net',
@@ -133,19 +177,83 @@ describe('MCP Integration Registry', () => {
         JIRA_API_TOKEN: 'secret-token',
       });
       expect(entry.command).to.equal('npx');
+    });
+
+    it('Jira stdio entry args include -y flag', () => {
+      const jira = MCP_INTEGRATIONS.find((i) => i.id === 'jira')!;
+      const entry = buildMcpEntry(jira, {
+        JIRA_BASE_URL: 'https://acme.atlassian.net',
+        JIRA_EMAIL: 'user@acme.com',
+        JIRA_API_TOKEN: 'secret-token',
+      });
       expect(entry.args).to.include('-y');
+    });
+
+    it('Jira stdio entry args include the jira-mcp-server package', () => {
+      const jira = MCP_INTEGRATIONS.find((i) => i.id === 'jira')!;
+      const entry = buildMcpEntry(jira, {
+        JIRA_BASE_URL: 'https://acme.atlassian.net',
+        JIRA_EMAIL: 'user@acme.com',
+        JIRA_API_TOKEN: 'secret-token',
+      });
       expect(entry.args).to.include('@nexus2520/jira-mcp-server');
+    });
+
+    it('Jira stdio entry passes JIRA_BASE_URL in env', () => {
+      const jira = MCP_INTEGRATIONS.find((i) => i.id === 'jira')!;
+      const entry = buildMcpEntry(jira, {
+        JIRA_BASE_URL: 'https://acme.atlassian.net',
+        JIRA_EMAIL: 'user@acme.com',
+        JIRA_API_TOKEN: 'secret-token',
+      });
       expect(entry.env!.JIRA_BASE_URL).to.equal('https://acme.atlassian.net');
+    });
+
+    it('Jira stdio entry passes JIRA_EMAIL in env', () => {
+      const jira = MCP_INTEGRATIONS.find((i) => i.id === 'jira')!;
+      const entry = buildMcpEntry(jira, {
+        JIRA_BASE_URL: 'https://acme.atlassian.net',
+        JIRA_EMAIL: 'user@acme.com',
+        JIRA_API_TOKEN: 'secret-token',
+      });
       expect(entry.env!.JIRA_EMAIL).to.equal('user@acme.com');
+    });
+
+    it('Jira stdio entry passes JIRA_API_TOKEN in env', () => {
+      const jira = MCP_INTEGRATIONS.find((i) => i.id === 'jira')!;
+      const entry = buildMcpEntry(jira, {
+        JIRA_BASE_URL: 'https://acme.atlassian.net',
+        JIRA_EMAIL: 'user@acme.com',
+        JIRA_API_TOKEN: 'secret-token',
+      });
       expect(entry.env!.JIRA_API_TOKEN).to.equal('secret-token');
+    });
+
+    it('Jira stdio entry sets type to stdio', () => {
+      const jira = MCP_INTEGRATIONS.find((i) => i.id === 'jira')!;
+      const entry = buildMcpEntry(jira, {
+        JIRA_BASE_URL: 'https://acme.atlassian.net',
+        JIRA_EMAIL: 'user@acme.com',
+        JIRA_API_TOKEN: 'secret-token',
+      });
       expect(entry.type).to.equal('stdio');
     });
 
-    it('uses empty string for missing credentials', () => {
+    it('defaults JIRA_BASE_URL to empty string when credentials are missing', () => {
       const jira = MCP_INTEGRATIONS.find((i) => i.id === 'jira')!;
       const entry = buildMcpEntry(jira, {});
       expect(entry.env!.JIRA_BASE_URL).to.equal('');
+    });
+
+    it('defaults JIRA_EMAIL to empty string when credentials are missing', () => {
+      const jira = MCP_INTEGRATIONS.find((i) => i.id === 'jira')!;
+      const entry = buildMcpEntry(jira, {});
       expect(entry.env!.JIRA_EMAIL).to.equal('');
+    });
+
+    it('defaults JIRA_API_TOKEN to empty string when credentials are missing', () => {
+      const jira = MCP_INTEGRATIONS.find((i) => i.id === 'jira')!;
+      const entry = buildMcpEntry(jira, {});
       expect(entry.env!.JIRA_API_TOKEN).to.equal('');
     });
   });
@@ -157,18 +265,33 @@ describe('MCP Integration Registry', () => {
       expect(guide).to.include('## Figma Setup Guide');
     });
 
-    it('includes all steps for Jira', () => {
+    it('includes Step 1 for Jira', () => {
       const jira = MCP_INTEGRATIONS.find((i) => i.id === 'jira')!;
       const guide = formatSetupGuide(jira);
       expect(guide).to.include('Step 1');
+    });
+
+    it('includes Step 2 for Jira', () => {
+      const jira = MCP_INTEGRATIONS.find((i) => i.id === 'jira')!;
+      const guide = formatSetupGuide(jira);
       expect(guide).to.include('Step 2');
+    });
+
+    it('includes Step 3 for Jira', () => {
+      const jira = MCP_INTEGRATIONS.find((i) => i.id === 'jira')!;
+      const guide = formatSetupGuide(jira);
       expect(guide).to.include('Step 3');
     });
 
-    it('includes learn more link', () => {
+    it('includes learn more label in guide', () => {
       const jira = MCP_INTEGRATIONS.find((i) => i.id === 'jira')!;
       const guide = formatSetupGuide(jira);
       expect(guide).to.include('Learn more:');
+    });
+
+    it('includes atlassian link in learn more section', () => {
+      const jira = MCP_INTEGRATIONS.find((i) => i.id === 'jira')!;
+      const guide = formatSetupGuide(jira);
       expect(guide).to.include('atlassian');
     });
   });

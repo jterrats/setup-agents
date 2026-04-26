@@ -1,4 +1,4 @@
-import type { ProfileDescriptor, ProfileId } from './types';
+import type { McpIntegrationDescriptor, ProfileDescriptor } from './types';
 
 export const ALL_PROFILES: ProfileDescriptor[] = [
   {
@@ -72,23 +72,6 @@ export const ALL_PROFILES: ProfileDescriptor[] = [
 export const GENERATED_RULE_DIRS = ['.cursor/rules', '.a4drules', '.a4drules/workflows'];
 export const CUSTOM_RULE_DIRS = ['.cursor/rules/custom', '.a4drules/custom'];
 
-export type McpEnvVarSpec = {
-  name: string;
-  label: string;
-  secret: boolean;
-};
-
-export type McpIntegrationDescriptor = {
-  id: string;
-  label: string;
-  profiles: ProfileId[];
-  envVars: McpEnvVarSpec[];
-  transport: 'http' | 'stdio';
-  url?: string;
-  command?: string;
-  args?: string[];
-};
-
 // Source of truth: src/integrations/mcp-registry.ts — keep IDs in sync (verified by test)
 export const MCP_INTEGRATIONS: McpIntegrationDescriptor[] = [
   {
@@ -111,5 +94,25 @@ export const MCP_INTEGRATIONS: McpIntegrationDescriptor[] = [
     transport: 'stdio',
     command: 'npx',
     args: ['-y', '@nexus2520/jira-mcp-server'],
+  },
+  {
+    id: 'drawio',
+    label: 'draw.io',
+    profiles: ['architect', 'ba', 'ux', 'developer'],
+    envVars: [],
+    transport: 'stdio',
+    command: 'npx',
+    args: ['-y', 'drawio-mcp'],
+  },
+  {
+    id: 'github',
+    label: 'GitHub',
+    profiles: ['developer', 'architect', 'devops', 'qa', 'pm'],
+    envVars: [
+      { name: 'GITHUB_PERSONAL_ACCESS_TOKEN', label: 'Personal Access Token', secret: true },
+    ],
+    transport: 'stdio',
+    command: 'npx',
+    args: ['-y', '@modelcontextprotocol/server-github'],
   },
 ];

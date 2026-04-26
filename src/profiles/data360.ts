@@ -16,7 +16,7 @@
 
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { generateData360Workflows } from '../generators/workflow-generator.js';
+import { generateData360Workflows } from '../generators/workflows/data360.js';
 import { documentationStandards, interactionPreferences, semanticCommits } from './shared-sections.js';
 import type { Profile } from './types.js';
 

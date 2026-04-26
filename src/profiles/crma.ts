@@ -16,7 +16,7 @@
 
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { generateCrmaWorkflows } from '../generators/workflow-generator.js';
+import { generateCrmaWorkflows } from '../generators/workflows/crma.js';
 import type { Profile } from './types.js';
 import { documentationStandards, interactionPreferences, semanticCommits } from './shared-sections.js';
 

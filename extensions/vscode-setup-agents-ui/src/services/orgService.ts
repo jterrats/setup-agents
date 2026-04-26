@@ -1,9 +1,8 @@
-import { exec, execSync, spawn } from 'node:child_process';
+import { execFile, execFileSync, spawn } from 'node:child_process';
 import { promisify } from 'node:util';
-import { platform } from 'node:os';
 import * as vscode from 'vscode';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 export type OrgInfo = {
   alias: string;
@@ -24,11 +23,12 @@ const POLL_TIMEOUT_MS = 120_000;
 export class OrgService {
   public async listOrgs(): Promise<OrgInfo[]> {
     try {
-      const { stdout } = await execAsync('sf org list --json 2>/dev/null', { encoding: 'utf8', timeout: 15_000 });
+      const { stdout } = await execFileAsync('sf', ['org', 'list', '--json'], { encoding: 'utf8', timeout: 15_000 });
       const parsed = JSON.parse(stdout) as OrgListResult;
       const all = [...(parsed.result?.nonScratchOrgs ?? []), ...(parsed.result?.scratchOrgs ?? [])];
       return all.map((o) => ({ alias: o.alias ?? o.username, username: o.username })).filter((o) => o.alias);
-    } catch {
+    } catch (error) {
+      console.debug('[orgService] listOrgs failed:', error instanceof Error ? error.message : error);
       return [];
     }
   }
@@ -73,7 +73,6 @@ export class OrgService {
     return new Promise((resolve) => {
       const child = spawn('sf', ['org', 'login', 'web', '--alias', alias], {
         stdio: 'ignore',
-        shell: true,
         detached: false,
       });
 
@@ -95,7 +94,7 @@ export class OrgService {
 
   private setAlias(alias: string, username: string): void {
     try {
-      execSync(`sf alias set ${alias}=${username}`, { stdio: 'ignore', timeout: 10_000 });
+      execFileSync('sf', ['alias', 'set', `${alias}=${username}`], { stdio: 'ignore', timeout: 10_000 });
     } catch {
       // best-effort: if alias set fails, the org is still authenticated
     }
@@ -107,17 +106,17 @@ export class OrgService {
 
   public resolveNpxCommand(): string | null {
     try {
-      execSync('npx --version', { stdio: 'ignore', timeout: 5_000 });
+      execFileSync('npx', ['--version'], { stdio: 'ignore', timeout: 5_000 });
       return 'npx';
     } catch {
-      // not in PATH
+      // npx not in PATH — try absolute resolution below
     }
     try {
-      const whichCmd = platform() === 'win32' ? 'where npx' : 'which npx';
-      const resolved = execSync(whichCmd, { encoding: 'utf8', timeout: 5_000 }).trim().split('\n')[0].trim();
+      const whichCmd = process.platform === 'win32' ? 'where' : 'which';
+      const resolved = execFileSync(whichCmd, ['npx'], { encoding: 'utf8', timeout: 5_000 }).trim().split('\n')[0].trim();
       if (resolved) return resolved;
     } catch {
-      // not found
+      // npx not found on system
     }
     return null;
   }

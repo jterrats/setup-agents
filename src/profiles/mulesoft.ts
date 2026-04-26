@@ -16,7 +16,7 @@
 
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { generateMulesoftWorkflows } from '../generators/workflow-generator.js';
+import { generateMulesoftWorkflows } from '../generators/workflows/mulesoft.js';
 import type { Profile } from './types.js';
 import {
   consultativeDesign,

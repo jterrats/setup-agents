@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { generateDeveloperWorkflows } from '../generators/workflow-generator.js';
+import { generateDeveloperWorkflows } from '../generators/workflows/developer.js';
 import {
   consultativeDesign,
   deployment,

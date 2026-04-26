@@ -16,7 +16,7 @@
 
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { generateDevopsWorkflows } from '../generators/workflow-generator.js';
+import { generateDevopsWorkflows } from '../generators/workflows/devops.js';
 import { consultativeDesign, documentationStandards, interactionPreferences } from './shared-sections.js';
 import type { Profile } from './types.js';
 

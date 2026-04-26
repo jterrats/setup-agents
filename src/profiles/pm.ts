@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { generatePmWorkflows } from '../generators/workflow-generator.js';
+import { generatePmWorkflows } from '../generators/workflows/pm.js';
 import { documentationStandards, interactionPreferences, semanticCommits } from './shared-sections.js';
 import type { Profile } from './types.js';
 

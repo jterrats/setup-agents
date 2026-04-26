@@ -17,8 +17,7 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { Messages } from '@salesforce/core';
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyMessages = Messages<any>;
+import type { AnyMessages } from '../../util/command-helpers.js';
 import { Flags, SfCommand } from '@salesforce/sf-plugins-core';
 import { select } from '@inquirer/prompts';
 
@@ -99,37 +98,18 @@ export default class Local extends SfCommand<SetupLocalResult> {
   }
 }
 
-// Estas funciones fueron movidas aquí desde el helper temporal
-async function runSetup(
-  tool: SupportedTool,
-  ctx: { cwd: string; profiles: Profile[]; writer: FileWriter; isSalesforceProject: boolean; log: (m: string) => void }
-): Promise<void> {
-  const { cwd, profiles, writer, isSalesforceProject, log } = ctx;
+type SetupContext = { cwd: string; profiles: Profile[]; writer: FileWriter; isSalesforceProject: boolean; log: (m: string) => void };
 
-  switch (tool) {
-    case 'cursor':
-      await setupCursor({
-        cwd,
-        profiles,
-        writer,
-        isSalesforceProject,
-        promptScope: () => promptCursorScope(messages),
-        logInfo: log,
-      });
-      break;
-    case 'vscode':
-      setupVsCode({ cwd, profiles, writer, isSalesforceProject });
-      break;
-    case 'codex':
-      setupCodex({ cwd, profiles, writer });
-      break;
-    case 'claude':
-      setupClaude({ cwd, profiles, writer });
-      break;
-    case 'agentforce':
-      setupAgentforce({ cwd, profiles, writer, isSalesforceProject });
-      break;
-  }
+const TOOL_HANDLERS: Record<SupportedTool, (ctx: SetupContext) => void | Promise<void>> = {
+  cursor: (ctx) => setupCursor({ ...ctx, promptScope: () => promptCursorScope(messages), logInfo: ctx.log }),
+  vscode: (ctx) => setupVsCode(ctx),
+  codex: (ctx) => setupCodex(ctx),
+  claude: (ctx) => setupClaude(ctx),
+  agentforce: (ctx) => setupAgentforce(ctx),
+};
+
+async function runSetup(tool: SupportedTool, ctx: SetupContext): Promise<void> {
+  await TOOL_HANDLERS[tool](ctx);
 }
 
 async function promptCursorScope(msgs: AnyMessages): Promise<'project' | 'user'> {

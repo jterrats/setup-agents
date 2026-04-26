@@ -20,15 +20,20 @@ export { generateAgentsMd } from './codex-generator.js';
 export { generateClaudeMd } from './claude-generator.js';
 export { generateExtensionsJson } from './extensions-generator.js';
 export { generateA4dBaseGuidelines } from './agentforce-generator.js';
+export { generateBaseWorkflows } from './workflow-generator.js';
 export {
-  generateBaseWorkflows,
   generateDeveloperWorkflows,
   generateArchitectWorkflows,
   generateDevopsWorkflows,
   generateQaWorkflows,
   generateCrmaWorkflows,
   generatePmWorkflows,
-} from './workflow-generator.js';
+  generateBaWorkflows,
+  generateMulesoftWorkflows,
+  generateUxWorkflows,
+  generateCgcloudWorkflows,
+  generateData360Workflows,
+} from './workflows/index.js';
 export { stripMdcFrontmatter, toA4dContent } from './shared.js';
 export {
   generateStoryMappingSkill,

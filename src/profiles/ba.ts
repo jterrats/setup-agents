@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { generateBaWorkflows } from '../generators/workflow-generator.js';
+import { generateBaWorkflows } from '../generators/workflows/ba.js';
 import {
   consultativeDesign,
   documentationStandards,

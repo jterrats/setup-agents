@@ -3,6 +3,8 @@ import { basename, extname, join, relative } from 'node:path';
 import { CUSTOM_RULE_DIRS, GENERATED_RULE_DIRS } from '../constants';
 import type { RuleSummary, ToolId } from '../types';
 
+const MARKDOWN_EXTENSIONS = new Set(['.md', '.mdc']);
+
 export class RuleManagementService {
   public async listRules(workspacePath: string): Promise<RuleSummary[]> {
     const rules: RuleSummary[] = [];
@@ -33,6 +35,9 @@ export class RuleManagementService {
   }
 
   public async importRuleFromUrl(workspacePath: string, url: string, tool: ToolId): Promise<string> {
+    if (!url.startsWith('https://') && !url.startsWith('http://')) {
+      throw new Error('Only HTTP(S) URLs are supported for rule imports.');
+    }
     this.assertMarkdownPath(url);
 
     const response = await fetch(url);
@@ -70,8 +75,7 @@ export class RuleManagementService {
   }
 
   private assertMarkdownPath(path: string): void {
-    const extension = extname(path).toLowerCase();
-    if (extension !== '.md' && extension !== '.mdc') {
+    if (!MARKDOWN_EXTENSIONS.has(extname(path).toLowerCase())) {
       throw new Error('Only Markdown rule files (.md, .mdc) are supported.');
     }
   }
@@ -93,12 +97,13 @@ export class RuleManagementService {
             if (skipCustom && item.name === 'custom') return [];
             return this.collectMarkdownFiles(fullPath, skipCustom);
           }
-          if (item.isFile() && ['.md', '.mdc'].includes(extname(item.name).toLowerCase())) return [fullPath];
+          if (item.isFile() && MARKDOWN_EXTENSIONS.has(extname(item.name).toLowerCase())) return [fullPath];
           return [];
         })
       );
       return files.flat();
-    } catch {
+    } catch (error) {
+      console.debug('[ruleManagementService] collectMarkdownFiles failed for', directory, ':', error instanceof Error ? error.message : error);
       return [];
     }
   }

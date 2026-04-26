@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { generateUxWorkflows } from '../generators/workflow-generator.js';
+import { generateUxWorkflows } from '../generators/workflows/ux.js';
 import { documentationStandards, interactionPreferences, semanticCommits } from './shared-sections.js';
 import type { Profile } from './types.js';
 

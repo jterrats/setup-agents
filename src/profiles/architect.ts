@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { generateArchitectWorkflows } from '../generators/workflow-generator.js';
+import { generateArchitectWorkflows } from '../generators/workflows/architect.js';
 import { deployment, documentationStandards, interactionPreferences, semanticCommits } from './shared-sections.js';
 import type { Profile } from './types.js';
 

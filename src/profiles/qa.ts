@@ -16,7 +16,7 @@
 
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { generateQaWorkflows } from '../generators/workflow-generator.js';
+import { generateQaWorkflows } from '../generators/workflows/qa.js';
 import { documentationStandards, interactionPreferences, semanticCommits } from './shared-sections.js';
 import type { Profile } from './types.js';
 

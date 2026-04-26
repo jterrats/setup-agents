@@ -299,9 +299,10 @@ function buildMcpTestHtml(orgs: Array<{ alias: string; username: string }>): str
           card.setAttribute('role', 'checkbox');
           card.setAttribute('aria-checked', 'false');
           card.setAttribute('tabindex', '0');
+          card.title = org.username;
           card.innerHTML = '<input type="checkbox" value="' + org.alias + '" />'
             + '<div class="profile-info"><span class="profile-name">' + org.alias + '</span>'
-            + '<span class="profile-desc">' + org.username + '</span></div>';
+            + '<span class="profile-desc"></span></div>';
           const cb = card.querySelector('input');
           cb.addEventListener('change', () => {
             card.classList.toggle('selected', cb.checked);
@@ -338,7 +339,7 @@ function buildMcpTestHtml(orgs: Array<{ alias: string; username: string }>): str
         loginStatus.textContent = 'Authenticated: ' + alias;
         loginStatus.style.display = '';
         loginStatus.style.color = 'var(--vscode-charts-green)';
-        renderOrgs([{ alias: alias, username: alias + '@example.com' }]);
+        renderOrgs([{ alias, username: alias + '@example.com' }]);
       }, 100);
     });
 
@@ -376,11 +377,11 @@ test.describe('Webview UI — MCP with orgs', () => {
     await expect(cards).toHaveCount(3);
   });
 
-  test('each org card shows alias and username', async ({ page }) => {
+  test('each org card shows alias and has username as tooltip', async ({ page }) => {
     for (const org of testOrgs) {
       const card = page.locator(`#mcpOrgs .profile-card:has(input[value="${org.alias}"])`);
       await expect(card.locator('.profile-name')).toHaveText(org.alias);
-      await expect(card.locator('.profile-desc')).toHaveText(org.username);
+      await expect(card).toHaveAttribute('title', org.username);
     }
   });
 

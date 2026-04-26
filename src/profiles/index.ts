@@ -15,6 +15,7 @@
  */
 
 export type { Profile, ProfileId } from './types.js';
+export { PROFILE_TOOLSETS } from './toolsets.js';
 
 export { developerProfile } from './developer.js';
 export { architectProfile } from './architect.js';
