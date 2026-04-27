@@ -126,9 +126,14 @@ describe('adminProfile', () => {
   });
 
   describe('workflows()', () => {
-    it('returns create-flow, create-validation-rule and permission-set-setup files', () => {
+    it('returns create-flow, create-validation-rule, permission-set-setup and destructive-deploy files', () => {
       const workflows = adminProfile.workflows!('0.1.0');
-      expect(workflows).to.have.keys(['create-flow.md', 'create-validation-rule.md', 'permission-set-setup.md']);
+      expect(workflows).to.have.keys([
+        'create-flow.md',
+        'create-validation-rule.md',
+        'permission-set-setup.md',
+        'destructive-deploy.md',
+      ]);
     });
   });
 });

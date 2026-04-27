@@ -112,13 +112,30 @@ describe('workflow-generator', () => {
   });
 
   describe('generateDeveloperWorkflows()', () => {
-    it('returns create-apex-class, create-lwc and create-trigger files', () => {
+    it('returns create-apex-class, create-lwc, create-trigger and destructive-deploy files', () => {
       const workflows = generateDeveloperWorkflows(VERSION);
-      expect(workflows).to.have.keys(['create-apex-class.md', 'create-lwc.md', 'create-trigger.md']);
+      expect(workflows).to.have.keys([
+        'create-apex-class.md',
+        'create-lwc.md',
+        'create-trigger.md',
+        'destructive-deploy.md',
+      ]);
     });
 
     it('create-trigger workflow references Kevin OHara pattern', () => {
       expect(generateDeveloperWorkflows(VERSION)['create-trigger.md']).to.include("Kevin O'Hara");
+    });
+
+    it('destructive-deploy workflow references preDestructiveChanges.xml', () => {
+      expect(generateDeveloperWorkflows(VERSION)['destructive-deploy.md']).to.include('preDestructiveChanges.xml');
+    });
+
+    it('destructive-deploy workflow references postDestructiveChanges.xml', () => {
+      expect(generateDeveloperWorkflows(VERSION)['destructive-deploy.md']).to.include('postDestructiveChanges.xml');
+    });
+
+    it('destructive-deploy workflow warns purge-on-delete is sandbox only', () => {
+      expect(generateDeveloperWorkflows(VERSION)['destructive-deploy.md']).to.include('sandboxes only');
     });
   });
 
@@ -153,8 +170,12 @@ describe('workflow-generator', () => {
   });
 
   describe('generateDevopsWorkflows()', () => {
-    it('returns release and create-scratch-org files', () => {
-      expect(generateDevopsWorkflows(VERSION)).to.have.keys(['release.md', 'create-scratch-org.md']);
+    it('returns release, create-scratch-org and destructive-deploy files', () => {
+      expect(generateDevopsWorkflows(VERSION)).to.have.keys([
+        'release.md',
+        'create-scratch-org.md',
+        'destructive-deploy.md',
+      ]);
     });
 
     it('release workflow includes Active Monitoring', () => {
@@ -168,6 +189,18 @@ describe('workflow-generator', () => {
     it('scratch-org workflow includes active monitoring for deploy', () => {
       const scratch = generateDevopsWorkflows(VERSION)['create-scratch-org.md'];
       expect(scratch).to.include('Active Monitoring');
+    });
+
+    it('destructive-deploy workflow references preDestructiveChanges.xml', () => {
+      expect(generateDevopsWorkflows(VERSION)['destructive-deploy.md']).to.include('preDestructiveChanges.xml');
+    });
+
+    it('destructive-deploy workflow references postDestructiveChanges.xml', () => {
+      expect(generateDevopsWorkflows(VERSION)['destructive-deploy.md']).to.include('postDestructiveChanges.xml');
+    });
+
+    it('destructive-deploy workflow warns purge-on-delete is sandbox only', () => {
+      expect(generateDevopsWorkflows(VERSION)['destructive-deploy.md']).to.include('sandboxes only');
     });
   });
 
@@ -319,11 +352,12 @@ describe('workflow-generator', () => {
   });
 
   describe('generateAdminWorkflows()', () => {
-    it('returns create-flow, create-validation-rule and permission-set-setup files', () => {
+    it('returns create-flow, create-validation-rule, permission-set-setup and destructive-deploy files', () => {
       expect(generateAdminWorkflows(VERSION)).to.have.keys([
         'create-flow.md',
         'create-validation-rule.md',
         'permission-set-setup.md',
+        'destructive-deploy.md',
       ]);
     });
 
