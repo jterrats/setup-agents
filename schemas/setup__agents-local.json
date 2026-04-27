@@ -21,11 +21,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "configured",
-        "profiles",
-        "cwd"
-      ],
+      "required": ["configured", "profiles", "cwd"],
       "additionalProperties": false
     },
     "ProfileId": {
@@ -45,7 +41,14 @@
         "data360",
         "admin",
         "sfmc",
-        "security"
+        "security",
+        "service",
+        "cpq",
+        "omnistudio",
+        "fsl",
+        "ai",
+        "slack",
+        "tableau"
       ]
     }
   }
