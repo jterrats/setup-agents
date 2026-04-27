@@ -1,6 +1,6 @@
 # Role Profiles
 
-`setup-agents` supports 10 role profiles. Each generates dedicated rule content for all configured AI tools (Cursor, VS Code, Codex, Claude, Agentforce) and contributes extensions to `.vscode/extensions.json`.
+`setup-agents` supports 22 role profiles. Each generates dedicated rule content for all configured AI tools (Cursor, VS Code, Codex, Claude, Agentforce) and contributes extensions to `.vscode/extensions.json`.
 
 Profiles are **combinable** — select as many as apply to your role on the project.
 
@@ -24,6 +24,13 @@ Profiles are **combinable** — select as many as apply to your role on the proj
 | [Marketing Cloud (SFMC)](#-marketing-cloud-sfmc) | `sfmc` | `sfmc-standards.mdc` | `.ampscript` files / `mc-project.json` |
 | [Commerce Cloud (B2B/B2C)](#-commerce-cloud-b2bb2c) | `commerce` | `commerce-standards.mdc` | `dw.json` / `cartridges/` / B2B metadata |
 | [Security / Compliance](#-security--compliance) | `security` | `security-standards.mdc` | `force-app/` directory |
+| [Service Cloud](#-service-cloud) | `service` | `service-standards.mdc` | `objects/Case/` / `entitlementProcesses/` / `bots/` |
+| [CPQ Specialist](#-cpq-specialist) | `cpq` | `cpq-standards.mdc` | `SBQQ__Quote__c/` / `SBQQ__*.object-meta.xml` |
+| [OmniStudio](#-omnistudio--vlocity) | `omnistudio` | `omnistudio-standards.mdc` | `omniScripts/` / `flexCards/` |
+| [Field Service (FSL)](#-field-service-fsl) | `fsl` | `fsl-standards.mdc` | `objects/ServiceAppointment/` / `objects/WorkOrder/` |
+| [AI / Agentforce Specialist](#-ai--agentforce-specialist) | `ai` | `ai-standards.mdc` | `bots/` / `aiApplications/` |
+| [Slack Developer](#-slack-developer-boltjs) | `slack` | `slack-standards.mdc` | `slack.json` / `manifest.json` |
+| [Tableau / Analytics Cloud](#-tableau--analytics-cloud) | `tableau` | `tableau-standards.mdc` | `datasources/` / `workbooks/` / `tableau-project.json` |
 
 All profiles inherit the base `salesforce-standards.mdc` when the project contains `sfdx-project.json`.
 
@@ -381,6 +388,67 @@ Work order lifecycle, service appointments, scheduling policies, territory manag
 - Dispatcher Console: configure Gantt for visibility; monitor resource utilization and queue depth
 
 **Extensions added:** Salesforce Extension Pack
+
+---
+
+## 🤖 AI / Agentforce Specialist
+
+**Flag:** `--profile ai`
+**Rule file:** `ai-standards.mdc`
+**Auto-detect:** `force-app/main/default/bots/` or `force-app/main/default/aiApplications/`
+
+Covers the full Agentforce development lifecycle: agent spec design, topic and action definition, prompt templates, grounding strategies (Einstein Search, Data Cloud), guardrails, and testing with `sf agent test run`.
+
+**Key rules:**
+- One agent per use case — multi-agent orchestration requires architectural sign-off
+- Use `sf agent generate agent-spec` before creating anything in an org
+- Store all prompt templates in `force-app/main/default/promptTemplates/`
+- Target ≥ 80% topic match rate in test scenarios
+- Never expose PII through agent responses
+
+**Workflows added:** `create-agent.md`, `test-agent.md`, `deploy-agent.md`
+
+**Extensions added:** Salesforce Extension Pack, Continue
+
+---
+
+## 💬 Slack Developer (Bolt.js)
+
+**Flag:** `--profile slack`
+**Rule file:** `slack-standards.mdc`
+**Auto-detect:** `slack.json` or `manifest.json`
+
+Covers Bolt.js app development integrated with Salesforce: listener organization, manifest management, Block Kit UI, Salesforce org access via `jsforce`, token security, and multi-workspace state management.
+
+**Key rules:**
+- Always call `ack()` within 3 seconds — Slack retries after timeout
+- Verify Slack request signatures on every webhook via `SLACK_SIGNING_SECRET`
+- Never hardcode org credentials — use env vars or Secrets Manager
+- Organize listeners by type: `commands/`, `actions/`, `events/`, `shortcuts/`
+
+**Workflows added:** `create-bolt-app.md`, `add-slash-command.md`, `deploy-slack-app.md`
+
+**Extensions added:** ESLint, Prettier, REST Client
+
+---
+
+## 📊 Tableau / Analytics Cloud
+
+**Flag:** `--profile tableau`
+**Rule file:** `tableau-standards.mdc`
+**Auto-detect:** `datasources/` or `workbooks/` or `tableau-project.json`
+
+Covers Tableau and CRM Analytics development: data source strategy (live vs. extract), LOD expressions, dashboard performance, row-level security via User Attribute Functions, CRM Analytics recipes, and Tableau Embedding API v3 for Salesforce integrations.
+
+**Key rules:**
+- Prefer live connections to Salesforce — use extracts only when performance requires it
+- Use LOD expressions (FIXED, INCLUDE, EXCLUDE) over table calculations
+- Never bake security into workbooks — always use Salesforce SSO + User Attribute Functions
+- Store `TABLEAU_SERVER_URL`, `TABLEAU_TOKEN_NAME`, `TABLEAU_TOKEN_SECRET` as env vars
+
+**Workflows added:** `connect-salesforce-data.md`, `publish-workbook.md`, `embed-analytics.md`
+
+**Extensions added:** Tableau Viz Extension SDK, ESLint, Prettier
 
 ---
 

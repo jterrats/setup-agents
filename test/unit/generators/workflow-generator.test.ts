@@ -17,6 +17,7 @@ import { expect } from 'chai';
 import { generateBaseWorkflows } from '../../../src/generators/workflow-generator.js';
 import {
   generateAdminWorkflows,
+  generateAiWorkflows,
   generateBaWorkflows,
   generateCgcloudWorkflows,
   generateCrmaWorkflows,
@@ -27,6 +28,8 @@ import {
   generateMulesoftWorkflows,
   generateQaWorkflows,
   generateSecurityWorkflows,
+  generateSlackWorkflows,
+  generateTableauWorkflows,
   generateUxWorkflows,
 } from '../../../src/generators/workflows/index.js';
 
@@ -418,6 +421,60 @@ describe('workflow-generator', () => {
 
     it('encryption-strategy workflow includes Tenant Secret rotation', () => {
       expect(generateSecurityWorkflows(VERSION)['encryption-strategy.md']).to.include('Tenant Secret');
+    });
+  });
+
+  describe('generateAiWorkflows()', () => {
+    it('returns create-agent, test-agent, and deploy-agent files', () => {
+      expect(generateAiWorkflows(VERSION)).to.have.keys(['create-agent.md', 'test-agent.md', 'deploy-agent.md']);
+    });
+
+    it('create-agent workflow references sf agent generate agent-spec', () => {
+      expect(generateAiWorkflows(VERSION)['create-agent.md']).to.include('sf agent generate agent-spec');
+    });
+
+    it('test-agent workflow references sf agent test run', () => {
+      expect(generateAiWorkflows(VERSION)['test-agent.md']).to.include('sf agent test run');
+    });
+
+    it('deploy-agent workflow references sf agent publish', () => {
+      expect(generateAiWorkflows(VERSION)['deploy-agent.md']).to.include('sf agent publish');
+    });
+  });
+
+  describe('generateSlackWorkflows()', () => {
+    it('returns create-bolt-app, add-slash-command, and deploy-slack-app files', () => {
+      expect(generateSlackWorkflows(VERSION)).to.have.keys([
+        'create-bolt-app.md',
+        'add-slash-command.md',
+        'deploy-slack-app.md',
+      ]);
+    });
+
+    it('create-bolt-app workflow references npm install @slack/bolt', () => {
+      expect(generateSlackWorkflows(VERSION)['create-bolt-app.md']).to.include('@slack/bolt');
+    });
+
+    it('add-slash-command workflow references ack()', () => {
+      expect(generateSlackWorkflows(VERSION)['add-slash-command.md']).to.include('ack()');
+    });
+  });
+
+  describe('generateTableauWorkflows()', () => {
+    it('returns connect-salesforce-data, publish-workbook, and embed-analytics files', () => {
+      expect(generateTableauWorkflows(VERSION)).to.have.keys([
+        'connect-salesforce-data.md',
+        'publish-workbook.md',
+        'embed-analytics.md',
+      ]);
+    });
+
+    it('connect-salesforce-data workflow references live connection', () => {
+      expect(generateTableauWorkflows(VERSION)['connect-salesforce-data.md']).to.include('live');
+    });
+
+    it('embed-analytics workflow references Tableau Embedding API', () => {
+      expect(generateTableauWorkflows(VERSION)['embed-analytics.md']).to.include('Embedding API');
     });
   });
 });
