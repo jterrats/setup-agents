@@ -88,6 +88,13 @@ describe('skill-generator', () => {
       expect(script).to.include('npx -y @mermaid-js/mermaid-cli');
     });
 
+    it('render-pdf.sh resolves PUPPETEER_EXECUTABLE_PATH from cache', () => {
+      const script = generateStoryMappingSkill()['scripts/render-pdf.sh'];
+      expect(script).to.include('PUPPETEER_EXECUTABLE_PATH');
+      expect(script).to.include('PUPPETEER_CACHE');
+      expect(script).to.include('Google Chrome for Testing');
+    });
+
     it('render-pdf.sh validates for error patterns in log and output', () => {
       const script = generateStoryMappingSkill()['scripts/render-pdf.sh'];
       expect(script).to.include('No diagram detected');
@@ -215,6 +222,13 @@ describe('skill-generator', () => {
       expect(script).to.include('ERROR_PATTERNS');
       expect(script).to.include('No diagram detected');
       expect(script).to.include('pdftotext');
+    });
+
+    it('export-diagram.sh resolves PUPPETEER_EXECUTABLE_PATH from cache', () => {
+      const script = generateDiagramExportSkill()['scripts/export-diagram.sh'];
+      expect(script).to.include('PUPPETEER_EXECUTABLE_PATH');
+      expect(script).to.include('PUPPETEER_CACHE');
+      expect(script).to.include('Google Chrome for Testing');
     });
 
     it('SKILL.md includes non-technical Lucidchart setup guide', () => {
