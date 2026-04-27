@@ -115,6 +115,24 @@ export const ALL_PROFILES: ProfileDescriptor[] = [
     ruleFile: 'fsl-standards.mdc',
     description: 'Scheduling, work orders, mobile, and territory management profile.',
   },
+  {
+    id: 'ai',
+    label: 'AI / Agentforce Specialist',
+    ruleFile: 'ai-standards.mdc',
+    description: 'Agentforce agent design, prompt templates, topics, actions, and testing profile.',
+  },
+  {
+    id: 'slack',
+    label: 'Slack Developer (Bolt.js)',
+    ruleFile: 'slack-standards.mdc',
+    description: 'Bolt.js Slack app development with Salesforce integration profile.',
+  },
+  {
+    id: 'tableau',
+    label: 'Tableau / Analytics Cloud',
+    ruleFile: 'tableau-standards.mdc',
+    description: 'Tableau workbooks, datasources, embedding, and CRM Analytics profile.',
+  },
 ];
 
 export const GENERATED_RULE_DIRS = ['.cursor/rules', '.a4drules', '.a4drules/workflows'];

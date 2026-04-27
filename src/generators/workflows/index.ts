@@ -29,3 +29,6 @@ export { generateData360Workflows } from './data360.js';
 export { generateSecurityWorkflows } from './security.js';
 export { generateSfmcWorkflows } from './sfmc.js';
 export { generateAdminWorkflows } from './admin.js';
+export { generateAiWorkflows } from './ai.js';
+export { generateSlackWorkflows } from './slack.js';
+export { generateTableauWorkflows } from './tableau.js';

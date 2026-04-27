@@ -36,6 +36,9 @@ const PROFILE_TOOLSETS: Record<ProfileId, string[]> = {
   cpq: ['metadata', 'data'],
   omnistudio: ['metadata', 'data'],
   fsl: ['metadata', 'data', 'users'],
+  ai: ['metadata', 'data', 'testing', 'users'],
+  slack: ['metadata', 'data'],
+  tableau: ['metadata', 'data'],
 };
 
 export type McpWriteResult = {

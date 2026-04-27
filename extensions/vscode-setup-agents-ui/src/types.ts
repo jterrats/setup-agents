@@ -17,7 +17,10 @@ export type ProfileId =
   | 'service'
   | 'cpq'
   | 'omnistudio'
-  | 'fsl';
+  | 'fsl'
+  | 'ai'
+  | 'slack'
+  | 'tableau';
 
 export type ProfileDescriptor = {
   id: ProfileId;

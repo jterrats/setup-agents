@@ -36,6 +36,9 @@ export { serviceProfile } from './service.js';
 export { cpqProfile } from './cpq.js';
 export { omnistudioProfile } from './omnistudio.js';
 export { fslProfile } from './fsl.js';
+export { aiProfile } from './ai.js';
+export { slackProfile } from './slack.js';
+export { tableauProfile } from './tableau.js';
 
 import { developerProfile } from './developer.js';
 import { architectProfile } from './architect.js';
@@ -56,6 +59,9 @@ import { serviceProfile } from './service.js';
 import { cpqProfile } from './cpq.js';
 import { omnistudioProfile } from './omnistudio.js';
 import { fslProfile } from './fsl.js';
+import { aiProfile } from './ai.js';
+import { slackProfile } from './slack.js';
+import { tableauProfile } from './tableau.js';
 import type { Profile } from './types.js';
 
 export const ALL_PROFILES: Profile[] = [
@@ -78,4 +84,7 @@ export const ALL_PROFILES: Profile[] = [
   cpqProfile,
   omnistudioProfile,
   fslProfile,
+  aiProfile,
+  slackProfile,
+  tableauProfile,
 ];

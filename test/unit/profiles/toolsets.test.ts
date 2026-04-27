@@ -40,6 +40,9 @@ describe('PROFILE_TOOLSETS (shared)', () => {
       'cpq',
       'omnistudio',
       'fsl',
+      'ai',
+      'slack',
+      'tableau',
     ];
     expect(Object.keys(PROFILE_TOOLSETS).sort()).to.deep.equal(expected.sort());
   });
