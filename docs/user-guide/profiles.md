@@ -13,6 +13,7 @@ Profiles are **combinable** — select as many as apply to your role on the proj
 | [Developer](#-developer) | `developer` | `developer-standards.mdc` | — |
 | [Architect](#-architect) | `architect` | `architect-standards.mdc` | — |
 | [Business Analyst](#-business--solution-analyst) | `ba` | `ba-standards.mdc` | — |
+| [Project Manager](#-project-manager) | `pm` | `pm-standards.mdc` | — |
 | [MuleSoft](#-mulesoft-architect--developer) | `mulesoft` | `mulesoft-standards.mdc` | `mule-artifact.json` / `pom.xml` |
 | [UX / UI](#-ux--ui-designer) | `ux` | `ux-standards.mdc` | — |
 | [CGCloud](#-consumer-goods-cloud-cgcloud) | `cgcloud` | `cgcloud-standards.mdc` | `cgcloud__` in `package.xml` |
@@ -88,6 +89,26 @@ Focuses on declarative-first configuration, user story documentation, and proces
 - StandardValueSets for standard picklists
 
 **Extensions added:** SOQL Editor, SLDS viewer, XML, YAML, Prettier
+
+---
+
+## 📅 Project Manager
+
+**Flag:** `--profile pm`
+**Rule file:** `pm-standards.mdc`
+
+Sprint planning, status reporting, risk management, and release coordination for Salesforce projects.
+
+**Key rules:**
+- Frame all work items with: Backlog Item ID, priority, estimated effort, and assignee
+- Weekly status reports with RAG (Red/Amber/Green) indicators for scope, schedule, and budget
+- Mermaid Gantt charts for sprint and release timelines
+- Risk register with probability, impact, mitigation, and owner
+- Formal Change Request (CR) process for any scope that impacts budget or timeline
+- Never approve a production release without a documented rollback plan
+- Project closure: lessons learned + knowledge transfer checklist
+
+**Extensions added:** Markdown Mermaid, Markdown All-in-One, YAML, Prettier, Todo Tree
 
 ---
 
