@@ -7,7 +7,7 @@ description: Eleven combinable role profiles for Salesforce development — Deve
 
 <header>
   <h1>Role Profiles</h1>
-  <p class="tagline">Eleven combinable profiles, each tailored to a specific Salesforce role.</p>
+  <p class="tagline">Nineteen combinable profiles, each tailored to a specific Salesforce role.</p>
 </header>
 
 <!-- Intro -->
@@ -105,6 +105,54 @@ sf setup-agents local --profile developer,architect,cgcloud,qa</code></pre>
         <td><code>data360-standards.mdc</code></td>
         <td><code>DataStream</code> · <code>DataModelObject</code> in <code>package.xml</code></td>
       </tr>
+      <tr>
+        <td><strong>Admin / Configurator</strong></td>
+        <td><code>admin</code></td>
+        <td><code>admin-standards.mdc</code></td>
+        <td><code>force-app/</code> directory</td>
+      </tr>
+      <tr>
+        <td><strong>Marketing Cloud (SFMC)</strong></td>
+        <td><code>sfmc</code></td>
+        <td><code>sfmc-standards.mdc</code></td>
+        <td><code>.ampscript</code> files · <code>mc-project.json</code></td>
+      </tr>
+      <tr>
+        <td><strong>Commerce Cloud (B2B/B2C)</strong></td>
+        <td><code>commerce</code></td>
+        <td><code>commerce-standards.mdc</code></td>
+        <td><code>dw.json</code> · <code>cartridges/</code> · B2B metadata</td>
+      </tr>
+      <tr>
+        <td><strong>Security / Compliance</strong></td>
+        <td><code>security</code></td>
+        <td><code>security-standards.mdc</code></td>
+        <td><code>force-app/</code> directory</td>
+      </tr>
+      <tr>
+        <td><strong>Service Cloud</strong></td>
+        <td><code>service</code></td>
+        <td><code>service-standards.mdc</code></td>
+        <td><code>objects/Case/</code> · <code>entitlementProcesses/</code> · <code>bots/</code></td>
+      </tr>
+      <tr>
+        <td><strong>CPQ Specialist</strong></td>
+        <td><code>cpq</code></td>
+        <td><code>cpq-standards.mdc</code></td>
+        <td><code>SBQQ__Quote__c</code> directory or <code>SBQQ__</code> metadata</td>
+      </tr>
+      <tr>
+        <td><strong>OmniStudio / Vlocity</strong></td>
+        <td><code>omnistudio</code></td>
+        <td><code>omnistudio-standards.mdc</code></td>
+        <td><code>omniScripts/</code> · <code>flexCards/</code></td>
+      </tr>
+      <tr>
+        <td><strong>Field Service (FSL)</strong></td>
+        <td><code>fsl</code></td>
+        <td><code>fsl-standards.mdc</code></td>
+        <td><code>objects/ServiceAppointment/</code> · <code>objects/WorkOrder/</code></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -148,6 +196,38 @@ sf setup-agents local --profile developer,architect,cgcloud,qa</code></pre>
     <div class="feature-card">
       <h4>CRM Analytics</h4>
       <p>WaveDashboard/WaveDataflow metadata strategy, SAQL query standards, recipe orchestration, Analytics Studio best practices.</p>
+    </div>
+    <div class="feature-card">
+      <h4>Admin / Configurator</h4>
+      <p>No Mega-Flows, Sub-flows, one RTF per object/context. Validation rules with <code>$Permission.Bypass_Validation_Rules</code>. Permission Sets over Profiles. CMDT for deployable config. Process Automation Decision Tree.</p>
+    </div>
+    <div class="feature-card">
+      <h4>Marketing Cloud (SFMC)</h4>
+      <p>AMPscript &amp; SSJS best practices, Journey Builder design, SQL on Data Extensions, Content Builder structure, Automation Studio — completely independent of core Salesforce stack.</p>
+    </div>
+    <div class="feature-card">
+      <h4>Commerce Cloud (B2B/B2C)</h4>
+      <p>B2C: SFRA controllers, ISML templates, cartridge layering, OCAPI/SCAPI. B2B: ConnectApi checkout flows, buyer groups, LWC storefront. Clear section separation between both stacks.</p>
+    </div>
+    <div class="feature-card">
+      <h4>Security / Compliance</h4>
+      <p>WITH SECURITY_ENFORCED &amp; stripInaccessible, CRUD checks, Platform Encryption (Shield), OWD &amp; sharing rules, Named Credentials, Health Check 90+, OWASP Top 10 for Salesforce.</p>
+    </div>
+    <div class="feature-card">
+      <h4>Service Cloud</h4>
+      <p>Case assignment &amp; escalation rules, entitlement processes &amp; milestones, Knowledge article publishing, Omni-Channel routing (queue-based and skills-based), Einstein Bots, Messaging channels.</p>
+    </div>
+    <div class="feature-card">
+      <h4>CPQ Specialist</h4>
+      <p>Product bundles &amp; option constraints, pricing rules with evaluation order, discount schedules, quote templates, approval chains, contract &amp; subscription management, CPQ Apex plugins.</p>
+    </div>
+    <div class="feature-card">
+      <h4>OmniStudio / Vlocity</h4>
+      <p>OmniScript step design, DataRaptor naming conventions, Integration Procedures for reusable orchestration, FlexCard composition, Decision Matrices, and source-controlled export/import.</p>
+    </div>
+    <div class="feature-card">
+      <h4>Field Service (FSL)</h4>
+      <p>Work order lifecycle, service appointment scheduling, soft/hard constraint policies, territory &amp; resource management, mobile page layouts, maintenance plans, Dispatcher Console configuration.</p>
     </div>
   </div>
 </section>
@@ -208,6 +288,30 @@ sf setup-agents local --profile developer,architect,cgcloud,qa</code></pre>
       <tr><td><code>status-report.md</code></td><td>PM</td><td>Generate weekly status report</td></tr>
       <tr><td><code>risk-register.md</code></td><td>PM</td><td>Maintain project risk register</td></tr>
       <tr><td><code>deploy-analytics.md</code></td><td>CRMA</td><td>Deploy CRM Analytics dashboards</td></tr>
+      <tr><td><code>create-flow.md</code></td><td>Admin</td><td>Create a Record-Triggered Flow with fault path and sub-flow pattern</td></tr>
+      <tr><td><code>create-validation-rule.md</code></td><td>Admin</td><td>Create validation rule with bypass Custom Permission</td></tr>
+      <tr><td><code>permission-set-setup.md</code></td><td>Admin</td><td>Configure Permission Set with least-privilege principle</td></tr>
+      <tr><td><code>create-cloudpage.md</code></td><td>SFMC</td><td>Build a CloudPage with AMPscript + SSJS</td></tr>
+      <tr><td><code>build-journey.md</code></td><td>SFMC</td><td>Configure Journey Builder entry, decision splits, and waits</td></tr>
+      <tr><td><code>data-extension-query.md</code></td><td>SFMC</td><td>Write optimized SQL query on Data Extensions</td></tr>
+      <tr><td><code>create-sfra-controller.md</code></td><td>Commerce (B2C)</td><td>Scaffold SFRA controller with middleware chain</td></tr>
+      <tr><td><code>configure-b2b-checkout.md</code></td><td>Commerce (B2B)</td><td>Configure B2B checkout flow with ConnectApi</td></tr>
+      <tr><td><code>cartridge-overlay.md</code></td><td>Commerce (B2C)</td><td>Overlay platform cartridge using module.superModule pattern</td></tr>
+      <tr><td><code>sharing-model-review.md</code></td><td>Security</td><td>Analyze OWD and design sharing rules strategy</td></tr>
+      <tr><td><code>fls-audit.md</code></td><td>Security</td><td>Audit field-level security across Permission Sets</td></tr>
+      <tr><td><code>encryption-strategy.md</code></td><td>Security</td><td>Define deterministic vs probabilistic encryption plan</td></tr>
+      <tr><td><code>case-lifecycle-setup.md</code></td><td>Service</td><td>Configure case record types, queues, assignment rules, and escalation</td></tr>
+      <tr><td><code>knowledge-base-structure.md</code></td><td>Service</td><td>Design article types, data categories, and publishing workflow</td></tr>
+      <tr><td><code>omni-channel-configuration.md</code></td><td>Service</td><td>Set up routing config, capacity model, and presence statuses</td></tr>
+      <tr><td><code>product-bundle-setup.md</code></td><td>CPQ</td><td>Create bundle product with option groups and constraints</td></tr>
+      <tr><td><code>pricing-rule.md</code></td><td>CPQ</td><td>Configure condition-based or lookup pricing rule</td></tr>
+      <tr><td><code>approval-chain.md</code></td><td>CPQ</td><td>Set up CPQ native or standard Salesforce approval chain</td></tr>
+      <tr><td><code>create-omniscript.md</code></td><td>OmniStudio</td><td>Design OmniScript with steps, data integration, and export</td></tr>
+      <tr><td><code>build-integration-procedure.md</code></td><td>OmniStudio</td><td>Build Integration Procedure with DataRaptors and error handling</td></tr>
+      <tr><td><code>design-flexcard.md</code></td><td>OmniStudio</td><td>Configure FlexCard data source, layout, and actions</td></tr>
+      <tr><td><code>work-order-setup.md</code></td><td>FSL</td><td>Configure work order lifecycle, skills, and status transitions</td></tr>
+      <tr><td><code>scheduling-policy.md</code></td><td>FSL</td><td>Define scheduling objectives, constraints, and territory assignment</td></tr>
+      <tr><td><code>mobile-configuration.md</code></td><td>FSL</td><td>Configure FSL Mobile page layouts and offline flows</td></tr>
     </tbody>
   </table>
 </section>

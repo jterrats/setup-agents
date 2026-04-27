@@ -29,7 +29,11 @@ export type ProfileId =
   | 'data360'
   | 'admin'
   | 'sfmc'
-  | 'security';
+  | 'security'
+  | 'service'
+  | 'cpq'
+  | 'omnistudio'
+  | 'fsl';
 
 export type Profile = {
   id: ProfileId;

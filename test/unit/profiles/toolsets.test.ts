@@ -36,6 +36,10 @@ describe('PROFILE_TOOLSETS (shared)', () => {
       'admin',
       'sfmc',
       'security',
+      'service',
+      'cpq',
+      'omnistudio',
+      'fsl',
     ];
     expect(Object.keys(PROFILE_TOOLSETS).sort()).to.deep.equal(expected.sort());
   });

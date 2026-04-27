@@ -32,6 +32,10 @@ export { data360Profile } from './data360.js';
 export { adminProfile } from './admin.js';
 export { sfmcProfile } from './sfmc.js';
 export { securityProfile } from './security.js';
+export { serviceProfile } from './service.js';
+export { cpqProfile } from './cpq.js';
+export { omnistudioProfile } from './omnistudio.js';
+export { fslProfile } from './fsl.js';
 
 import { developerProfile } from './developer.js';
 import { architectProfile } from './architect.js';
@@ -48,6 +52,10 @@ import { data360Profile } from './data360.js';
 import { adminProfile } from './admin.js';
 import { sfmcProfile } from './sfmc.js';
 import { securityProfile } from './security.js';
+import { serviceProfile } from './service.js';
+import { cpqProfile } from './cpq.js';
+import { omnistudioProfile } from './omnistudio.js';
+import { fslProfile } from './fsl.js';
 import type { Profile } from './types.js';
 
 export const ALL_PROFILES: Profile[] = [
@@ -66,4 +74,8 @@ export const ALL_PROFILES: Profile[] = [
   adminProfile,
   sfmcProfile,
   securityProfile,
+  serviceProfile,
+  cpqProfile,
+  omnistudioProfile,
+  fslProfile,
 ];

@@ -13,7 +13,11 @@ export type ProfileId =
   | 'data360'
   | 'admin'
   | 'sfmc'
-  | 'security';
+  | 'security'
+  | 'service'
+  | 'cpq'
+  | 'omnistudio'
+  | 'fsl';
 
 export type ProfileDescriptor = {
   id: ProfileId;
@@ -95,7 +99,10 @@ export type UiToHostMessage =
   | { type: 'installPlugin' };
 
 export type HostToUiMessage =
-  | { type: 'bootstrapResult'; payload: { tools: ToolStatus[]; profiles: ProfileDescriptor[]; activeProfiles: ProfileId[] } }
+  | {
+      type: 'bootstrapResult';
+      payload: { tools: ToolStatus[]; profiles: ProfileDescriptor[]; activeProfiles: ProfileId[] };
+    }
   | { type: 'commandOutput'; payload: { stream: 'stdout' | 'stderr'; text: string } }
   | { type: 'commandComplete'; payload: { code: number | null; command: string } }
   | { type: 'rulesResult'; payload: RuleSummary[] }

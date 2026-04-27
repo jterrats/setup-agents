@@ -32,6 +32,10 @@ const PROFILE_TOOLSETS: Record<ProfileId, string[]> = {
   admin: ['metadata', 'data', 'users'],
   sfmc: ['metadata', 'data'],
   security: ['metadata', 'data', 'testing', 'users'],
+  service: ['metadata', 'data', 'users'],
+  cpq: ['metadata', 'data'],
+  omnistudio: ['metadata', 'data'],
+  fsl: ['metadata', 'data', 'users'],
 };
 
 export type McpWriteResult = {

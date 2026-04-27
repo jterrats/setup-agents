@@ -20,6 +20,10 @@ Profiles are **combinable** — select as many as apply to your role on the proj
 | [QA](#-qa--test-automation) | `qa` | `qa-standards.mdc` | `playwright.config.ts/js` |
 | [CRM Analytics](#-crm-analytics-engineer-crma) | `crma` | `analytics-standards.mdc` | `WaveDashboard` / `WaveDataflow` in `package.xml` |
 | [Data Cloud](#-data-cloud-architect--engineer) | `data360` | `data360-standards.mdc` | `DataStream` / `DataModelObject` in `package.xml` |
+| [Admin / Configurator](#-admin--configurator) | `admin` | `admin-standards.mdc` | `force-app/` directory |
+| [Marketing Cloud (SFMC)](#-marketing-cloud-sfmc) | `sfmc` | `sfmc-standards.mdc` | `.ampscript` files / `mc-project.json` |
+| [Commerce Cloud (B2B/B2C)](#-commerce-cloud-b2bb2c) | `commerce` | `commerce-standards.mdc` | `dw.json` / `cartridges/` / B2B metadata |
+| [Security / Compliance](#-security--compliance) | `security` | `security-standards.mdc` | `force-app/` directory |
 
 All profiles inherit the base `salesforce-standards.mdc` when the project contains `sfdx-project.json`.
 
@@ -212,6 +216,171 @@ Covers Salesforce Data Cloud: Data Streams, DMOs, Identity Resolution, Calculate
 - Every segment containing PII requires legal review before activation
 
 **Extensions added:** XML, YAML, REST Client
+
+---
+
+## 🛠️ Admin / Configurator
+
+**Flag:** `--profile admin`
+**Rule file:** `admin-standards.mdc`
+**Auto-detect:** `force-app/` directory present
+
+Covers declarative-first Salesforce configuration: Flows, Validation Rules, Permission Sets, Page Layouts, Record Types, Custom Fields, and Custom Metadata Types.
+
+**Key rules:**
+- No Mega-Flows — break into Sub-flows; one Record-Triggered Flow per object/context
+- Validation rules always include a bypass via `$Permission.Bypass_Validation_Rules`
+- Permission Sets over Profiles, least-privilege always
+- API Names in PascalCase (English); labels in Spanish
+- CMDT for deployable config; Custom Settings only for runtime toggles
+- Process Automation Decision Tree: Flow first, escalate to Apex only when necessary; never use Workflow Rules or Process Builder
+
+**Extensions added:** Salesforce Extension Pack, SFDX Hardis, Package XML Generator, SFCC Metadata, VS Code LWC
+
+---
+
+## 📧 Marketing Cloud (SFMC)
+
+**Flag:** `--profile sfmc`
+**Rule file:** `sfmc-standards.mdc`
+**Auto-detect:** `.ampscript` files or `mc-project.json`
+
+Independent Marketing Cloud ecosystem: AMPscript, SSJS, Journey Builder, Data Extensions, Content Builder, and Automation Studio. Does **not** reference Apex, LWC, or `sfdx-project.json`.
+
+**Key rules:**
+- AMPscript: use `%%[ ]%%` blocks for logic; `%%=AttributeValue()=%%` for personalization
+- SSJS: always wrap in `try/catch`; use `HTTP.Get`/`HTTP.Post` with Named Credentials equivalent (Client Credentials)
+- Journey Builder: one entry source per journey; document decision splits; set re-entry rules explicitly
+- SQL on Data Extensions: filter early, use indexed SendableDE fields, avoid `SELECT *`
+- Content Builder: folder structure mirrors business unit hierarchy
+- Never hardcode subscriber keys or email addresses in templates
+
+**Extensions added:** AMPscript syntax highlighting, MC DevTools
+
+---
+
+## 🛒 Commerce Cloud (B2B/B2C)
+
+**Flag:** `--profile commerce`
+**Rule file:** `commerce-standards.mdc`
+**Auto-detect:** `dw.json` / `cartridges/` (B2C) or `force-app/` with B2B metadata
+
+Covers both Commerce Cloud flavors: B2C (SFRA, ISML, hooks, OCAPI/SCAPI) and B2B (Apex integrations, LWC storefront, buyer groups, checkout flows).
+
+**Key rules — B2C:**
+- SFRA controllers: always extend server module; chain middleware correctly; never modify platform cartridges
+- ISML templates: use `isinclude`/`ismodule`; avoid inline scripts; use `isprint` for escaped output
+- Cartridge layering: overlay via `module.superModule`; one custom cartridge per functional domain
+- OCAPI/SCAPI: always authenticate via Client Credentials; validate responses; handle 429 with backoff
+
+**Key rules — B2B:**
+- `ConnectApi` for checkout flows; `StoreIntegratedService` for external integrations
+- Buyer Groups → Entitlements → Price Books must be set up before any checkout test
+- Custom LWC for storefront must follow SLDS and pass accessibility checks
+
+**Extensions added:** SFCC Studio, Prophet Debugger, Salesforce Extension Pack
+
+---
+
+## 🔒 Security / Compliance
+
+**Flag:** `--profile security`
+**Rule file:** `security-standards.mdc`
+**Auto-detect:** `force-app/` directory present
+
+Focuses on the Salesforce security layer: OWD, sharing rules, FLS, Platform Encryption (Shield), event monitoring, login flows, and OWASP compliance.
+
+**Key rules:**
+- All SOQL in Apex: use `WITH SECURITY_ENFORCED` or `Security.stripInaccessible()` before DML
+- CRUD checks mandatory before every DML operation
+- Named Credentials required for all outbound calls — never hardcode endpoints or tokens
+- Platform Encryption: deterministic for searchable fields; probabilistic for sensitive PII at rest
+- Health Check score target: 90+ before any production release
+- Custom Permissions for feature gates — never check Profile/Permission Set directly in Apex
+- Login Flows for MFA enforcement and SSO step-up
+- OWASP Top 10 for Salesforce: prevent SOQL injection, XSS in Visualforce/LWC, insecure direct object reference
+
+**Extensions added:** Salesforce Extension Pack, SFDX Code Analyzer, Lana
+
+---
+
+## 🎧 Service Cloud
+
+**Flag:** `--profile service`
+**Rule file:** `service-standards.mdc`
+**Auto-detect:** `objects/Case/`, `entitlementProcesses/`, or `bots/` in `force-app/`
+
+Covers case management, entitlements, knowledge, Omni-Channel, and Einstein Bots.
+
+**Key rules:**
+- Case Assignment Rules: criteria-based before round-robin; escalation to queues, not users
+- Entitlement Processes: one process per SLA tier; business hours per region; pause via status transitions
+- Knowledge: record types for article types; 2-level data category hierarchy; approval process for external articles
+- Omni-Channel: queue-based for low volume, skills-based for complex routing; capacity units per channel
+- Einstein Bots: 20+ training utterances per intent; pre-populate case fields before agent handoff
+- Messaging: WhatsApp requires explicit opt-in consent; track `MessagingConsentStatus` on Contact
+
+**Extensions added:** Salesforce Extension Pack
+
+---
+
+## 💼 CPQ Specialist
+
+**Flag:** `--profile cpq`
+**Rule file:** `cpq-standards.mdc`
+**Auto-detect:** `SBQQ__Quote__c` object directory or `SBQQ__*.object-meta.xml` files
+
+Quote-to-cash configuration: product bundles, pricing rules, discount schedules, and approval chains.
+
+**Key rules:**
+- Standard Price Book as canonical list price reference — never encode discounts into list prices
+- Discount Schedules and Price Rules handle all pricing modifications
+- Bundle options support dependency/exclusion constraints — document all constraints
+- Price Rule evaluation order (0–10) is critical — document intended sequence
+- CPQ Apex Plugins (`SBQQ.QuoteCalculatorPlugin`) for custom price logic — use sparingly
+- Coexistence with Kevin O'Hara trigger handler: document any CPQ managed trigger overlap
+
+**Extensions added:** Salesforce Extension Pack
+
+---
+
+## 🏗️ OmniStudio / Vlocity
+
+**Flag:** `--profile omnistudio`
+**Rule file:** `omnistudio-standards.mdc`
+**Auto-detect:** `force-app/main/default/omniScripts/` or `force-app/main/default/flexCards/`
+
+FlexCards, DataRaptors, Integration Procedures, OmniScripts, and Decision Matrices.
+
+**Key rules:**
+- OmniScript naming: `<Object>/<Action>` (e.g., `Account/CreateAccount`); max 7 steps visible per screen
+- DataRaptor naming: `DR_<Object>_<Action>`; use Turbo Extract for high-frequency reads
+- Integration Procedure naming: `IP_<Domain>_<Action>`; one IP per business capability; log errors to Debug element
+- FlexCard naming: `FC_<Object>_<Purpose>`; data source selected before layout design
+- Avoid SOQL inside OmniScript Remote Actions in loops — cache with Set Values
+- All assets must be source-controlled via OmniStudio export JSON — never rely solely on UI deployment
+
+**Extensions added:** Salesforce Extension Pack
+
+---
+
+## 🔧 Field Service (FSL)
+
+**Flag:** `--profile fsl`
+**Rule file:** `fsl-standards.mdc`
+**Auto-detect:** `objects/ServiceAppointment/` or `objects/WorkOrder/` in `force-app/`
+
+Work order lifecycle, service appointments, scheduling policies, territory management, and mobile configuration.
+
+**Key rules:**
+- Work Order stages via Flow (not triggers) when declarative suffices; SLA tracking via milestones
+- Scheduling Policies: document soft vs. hard constraints and objective weights
+- Service Territory hierarchy: root → parent → child; operating hours per territory
+- Mobile page layouts must include all required fields for offline form submission
+- Maintenance Plans: use preventive maintenance templates for recurring work orders; document recurrence patterns
+- Dispatcher Console: configure Gantt for visibility; monitor resource utilization and queue depth
+
+**Extensions added:** Salesforce Extension Pack
 
 ---
 

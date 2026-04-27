@@ -91,6 +91,30 @@ export const ALL_PROFILES: ProfileDescriptor[] = [
     ruleFile: 'security-standards.mdc',
     description: 'Security, FLS, encryption, and compliance profile.',
   },
+  {
+    id: 'service',
+    label: 'Service Cloud',
+    ruleFile: 'service-standards.mdc',
+    description: 'Case management, entitlements, knowledge, omnichannel, and Einstein Bots profile.',
+  },
+  {
+    id: 'cpq',
+    label: 'CPQ Specialist',
+    ruleFile: 'cpq-standards.mdc',
+    description: 'Quote-to-cash, product bundles, pricing rules, and approval workflows profile.',
+  },
+  {
+    id: 'omnistudio',
+    label: 'OmniStudio / Vlocity',
+    ruleFile: 'omnistudio-standards.mdc',
+    description: 'FlexCards, DataRaptors, Integration Procedures, and OmniScripts profile.',
+  },
+  {
+    id: 'fsl',
+    label: 'Field Service (FSL)',
+    ruleFile: 'fsl-standards.mdc',
+    description: 'Scheduling, work orders, mobile, and territory management profile.',
+  },
 ];
 
 export const GENERATED_RULE_DIRS = ['.cursor/rules', '.a4drules', '.a4drules/workflows'];
@@ -132,9 +156,7 @@ export const MCP_INTEGRATIONS: McpIntegrationDescriptor[] = [
     id: 'github',
     label: 'GitHub',
     profiles: ['developer', 'architect', 'devops', 'qa', 'pm'],
-    envVars: [
-      { name: 'GITHUB_PERSONAL_ACCESS_TOKEN', label: 'Personal Access Token', secret: true },
-    ],
+    envVars: [{ name: 'GITHUB_PERSONAL_ACCESS_TOKEN', label: 'Personal Access Token', secret: true }],
     transport: 'stdio',
     command: 'npx',
     args: ['-y', '@modelcontextprotocol/server-github'],
