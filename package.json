@@ -5,7 +5,7 @@
   "author": "Jaime Terrats <jaime.terrats@gmail.com>",
   "bugs": "https://github.com/jterrats/setup-agents/issues",
   "dependencies": {
-    "@inquirer/prompts": "^8.3.2",
+    "@inquirer/prompts": "^8.4.2",
     "@oclif/core": "^4",
     "@salesforce/core": "^8.27.1",
     "@salesforce/kit": "^3.2.6",
