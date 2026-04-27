@@ -32,6 +32,7 @@ import type { SetupLocalResult, SupportedTool } from '../../types/index.js';
 import { SUPPORTED_TOOLS } from '../../types/index.js';
 import { detectTools, resolveProfiles } from '../../util/command-helpers.js';
 import { getSharedSkillAssets } from '../../generators/skill-generator.js';
+import { generateSalesforcePlaywrightUtils } from '../../generators/salesforce-playwright-generator.js';
 
 Messages.importMessagesDirectoryFromMetaUrl(import.meta.url);
 const messages = Messages.loadMessages('@jterrats/setup-agents', 'setup-agents.local');
@@ -90,6 +91,7 @@ export default class Local extends SfCommand<SetupLocalResult> {
     }
 
     writeSharedSkillAssets(cwd, profiles, writer);
+    writeSalesforcePlaywrightUtils(cwd, profiles, writer);
 
     if (usedDefault) this.warn(messages.getMessage('warn.profileDefault'));
 
@@ -98,7 +100,13 @@ export default class Local extends SfCommand<SetupLocalResult> {
   }
 }
 
-type SetupContext = { cwd: string; profiles: Profile[]; writer: FileWriter; isSalesforceProject: boolean; log: (m: string) => void };
+type SetupContext = {
+  cwd: string;
+  profiles: Profile[];
+  writer: FileWriter;
+  isSalesforceProject: boolean;
+  log: (m: string) => void;
+};
 
 const TOOL_HANDLERS: Record<SupportedTool, (ctx: SetupContext) => void | Promise<void>> = {
   cursor: (ctx) => setupCursor({ ...ctx, promptScope: () => promptCursorScope(messages), logInfo: ctx.log }),
@@ -121,6 +129,16 @@ async function promptCursorScope(msgs: AnyMessages): Promise<'project' | 'user'>
       { value: 'user', name: msgs.getMessage('prompt.cursorRuleScopeUser') },
     ],
   });
+}
+
+function writeSalesforcePlaywrightUtils(cwd: string, profiles: Profile[], writer: FileWriter): void {
+  if (!profiles.some((p) => p.id === 'qa')) return;
+  const utils = generateSalesforcePlaywrightUtils();
+  for (const [relativePath, content] of Object.entries(utils)) {
+    const fullPath = join(cwd, relativePath);
+    ensureDir(join(fullPath, '..'));
+    writer.write(fullPath, content);
+  }
 }
 
 function writeSharedSkillAssets(cwd: string, profiles: Profile[], writer: FileWriter): void {

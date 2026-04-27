@@ -169,8 +169,12 @@ describe('workflow-generator', () => {
   });
 
   describe('generateQaWorkflows()', () => {
-    it('returns run-playwright and generate-test-report files', () => {
-      expect(generateQaWorkflows(VERSION)).to.have.keys(['run-playwright.md', 'generate-test-report.md']);
+    it('returns session-from-cli, run-playwright and generate-test-report files', () => {
+      expect(generateQaWorkflows(VERSION)).to.have.keys([
+        'session-from-cli.md',
+        'run-playwright.md',
+        'generate-test-report.md',
+      ]);
     });
 
     it('playwright workflow references npx playwright test', () => {
