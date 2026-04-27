@@ -2,12 +2,12 @@
 layout: default
 title: Profiles
 permalink: /profiles/
-description: Eleven combinable role profiles for Salesforce development — Developer, Architect, BA, PM, MuleSoft, UX, CGCloud, DevOps, QA, CRMA, and Data Cloud.
+description: Twenty-two combinable role profiles for Salesforce development — Developer, Architect, BA, PM, MuleSoft, UX, CGCloud, DevOps, QA, CRMA, Data Cloud, Admin, SFMC, Commerce, Security, Service, CPQ, OmniStudio, FSL, AI/Agentforce, Slack, and Tableau.
 ---
 
 <header>
   <h1>Role Profiles</h1>
-  <p class="tagline">Nineteen combinable profiles, each tailored to a specific Salesforce role.</p>
+  <p class="tagline">Twenty-two combinable profiles, each tailored to a specific Salesforce role.</p>
 </header>
 
 <!-- Intro -->
@@ -153,6 +153,24 @@ sf setup-agents local --profile developer,architect,cgcloud,qa</code></pre>
         <td><code>fsl-standards.mdc</code></td>
         <td><code>objects/ServiceAppointment/</code> · <code>objects/WorkOrder/</code></td>
       </tr>
+      <tr>
+        <td><strong>AI / Agentforce Specialist</strong></td>
+        <td><code>ai</code></td>
+        <td><code>ai-standards.mdc</code></td>
+        <td><code>bots/</code> · <code>aiApplications/</code></td>
+      </tr>
+      <tr>
+        <td><strong>Slack Developer (Bolt.js)</strong></td>
+        <td><code>slack</code></td>
+        <td><code>slack-standards.mdc</code></td>
+        <td><code>slack.json</code> · <code>manifest.json</code></td>
+      </tr>
+      <tr>
+        <td><strong>Tableau / Analytics Cloud</strong></td>
+        <td><code>tableau</code></td>
+        <td><code>tableau-standards.mdc</code></td>
+        <td><code>datasources/</code> · <code>workbooks/</code> · <code>tableau-project.json</code></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -228,6 +246,18 @@ sf setup-agents local --profile developer,architect,cgcloud,qa</code></pre>
     <div class="feature-card">
       <h4>Field Service (FSL)</h4>
       <p>Work order lifecycle, service appointment scheduling, soft/hard constraint policies, territory &amp; resource management, mobile page layouts, maintenance plans, Dispatcher Console configuration.</p>
+    </div>
+    <div class="feature-card">
+      <h4>AI / Agentforce Specialist</h4>
+      <p>Agentforce agent design, bot topic &amp; action mapping, Einstein AI policy, prompt template standards, agent testing strategy, and integration with Data Cloud for grounding.</p>
+    </div>
+    <div class="feature-card">
+      <h4>Slack Developer (Bolt.js)</h4>
+      <p>Bolt.js app structure, <code>ack()</code> within 3 seconds, request signature verification, slash commands, modals, Block Kit composition, and Salesforce integration patterns.</p>
+    </div>
+    <div class="feature-card">
+      <h4>Tableau / Analytics Cloud</h4>
+      <p>Data source strategy (live vs extract), LOD expressions, dashboard performance, row-level security via User Attribute Functions, CRM Analytics recipes, and Tableau Embedding API v3.</p>
     </div>
   </div>
 </section>
@@ -312,6 +342,15 @@ sf setup-agents local --profile developer,architect,cgcloud,qa</code></pre>
       <tr><td><code>work-order-setup.md</code></td><td>FSL</td><td>Configure work order lifecycle, skills, and status transitions</td></tr>
       <tr><td><code>scheduling-policy.md</code></td><td>FSL</td><td>Define scheduling objectives, constraints, and territory assignment</td></tr>
       <tr><td><code>mobile-configuration.md</code></td><td>FSL</td><td>Configure FSL Mobile page layouts and offline flows</td></tr>
+      <tr><td><code>create-agent.md</code></td><td>AI / Agentforce</td><td>Design Agentforce agent with topics, actions, and grounding</td></tr>
+      <tr><td><code>test-agent.md</code></td><td>AI / Agentforce</td><td>Test agent with scenario-based evaluation and coverage</td></tr>
+      <tr><td><code>deploy-agent.md</code></td><td>AI / Agentforce</td><td>Deploy agent to production with activation checklist</td></tr>
+      <tr><td><code>create-bolt-app.md</code></td><td>Slack</td><td>Scaffold Bolt.js app with event listeners and middleware</td></tr>
+      <tr><td><code>add-slash-command.md</code></td><td>Slack</td><td>Add slash command with modal response and Salesforce integration</td></tr>
+      <tr><td><code>deploy-slack-app.md</code></td><td>Slack</td><td>Deploy Slack app to production with manifest validation</td></tr>
+      <tr><td><code>connect-salesforce-data.md</code></td><td>Tableau</td><td>Connect Tableau to Salesforce via live connection or extract</td></tr>
+      <tr><td><code>publish-workbook.md</code></td><td>Tableau</td><td>Publish workbook to Tableau Server / Tableau Cloud with permissions</td></tr>
+      <tr><td><code>embed-analytics.md</code></td><td>Tableau</td><td>Embed Tableau view in Salesforce using Embedding API v3</td></tr>
     </tbody>
   </table>
 </section>

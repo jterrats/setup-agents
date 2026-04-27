@@ -13,7 +13,7 @@ description: Salesforce CLI plugin to configure AI agent rules and role profiles
   <div class="badges">
     <img src="https://img.shields.io/npm/v/@jterrats/setup-agents.svg?logo=npm&label=version" alt="Version" style="height:20px" />
     <img src="https://img.shields.io/github/actions/workflow/status/jterrats/setup-agents/test.yml?branch=main&label=CI&logo=github" alt="CI" style="height:20px" />
-    <img src="https://img.shields.io/badge/tests-252%20passing-success.svg" alt="Tests" style="height:20px" />
+    <img src="https://img.shields.io/badge/tests-688%20passing-success.svg" alt="Tests" style="height:20px" />
     <img src="https://img.shields.io/npm/l/@jterrats/setup-agents.svg?color=blue" alt="License" style="height:20px" />
     <img src="https://img.shields.io/node/v/@jterrats/setup-agents.svg?logo=node.js" alt="Node.js" style="height:20px" />
   </div>
@@ -22,7 +22,7 @@ description: Salesforce CLI plugin to configure AI agent rules and role profiles
 
 <!-- Hero description -->
 <section class="hero-section" style="margin-top:0">
-  <h2>🤖 One command. {{ site.data.tools | size }} AI tools. Ten role profiles.</h2>
+  <h2>🤖 One command. {{ site.data.tools | size }} AI tools. Twenty-two role profiles.</h2>
   <p style="font-size:1.15rem; line-height:1.8; color:#333; margin-bottom:1.5rem">
     <strong>setup-agents</strong> configures
     {% for tool in site.data.tools %}<a href="{{ tool.url }}" style="color:#667eea">{{ tool.label | default: tool.name }}</a>{% if forloop.rindex == 2 %}, and {% elsif forloop.last == false %}, {% endif %}{% endfor %}
@@ -40,7 +40,7 @@ sf setup-agents local</code></pre>
   <div class="status-grid">
     <div class="status-item status-pass">
       <h4>Unit Tests</h4>
-      <div class="number">225</div>
+      <div class="number">688</div>
       <p style="font-size:0.85rem;color:#999;margin-top:0.3rem">Passing</p>
     </div>
     <div class="status-item status-pass">
