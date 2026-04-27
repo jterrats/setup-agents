@@ -284,7 +284,7 @@ function renderPdfScript(): string {
     'echo "Rendering $INPUT -> $OUTPUT ..."',
     '',
     '# shellcheck disable=SC2086',
-    'npx -y @mermaid-js/mermaid-cli mmdc \\',
+    'npx -y @mermaid-js/mermaid-cli \\',
     '  -i "$INPUT" \\',
     '  -o "$OUTPUT" \\',
     '  $CSS_FLAG \\',

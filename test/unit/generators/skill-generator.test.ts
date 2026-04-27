@@ -83,9 +83,9 @@ describe('skill-generator', () => {
       expect(script).to.include('Node.js >= 18');
     });
 
-    it('render-pdf.sh calls mermaid-cli mmdc', () => {
+    it('render-pdf.sh calls mermaid-cli directly via npx', () => {
       const script = generateStoryMappingSkill()['scripts/render-pdf.sh'];
-      expect(script).to.include('@mermaid-js/mermaid-cli mmdc');
+      expect(script).to.include('npx -y @mermaid-js/mermaid-cli');
     });
 
     it('render-pdf.sh validates for error patterns in log and output', () => {
