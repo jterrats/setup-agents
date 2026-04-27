@@ -11,6 +11,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.0] - 2026-04-27
+
+### ✨ Added
+
+- **8 new role profiles** — completing the full profile matrix:
+  - Tier 2: `service` (Service Cloud), `cpq` (CPQ Specialist), `omnistudio` (OmniStudio/Vlocity), `fsl` (Field Service)
+  - Tier 3: `ai` (AI/Agentforce Specialist), `slack` (Slack Developer Bolt.js), `tableau` (Tableau/Analytics Cloud)
+  - QA scaffold: `src/utils/salesforce-auth.ts` + `src/utils/salesforce-api.ts` generated when running `--profile qa`
+- **Salesforce Playwright utilities scaffold** — `sf setup-agents local --profile qa` now writes two utility files into the user's project:
+  - `salesforce-auth.ts`: `getSalesforceOrgInfo()`, `navigateWithCLISession()`, `useSalesforceCLISession()` via `execFileSync` (no shell interpolation, no DOM cookies)
+  - `salesforce-api.ts`: `executeSoqlQuery()`, `createRecord()`, `updateRecord()`, `deleteRecord()` (Bearer token from SF CLI)
+- **`session-from-cli.md` workflow** — QA profile gains a new workflow covering 3 authentication patterns (navigation, context-only, fixture) and CI/CD env var usage
+- **78 new unit tests** — profile detect/ruleContent/workflows coverage for all 8 new profiles + generator tests
+
+### 📝 Documentation
+
+- `docs/user-guide/profiles.md` — updated profile count to 22, added table rows and detail sections for all 8 new profiles
+
+---
+
 ## [0.2.0] - 2026-03-25
 
 ### ✨ Added
