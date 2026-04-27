@@ -11,6 +11,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.0] - 2026-04-27
+
+### 🐛 Fixed
+
+- **mermaid-cli invocation** — removed spurious `mmdc` subcommand from all generated render scripts (`render-pdf.sh`, `export-diagram.sh`). `npx -y @mermaid-js/mermaid-cli` runs the binary directly; passing `mmdc` as an argument caused a runtime error reported in production.
+- **Puppeteer browser path** — `render-pdf.sh` and `export-diagram.sh` now auto-detect `PUPPETEER_EXECUTABLE_PATH` from `~/.cache/puppeteer` before invoking `npx`. Without this, `mermaid-cli` failed with _"Failed to launch the browser process!"_ because `npx` runs in an isolated cache with no access to the system Puppeteer browser.
+
+### ✨ Added (VS Code Extension)
+
+- **Custom MCP Server form** — sidebar UI now lets users register arbitrary third-party MCP servers (stdio or HTTP transport) with name, command/args/env vars, or URL.
+- **Dynamic CLI detection banners** — removed static HTML banner elements; banners are now created by JS at detection time, eliminating flash-of-unstyled content and timing issues.
+- **Spinner during CLI check** — loading state shown while `sf` binary is resolved on activation.
+- **Shell PATH fallback chain** — extension resolves `sf` via `-lc` → `-ilc` → known install paths (npm-global, Homebrew, volta) to handle stripped `PATH` environments.
+- **MCP org detection by args** — `readConfiguredServers` now inspects the `--orgs` argument in any mcp.json entry rather than requiring a specific key naming convention.
+
+### 📝 Documentation
+
+- Updated profile counts and added missing AI, Slack, Tableau, and Project Manager entries across `docs/index.html` and `docs/profiles.html`.
+
+---
+
 ## [1.3.0] - 2026-04-27
 
 ### ✨ Added
