@@ -85,6 +85,16 @@ export type ConfigureIntegrationsRequest = {
   global: boolean;
 };
 
+export type AddCustomIntegrationRequest = {
+  name: string;
+  transport: 'stdio' | 'http';
+  command?: string;
+  args?: string[];
+  env?: Record<string, string>;
+  url?: string;
+  global: boolean;
+};
+
 export type UiToHostMessage =
   | { type: 'bootstrap' }
   | { type: 'runLocal'; payload: RunLocalRequest }
@@ -97,6 +107,7 @@ export type UiToHostMessage =
   | { type: 'loginOrg'; payload: { alias: string } }
   | { type: 'configureMcp'; payload: ConfigureMcpRequest }
   | { type: 'configureIntegrations'; payload: ConfigureIntegrationsRequest }
+  | { type: 'addCustomIntegration'; payload: AddCustomIntegrationRequest }
   | { type: 'checkForUpdates' }
   | { type: 'runUpdate' }
   | { type: 'installPlugin' };
@@ -116,6 +127,7 @@ export type HostToUiMessage =
   | { type: 'orgLoginResult'; payload: { success: boolean; alias: string } }
   | { type: 'mcpConfigured'; payload: { mcpFile: string; serversAdded: string[] } }
   | { type: 'integrationsConfigured'; payload: { serversAdded: string[] } }
+  | { type: 'customIntegrationAdded'; payload: { serverName: string } }
   | { type: 'updateCheckResult'; payload: { staleFiles: string[] } }
   | { type: 'updateComplete'; payload: { updated: string[] } }
   | { type: 'pluginStatus'; payload: { installed: boolean; installing?: boolean; sfCliMissing?: boolean } }

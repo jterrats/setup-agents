@@ -140,6 +140,29 @@ function buildFullDemoHtml(): string {
       <button id="integrationsConfigureBtn" disabled>Connect Integrations</button>
     </div>
     <div id="integrationsResult" style="display:none"></div>
+    <hr />
+    <h4 style="margin:0 0 4px">Custom MCP Server</h4>
+    <p class="muted" style="font-size:0.8em;margin:0 0 6px">Add any MCP server not listed above.</p>
+    <div class="row">
+      <input id="customMcpName" type="text" placeholder="Server name (e.g. my-tool)" style="flex:1;min-width:120px" />
+      <select id="customMcpTransport"><option value="stdio">stdio</option><option value="http">http</option></select>
+    </div>
+    <div id="customMcpStdioFields">
+      <div class="row">
+        <input id="customMcpCommand" type="text" placeholder="Command (e.g. npx)" style="flex:1;min-width:120px" />
+        <input id="customMcpArgs" type="text" placeholder="Args (space-separated)" style="flex:2;min-width:160px" />
+      </div>
+      <div id="customMcpEnvRows"></div>
+      <div class="row"><button id="customMcpAddEnvBtn" style="font-size:0.8em">+ Env var</button></div>
+    </div>
+    <div id="customMcpHttpFields" style="display:none">
+      <div class="row"><input id="customMcpUrl" type="text" placeholder="Server URL" style="flex:1" /></div>
+    </div>
+    <div class="row">
+      <label><input type="checkbox" id="customMcpGlobal" /> <span class="tooltip-label">Apply to all projects</span></label>
+      <button id="customMcpAddBtn">Add Server</button>
+    </div>
+    <div id="customMcpResult" style="display:none"></div>
   </div>
 
   <script>
@@ -347,6 +370,16 @@ test.describe('Demo Recording — Full Extension Walkthrough', () => {
 
     await pause(page, 1200);
 
+    // Scroll to custom MCP server section and demo it
+    await page.locator('#customMcpAddBtn').scrollIntoViewIfNeeded();
+    await pause(page, 600);
+    await page.locator('#customMcpName').fill('my-custom-tool');
+    await pause(page, 400);
+    await page.locator('#customMcpCommand').fill('npx');
+    await pause(page, 300);
+    await page.locator('#customMcpArgs').fill('-y my-custom-mcp-server');
+    await pause(page, 600);
+
     // Verify end state
     await expect(page.locator('#mcpResult')).toBeVisible();
     await expect(page.locator('#mcpResult')).toContainText('MCP configured');
@@ -381,15 +414,15 @@ test.describe('Demo Recording — Full Extension Walkthrough', () => {
 </head>
 <body>
   <div class="header"><strong style="font-size:1.1em">⚙️ Setup Agents UI</strong></div>
-  <div class="banner-error" id="sfCliBanner">
+  <div class="banner-error" id="cliBannerCliMissing">
     <strong>Salesforce CLI Not Found</strong>
     <p class="muted" style="margin:4px 0">The Salesforce CLI (<code>sf</code>) must be installed before using this extension.</p>
-    <p class="muted" style="margin:4px 0;font-size:0.82em">Install it from <strong>https://developer.salesforce.com/tools/salesforcecli</strong> or run: <code>npm install -g @salesforce/cli</code></p>
-    <button id="sfCliRetryBtn">Retry Detection</button>
+    <p class="muted" style="margin:4px 0;font-size:0.82em">Install from <strong>https://developer.salesforce.com/tools/salesforcecli</strong> or run: <code>npm install -g @salesforce/cli</code></p>
+    <button id="sfCliRetryBtn" style="margin-top:6px">Retry Detection</button>
   </div>
 </body>
 </html>`);
     await pause(page, 3000);
-    await expect(page.locator('#sfCliBanner')).toBeVisible();
+    await expect(page.locator('#cliBannerCliMissing')).toBeVisible();
   });
 });

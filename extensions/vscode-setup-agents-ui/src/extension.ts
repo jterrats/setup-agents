@@ -5,7 +5,7 @@ import { CliService } from './services/cliService';
 import { McpConfigService } from './services/mcpConfigService';
 import { OrgService } from './services/orgService';
 import { RuleManagementService } from './services/ruleManagementService';
-import type { HostToUiMessage, ProfileId, ToolStatus, UiToHostMessage } from './types';
+import type { AddCustomIntegrationRequest, HostToUiMessage, ProfileId, ToolStatus, UiToHostMessage } from './types';
 import { getHtml } from './webview/getHtml';
 
 const PLUGIN_INSTALL_TIMEOUT = 120_000;
@@ -40,8 +40,11 @@ class SetupAgentsViewProvider implements vscode.WebviewViewProvider {
   private readonly mcpService = new McpConfigService();
   private readonly ruleService = new RuleManagementService();
   private readonly handlers: Record<string, MessageHandler>;
+  private readonly log: vscode.OutputChannel;
 
   public constructor(private readonly context: vscode.ExtensionContext) {
+    this.log = vscode.window.createOutputChannel('Setup Agents');
+    context.subscriptions.push(this.log);
     this.handlers = {
       bootstrap: () => this.handleBootstrap(),
       runLocal: (m) => this.handleRunLocal(m as Extract<UiToHostMessage, { type: 'runLocal' }>),
@@ -53,7 +56,10 @@ class SetupAgentsViewProvider implements vscode.WebviewViewProvider {
       listOrgs: () => this.handleListOrgs(),
       loginOrg: (m) => this.handleLoginOrg(m as Extract<UiToHostMessage, { type: 'loginOrg' }>),
       configureMcp: (m) => this.handleConfigureMcp(m as Extract<UiToHostMessage, { type: 'configureMcp' }>),
-      configureIntegrations: (m) => this.handleConfigureIntegrations(m as Extract<UiToHostMessage, { type: 'configureIntegrations' }>),
+      configureIntegrations: (m) =>
+        this.handleConfigureIntegrations(m as Extract<UiToHostMessage, { type: 'configureIntegrations' }>),
+      addCustomIntegration: (m) =>
+        this.handleAddCustomIntegration(m as Extract<UiToHostMessage, { type: 'addCustomIntegration' }>),
       checkForUpdates: () => this.handleCheckForUpdates(),
       installPlugin: () => this.handleInstallPlugin(),
       runUpdate: () => this.handleRunUpdate(),
@@ -93,11 +99,18 @@ class SetupAgentsViewProvider implements vscode.WebviewViewProvider {
   // ─── Individual handlers ──────────────────────────────────────────────────
 
   private async handleBootstrap(): Promise<void> {
+    this.log.appendLine(
+      `[bootstrap] starting — platform: ${process.platform}, SHELL: ${process.env.SHELL ?? 'undefined'}, PATH: ${
+        process.env.PATH ?? 'undefined'
+      }`
+    );
     const sfCliInstalled = await this.isSfCliInstalled();
+    this.log.appendLine(`[bootstrap] SF CLI detected: ${sfCliInstalled}`);
     if (!sfCliInstalled) {
       this.post({ type: 'pluginStatus', payload: { installed: false, sfCliMissing: true } });
     } else {
       const pluginInstalled = await this.isPluginInstalled();
+      this.log.appendLine(`[bootstrap] plugin (@jterrats/setup-agents) detected: ${pluginInstalled}`);
       this.post({ type: 'pluginStatus', payload: { installed: pluginInstalled } });
     }
     const activeProfiles = await this.detectActiveProfiles();
@@ -182,7 +195,10 @@ class SetupAgentsViewProvider implements vscode.WebviewViewProvider {
     const ws = this.requireWorkspacePath();
     const npx = this.orgService.resolveNpxCommand();
     if (!npx) {
-      this.post({ type: 'operationError', payload: { message: 'npx not found. Install Node.js and ensure npx is in PATH.' } });
+      this.post({
+        type: 'operationError',
+        payload: { message: 'npx not found. Install Node.js and ensure npx is in PATH.' },
+      });
       return;
     }
     const toolsets = this.mcpService.resolveToolsets(message.payload.profiles, message.payload.allToolsets);
@@ -190,9 +206,14 @@ class SetupAgentsViewProvider implements vscode.WebviewViewProvider {
     this.post({ type: 'mcpConfigured', payload: result });
   }
 
-  private async handleConfigureIntegrations(message: Extract<UiToHostMessage, { type: 'configureIntegrations' }>): Promise<void> {
+  private async handleConfigureIntegrations(
+    message: Extract<UiToHostMessage, { type: 'configureIntegrations' }>
+  ): Promise<void> {
     const ws = this.requireWorkspacePath();
-    const entries: Record<string, { command?: string; args?: string[]; env?: Record<string, string>; url?: string; type?: string }> = {};
+    const entries: Record<
+      string,
+      { command?: string; args?: string[]; env?: Record<string, string>; url?: string; type?: string }
+    > = {};
     for (const id of message.payload.ids) {
       const integration = MCP_INTEGRATIONS.find((i) => i.id === id);
       if (!integration) continue;
@@ -203,11 +224,30 @@ class SetupAgentsViewProvider implements vscode.WebviewViewProvider {
         for (const spec of integration.envVars) {
           env[spec.name] = message.payload.credentials[id]?.[spec.name] ?? '';
         }
-        entries[id] = { command: integration.command, args: [...(integration.args ?? [])], env, type: 'stdio' };
+        entries[id] = { command: integration.command, args: [...(integration.args ?? [])], env };
       }
     }
     const intResult = this.mcpService.writeIntegrationConfig(entries, message.payload.global, ws);
     this.post({ type: 'integrationsConfigured', payload: { serversAdded: intResult.serversAdded } });
+  }
+
+  private async handleAddCustomIntegration(
+    message: Extract<UiToHostMessage, { type: 'addCustomIntegration' }>
+  ): Promise<void> {
+    const ws = this.requireWorkspacePath();
+    const {
+      name,
+      transport,
+      command,
+      args,
+      env,
+      url,
+      global: isGlobal,
+    } = message.payload as AddCustomIntegrationRequest;
+    const entry =
+      transport === 'http' ? { url: url ?? '' } : { command: command ?? '', args: args ?? [], env: env ?? {} };
+    this.mcpService.writeIntegrationConfig({ [name]: entry }, isGlobal, ws);
+    this.post({ type: 'customIntegrationAdded', payload: { serverName: name } });
   }
 
   private async handleCheckForUpdates(): Promise<void> {
@@ -304,18 +344,90 @@ class SetupAgentsViewProvider implements vscode.WebviewViewProvider {
   }
 
   private async isSfCliInstalled(): Promise<boolean> {
-    return new Promise((resolve) => {
-      execFile('sf', ['--version'], { timeout: PLUGIN_CHECK_TIMEOUT }, (err) => {
-        resolve(!err);
-      });
-    });
+    return this.tryExecSf(['--version']);
   }
 
   private async isPluginInstalled(): Promise<boolean> {
+    return this.tryExecSf(['setup-agents', '--help']);
+  }
+
+  private tryExecSf(args: string[]): Promise<boolean> {
+    // VS Code launched from Dock/Spotlight (macOS/Linux) or Start Menu (Windows)
+    // runs with a minimal PATH that skips shell init files. We resolve the full
+    // path to sf via the user's shell before running it.
     return new Promise((resolve) => {
-      execFile('sf', ['setup-agents', '--help'], { timeout: PLUGIN_CHECK_TIMEOUT }, (err) => {
-        resolve(!err);
-      });
+      this.resolveSfPath()
+        .then((sfPath) => {
+          execFile(sfPath ?? 'sf', args, { timeout: PLUGIN_CHECK_TIMEOUT }, (e) => resolve(!e));
+        })
+        .catch(() => {
+          execFile('sf', args, { timeout: PLUGIN_CHECK_TIMEOUT }, (e) => resolve(!e));
+        });
+    });
+  }
+
+  private resolveSfPath(): Promise<string | null> {
+    return new Promise((resolve) => {
+      if (process.platform === 'win32') {
+        execFile('cmd.exe', ['/c', 'where sf'], { timeout: 5_000 }, (err, stdout, stderr) => {
+          const first = stdout.trim().split('\r\n')[0].trim();
+          this.log.appendLine(`[resolveSfPath] win32 where sf → "${first}" err: ${err?.message ?? 'none'}`);
+          resolve(!err && first ? first : null);
+        });
+        return;
+      }
+
+      const shell = process.env.SHELL ?? '/bin/zsh';
+      // Try login shell first (-lc sources .zprofile/.profile), then interactive-login (-ilc sources .zshrc too).
+      // stdout may contain noise from startup scripts so we extract only the first absolute path line.
+      const tryShell = (flags: string, next: () => void) => {
+        execFile(shell, [flags, 'command -v sf'], { timeout: 5_000 }, (err, stdout, stderr) => {
+          const sfPath =
+            stdout
+              .split('\n')
+              .map((l) => l.trim())
+              .find((l) => l.startsWith('/')) ?? '';
+          this.log.appendLine(
+            `[resolveSfPath] ${shell} ${flags} command -v sf → "${sfPath}" err: ${
+              err?.message ?? 'none'
+            } stderr: "${stderr.trim().slice(0, 120)}"`
+          );
+          if (!err && sfPath) {
+            resolve(sfPath);
+            return;
+          }
+          next();
+        });
+      };
+
+      tryShell('-lc', () =>
+        tryShell('-ilc', () => {
+          // Fallback: probe common install locations directly
+          const home = process.env.HOME ?? '';
+          const candidates = [
+            `${home}/.npm-global/bin/sf`,
+            `${home}/.local/share/sf/bin/sf`,
+            `${home}/.volta/bin/sf`,
+            '/usr/local/bin/sf',
+            '/opt/homebrew/bin/sf',
+          ].filter(Boolean);
+          this.log.appendLine(`[resolveSfPath] shell lookup failed — probing ${candidates.length} fallback paths`);
+          const tryNext = (i: number): void => {
+            if (i >= candidates.length) {
+              resolve(null);
+              return;
+            }
+            const p = candidates[i];
+            execFile(p, ['--version'], { timeout: 3_000 }, (e) => {
+              if (!e) {
+                this.log.appendLine(`[resolveSfPath] fallback hit: ${p}`);
+                resolve(p);
+              } else tryNext(i + 1);
+            });
+          };
+          tryNext(0);
+        })
+      );
     });
   }
 

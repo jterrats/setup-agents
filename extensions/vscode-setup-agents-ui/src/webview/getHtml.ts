@@ -1,7 +1,11 @@
 import * as vscode from 'vscode';
 import type { McpIntegrationDescriptor } from '../types';
 
-export function getHtml(webview: vscode.Webview, extensionUri: vscode.Uri, integrations: McpIntegrationDescriptor[]): string {
+export function getHtml(
+  webview: vscode.Webview,
+  extensionUri: vscode.Uri,
+  integrations: McpIntegrationDescriptor[]
+): string {
   const nonce = createNonce();
   const csp = [
     "default-src 'none'",
@@ -41,19 +45,12 @@ export function getHtml(webview: vscode.Webview, extensionUri: vscode.Uri, integ
     <strong>Setup Agents UI</strong>
   </div>
 
-  <div class="banner-error" id="sfCliBanner" style="display:none">
-    <strong>Salesforce CLI Not Found</strong>
-    <p class="muted" style="margin:4px 0">The Salesforce CLI (<code>sf</code>) must be installed before using this extension.</p>
-    <p class="muted" style="margin:4px 0;font-size:0.82em">Install it from <strong>https://developer.salesforce.com/tools/salesforcecli</strong> or run: <code>npm install -g @salesforce/cli</code></p>
-    <button id="sfCliRetryBtn">Retry Detection</button>
+  <div class="banner-checking" id="cliCheckBanner">
+    <span class="spinner"></span>
+    <span>Checking Salesforce CLI&hellip;</span>
   </div>
 
-  <div class="banner-warning" id="pluginBanner" style="display:none">
-    <strong>CLI Plugin Not Found</strong>
-    <p class="muted" style="margin:4px 0" id="pluginBannerText">The <code>@jterrats/setup-agents</code> Salesforce CLI plugin is required. Install it to enable all features.</p>
-    <button id="installPluginBtn">Install Plugin</button>
-    <span class="muted" id="pluginInstallStatus" style="margin-left:8px;display:none"></span>
-  </div>
+  <div id="cliBannerMount"></div>
 
   <div class="card" id="updateCard">
     <h3>Update Agent Rules</h3>
@@ -132,6 +129,36 @@ export function getHtml(webview: vscode.Webview, extensionUri: vscode.Uri, integ
       <button id="integrationsConfigureBtn" disabled>Connect Integrations</button>
     </div>
     <div id="integrationsResult" style="display:none"></div>
+    <hr style="border:none;border-top:1px solid var(--vscode-editorWidget-border);margin:12px 0" />
+    <h4 style="margin:0 0 4px">Custom MCP Server</h4>
+    <p class="muted" style="font-size:0.8em;margin:0 0 6px">Add any MCP server not listed above.</p>
+    <div class="row">
+      <input id="customMcpName" type="text" placeholder="Server name (e.g. my-tool)" style="flex:1;min-width:120px" title="Unique key for this server in mcp.json" />
+      <select id="customMcpTransport" title="Transport type">
+        <option value="stdio">stdio</option>
+        <option value="http">http</option>
+      </select>
+    </div>
+    <div id="customMcpStdioFields">
+      <div class="row">
+        <input id="customMcpCommand" type="text" placeholder="Command (e.g. npx)" style="flex:1;min-width:120px" />
+        <input id="customMcpArgs" type="text" placeholder="Args (space-separated)" style="flex:2;min-width:160px" />
+      </div>
+      <div id="customMcpEnvRows"></div>
+      <div class="row">
+        <button id="customMcpAddEnvBtn" style="font-size:0.8em">+ Env var</button>
+      </div>
+    </div>
+    <div id="customMcpHttpFields" style="display:none">
+      <div class="row">
+        <input id="customMcpUrl" type="text" placeholder="Server URL (e.g. https://mcp.example.com/mcp)" style="flex:1" />
+      </div>
+    </div>
+    <div class="row">
+      <label title="Save for all projects (global)"><input type="checkbox" id="customMcpGlobal" /> <span class="tooltip-label">Apply to all projects</span></label>
+      <button id="customMcpAddBtn">Add Server</button>
+    </div>
+    <div id="customMcpResult" style="display:none"></div>
   </div>
 
   <div class="card">

@@ -57,9 +57,17 @@
     card.className = 'profile-card' + (checked ? ' selected' : '');
     card.title = label + (description ? ' — ' + description : '');
     card.innerHTML =
-      '<input type="checkbox" value="' + esc(value) + '" ' + (checked ? 'checked' : '') + ' />' +
-      '<div class="profile-info"><span class="profile-name">' + esc(label) + '</span>' +
-      '<span class="profile-desc">' + esc(description) + '</span></div>';
+      '<input type="checkbox" value="' +
+      esc(value) +
+      '" ' +
+      (checked ? 'checked' : '') +
+      ' />' +
+      '<div class="profile-info"><span class="profile-name">' +
+      esc(label) +
+      '</span>' +
+      '<span class="profile-desc">' +
+      esc(description) +
+      '</span></div>';
     const cb = card.querySelector('input');
     cb.addEventListener('change', () => {
       card.classList.toggle('selected', cb.checked);
@@ -141,11 +149,17 @@
     const url = document.getElementById('importUrlInput').value.trim();
     if (!url) return;
     setButtonLoading('importUrlBtn', 'Importing...');
-    vscode.postMessage({ type: 'importRuleFromUrl', payload: { url, tool: document.getElementById('ruleToolSelect').value } });
+    vscode.postMessage({
+      type: 'importRuleFromUrl',
+      payload: { url, tool: document.getElementById('ruleToolSelect').value },
+    });
   });
 
   document.getElementById('importFileBtn').addEventListener('click', () => {
-    vscode.postMessage({ type: 'importRuleFromFile', payload: { tool: document.getElementById('ruleToolSelect').value } });
+    vscode.postMessage({
+      type: 'importRuleFromFile',
+      payload: { tool: document.getElementById('ruleToolSelect').value },
+    });
   });
 
   profileDetailsSelect.addEventListener('change', () => {
@@ -156,7 +170,10 @@
   document.getElementById('mcpLoginBtn').addEventListener('click', () => {
     const aliasInput = document.getElementById('mcpLoginAlias');
     const alias = aliasInput.value.trim();
-    if (!alias) { aliasInput.focus(); return; }
+    if (!alias) {
+      aliasInput.focus();
+      return;
+    }
     setButtonLoading('mcpLoginBtn', 'Authenticating...');
     document.getElementById('mcpLoginStatus').style.display = 'none';
     vscode.postMessage({ type: 'loginOrg', payload: { alias } });
@@ -192,17 +209,48 @@
     });
   });
 
-  document.getElementById('installPluginBtn').addEventListener('click', () => {
-    setButtonLoading('installPluginBtn', 'Installing...');
-    const statusEl = document.getElementById('pluginInstallStatus');
-    statusEl.style.display = '';
-    statusEl.textContent = 'This may take a minute...';
-    vscode.postMessage({ type: 'installPlugin' });
+  document.getElementById('customMcpTransport').addEventListener('change', function () {
+    const isHttp = this.value === 'http';
+    document.getElementById('customMcpStdioFields').style.display = isHttp ? 'none' : '';
+    document.getElementById('customMcpHttpFields').style.display = isHttp ? '' : 'none';
   });
 
-  document.getElementById('sfCliRetryBtn').addEventListener('click', () => {
-    setButtonLoading('sfCliRetryBtn', 'Checking...');
-    vscode.postMessage({ type: 'bootstrap' });
+  document.getElementById('customMcpAddEnvBtn').addEventListener('click', () => {
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.innerHTML =
+      '<input type="text" placeholder="KEY" style="flex:1;min-width:80px" class="custom-env-key" />' +
+      '<input type="text" placeholder="value" style="flex:2;min-width:120px" class="custom-env-val" />' +
+      '<button style="padding:4px 6px;font-size:0.8em" class="custom-env-remove">✕</button>';
+    row.querySelector('.custom-env-remove').addEventListener('click', () => row.remove());
+    document.getElementById('customMcpEnvRows').appendChild(row);
+  });
+
+  document.getElementById('customMcpAddBtn').addEventListener('click', () => {
+    const name = document.getElementById('customMcpName').value.trim();
+    if (!name) {
+      document.getElementById('customMcpName').focus();
+      return;
+    }
+    const transport = document.getElementById('customMcpTransport').value;
+    const isGlobal = document.getElementById('customMcpGlobal').checked;
+    setButtonLoading('customMcpAddBtn', 'Adding...');
+    let payload;
+    if (transport === 'http') {
+      const url = document.getElementById('customMcpUrl').value.trim();
+      payload = { name, transport, url, global: isGlobal };
+    } else {
+      const command = document.getElementById('customMcpCommand').value.trim();
+      const args = document.getElementById('customMcpArgs').value.trim().split(/\s+/).filter(Boolean);
+      const env = {};
+      document.querySelectorAll('#customMcpEnvRows .row').forEach((row) => {
+        const k = row.querySelector('.custom-env-key').value.trim();
+        const v = row.querySelector('.custom-env-val').value.trim();
+        if (k) env[k] = v;
+      });
+      payload = { name, transport, command, args, env, global: isGlobal };
+    }
+    vscode.postMessage({ type: 'addCustomIntegration', payload });
   });
 
   document.getElementById('updateNowBtn').addEventListener('click', () => {

@@ -16,9 +16,9 @@ description: Visual UI companion for setup-agents — configure AI agent rules, 
 <section class="hero-section" style="margin-top:0">
   <h2>Point-and-click AI agent configuration</h2>
   <p style="font-size:1.1rem; line-height:1.8; color:#333; margin-bottom:1.5rem">
-    The <strong>Setup Agents UI</strong> extension lets you configure profiles, connect Salesforce orgs, 
-    wire MCP servers, and manage rule files — all without touching the terminal. 
-    It wraps the same CLI plugin in a guided, sidebar-based workflow designed for teams where 
+    The <strong>Salesforce Setup Agents</strong> extension lets you configure profiles, connect Salesforce orgs,
+    wire MCP servers, and manage rule files — all without touching the terminal.
+    It wraps the same CLI plugin in a guided, sidebar-based workflow designed for teams where
     not everyone is comfortable running shell commands.
   </p>
 </section>
@@ -38,7 +38,7 @@ description: Visual UI companion for setup-agents — configure AI agent rules, 
     <div style="max-width:460px;width:100%">
       <h3 style="font-size:1.1rem;margin:0 0 0.5rem">Salesforce CLI Not Found</h3>
       <p style="font-size:0.9rem;color:#666;margin-bottom:0.75rem">
-        If SF CLI is missing, the extension shows a clear error with installation instructions instead of silently failing.
+        The extension shows a spinner while detecting SF CLI. If missing, it displays a clear error with installation instructions and a retry button.
       </p>
       <img src="{{ site.baseurl }}/assets/extension-sf-cli-missing.gif" alt="Extension demo: SF CLI missing banner" 
            style="width:100%;border-radius:10px;border:2px solid #e0e0e0;box-shadow:0 4px 12px rgba(0,0,0,0.1)" />
@@ -71,8 +71,12 @@ description: Visual UI companion for setup-agents — configure AI agent rules, 
       <p>Import rules from URL or file, browse existing rule files, edit them inline, and save — all inside the sidebar panel.</p>
     </div>
     <div class="feature-card">
+      <h4>🔧 Custom MCP Server</h4>
+      <p>Add any MCP server not in the presets — specify name, transport (stdio or http), command, args, and env vars directly from the UI.</p>
+    </div>
+    <div class="feature-card">
       <h4>🛡️ Health Checks</h4>
-      <p>Verifies SF CLI and the setup-agents plugin are installed. Shows actionable banners with install instructions when something is missing.</p>
+      <p>Shows a spinner while detecting SF CLI. If CLI or plugin is missing, displays actionable banners with install instructions and a retry button.</p>
     </div>
   </div>
 </section>
@@ -120,7 +124,7 @@ npm install && npm run build</code></pre>
       <span class="cmd-badge">PROFILES + TOOLS</span>
     </div>
     <div class="command-block-body">
-      <p>Shows detected AI tools as badges, renders 11 role profile cards with multi-select, and provides scope control (project vs user) and tool targeting. Click <strong>Apply Configuration</strong> to generate rule files — output streams to a live console.</p>
+      <p>Shows detected AI tools as badges, renders 22 role profile cards with multi-select, and provides scope control (project vs user) and tool targeting. Click <strong>Apply Configuration</strong> to generate rule files — output streams to a live console.</p>
     </div>
   </div>
 
@@ -130,7 +134,7 @@ npm install && npm run build</code></pre>
       <span class="cmd-badge">ORGS + INTEGRATIONS</span>
     </div>
     <div class="command-block-body">
-      <p>Lists authenticated Salesforce orgs (alias only, username on hover). Orgs already configured via CLI are pre-selected with a <em>(connected)</em> badge. Below the orgs section, third-party integrations (Figma, Jira, draw.io, GitHub) appear based on the profiles selected above.</p>
+      <p>Lists authenticated Salesforce orgs (alias only, username on hover). Orgs already configured in your MCP config — regardless of key naming convention — are detected and pre-selected with a <em>(connected)</em> badge. Below the orgs section, third-party integrations (Figma, Jira, draw.io, GitHub) appear based on the profiles selected above. A <strong>Custom MCP Server</strong> form lets you add any arbitrary server (stdio or http) not covered by the presets.</p>
       <table class="flags-table">
         <thead><tr><th>Integration</th><th>Profiles</th><th>Transport</th><th>Credentials</th></tr></thead>
         <tbody>
@@ -140,6 +144,16 @@ npm install && npm run build</code></pre>
           <tr><td>GitHub</td><td>Developer, Architect, DevOps, QA, PM</td><td>stdio</td><td>Personal Access Token</td></tr>
         </tbody>
       </table>
+    </div>
+  </div>
+
+  <div class="command-block">
+    <div class="command-block-header">
+      <h3>Custom MCP Server</h3>
+      <span class="cmd-badge">ANY SERVER</span>
+    </div>
+    <div class="command-block-body">
+      <p>Adds any MCP server not covered by the Salesforce or third-party presets. Choose <code>stdio</code> or <code>http</code> transport, provide a name, command/URL, args, and optional env vars. The entry is written directly to your project or global <code>mcp.json</code>.</p>
     </div>
   </div>
 

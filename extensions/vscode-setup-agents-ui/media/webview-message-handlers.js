@@ -6,7 +6,8 @@
  */
 // eslint-disable-next-line no-unused-vars -- loaded via <script> tag, consumed by webview.js
 function createMessageHandlers(deps) {
-  const { state, vscode, esc, appendConsole, resetButton, createSelectableCard, renderIntegrations, selectedProfiles } = deps;
+  const { state, vscode, esc, appendConsole, resetButton, createSelectableCard, renderIntegrations, selectedProfiles } =
+    deps;
 
   const toolsEl = document.getElementById('tools');
   const profilesEl = document.getElementById('profiles');
@@ -17,49 +18,81 @@ function createMessageHandlers(deps) {
 
   return {
     pluginStatus(payload) {
-      const sfCliBanner = document.getElementById('sfCliBanner');
-      const pluginBanner = document.getElementById('pluginBanner');
-      const btn = document.getElementById('installPluginBtn');
-      const statusEl = document.getElementById('pluginInstallStatus');
+      document.getElementById('cliCheckBanner').style.display = 'none';
+      const mount = document.getElementById('cliBannerMount');
+      mount.innerHTML = '';
+
+      if (payload.installed) return;
+
+      const banner = document.createElement('div');
 
       if (payload.sfCliMissing) {
-        sfCliBanner.style.display = '';
-        pluginBanner.style.display = 'none';
+        banner.className = 'banner-error';
+        banner.innerHTML =
+          '<strong>Salesforce CLI Not Found</strong>' +
+          '<p class="muted" style="margin:4px 0">The Salesforce CLI (<code>sf</code>) must be installed before using this extension.</p>' +
+          '<p class="muted" style="margin:4px 0;font-size:0.82em">Install from <strong>https://developer.salesforce.com/tools/salesforcecli</strong> or run: <code>npm install -g @salesforce/cli</code></p>' +
+          '<button id="sfCliRetryBtn" style="margin-top:6px">Retry Detection</button>';
+        mount.appendChild(banner);
+        document.getElementById('sfCliRetryBtn').addEventListener('click', () => {
+          mount.innerHTML = '';
+          document.getElementById('cliCheckBanner').style.display = '';
+          vscode.postMessage({ type: 'bootstrap' });
+        });
         return;
       }
 
-      sfCliBanner.style.display = 'none';
-      if (payload.installed) {
-        pluginBanner.style.display = 'none';
-      } else if (payload.installing) {
-        pluginBanner.style.display = '';
+      banner.className = 'banner-warning';
+      const statusId = 'pluginInstallStatus';
+      banner.innerHTML =
+        '<strong>CLI Plugin Not Installed</strong>' +
+        '<p class="muted" style="margin:4px 0">The <code>@jterrats/setup-agents</code> Salesforce CLI plugin is required. Install it to enable all features.</p>' +
+        '<button id="installPluginBtn" style="margin-top:6px">' +
+        (payload.installing ? 'Installing...' : 'Install Plugin') +
+        '</button>' +
+        '<span class="muted" id="' +
+        statusId +
+        '" style="margin-left:8px;' +
+        (payload.installing ? '' : 'display:none') +
+        '">' +
+        (payload.installing ? 'This may take a minute...' : '') +
+        '</span>';
+      mount.appendChild(banner);
+      const btn = document.getElementById('installPluginBtn');
+      if (payload.installing) btn.disabled = true;
+      btn.addEventListener('click', () => {
         btn.disabled = true;
         btn.textContent = 'Installing...';
-        statusEl.style.display = '';
-        statusEl.textContent = 'This may take a minute...';
-      } else {
-        pluginBanner.style.display = '';
-        btn.disabled = false;
-        btn.textContent = 'Install Plugin';
-        statusEl.style.display = 'none';
-      }
+        const s = document.getElementById(statusId);
+        s.style.display = '';
+        s.textContent = 'This may take a minute...';
+        vscode.postMessage({ type: 'installPlugin' });
+      });
     },
 
     bootstrapResult(payload) {
-      const TOOL_LABELS = { cursor: 'Cursor', vscode: 'VS Code', codex: 'Codex', agentforce: 'Agentforce', claude: 'Claude' };
+      const TOOL_LABELS = {
+        cursor: 'Cursor',
+        vscode: 'VS Code',
+        codex: 'Codex',
+        agentforce: 'Agentforce',
+        claude: 'Claude',
+      };
       toolsEl.innerHTML = '';
       const detected = payload.tools.filter((t) => t.detected);
       const notDetected = payload.tools.filter((t) => !t.detected);
       for (const t of detected) {
         const badge = document.createElement('span');
-        badge.style.cssText = 'display:inline-block;margin:0 4px 3px 0;padding:2px 6px;border-radius:4px;font-size:0.82em;background:var(--vscode-badge-background);color:var(--vscode-badge-foreground)';
+        badge.style.cssText =
+          'display:inline-block;margin:0 4px 3px 0;padding:2px 6px;border-radius:4px;font-size:0.82em;background:var(--vscode-badge-background);color:var(--vscode-badge-foreground)';
         badge.textContent = '\u2713 ' + (TOOL_LABELS[t.id] || t.id);
         badge.title = 'Detected: ' + t.reason;
         toolsEl.appendChild(badge);
       }
       if (notDetected.length > 0) {
         const hint = document.createElement('span');
-        hint.style.cssText = 'display:inline-block;margin:0 4px 3px 0;padding:2px 6px;font-size:0.78em;opacity:0.5;cursor:help';
+        hint.style.cssText =
+          'display:inline-block;margin:0 4px 3px 0;padding:2px 6px;font-size:0.78em;opacity:0.5;cursor:help';
         hint.textContent = '+' + notDetected.length + ' not detected';
         hint.title = notDetected.map((t) => (TOOL_LABELS[t.id] || t.id) + ' (' + t.reason + ')').join('\n');
         toolsEl.appendChild(hint);
@@ -198,8 +231,12 @@ function createMessageHandlers(deps) {
       const mcpResult = document.getElementById('mcpResult');
       mcpResult.style.display = '';
       mcpResult.innerHTML =
-        '<p class="success-text">MCP configured in <code>' + esc(payload.mcpFile) + '</code></p>' +
-        '<p class="muted">Servers: ' + payload.serversAdded.map(esc).join(', ') + '</p>';
+        '<p class="success-text">MCP configured in <code>' +
+        esc(payload.mcpFile) +
+        '</code></p>' +
+        '<p class="muted">Servers: ' +
+        payload.serversAdded.map(esc).join(', ') +
+        '</p>';
       appendConsole('[ok] MCP configured: ' + payload.serversAdded.join(', ') + '\n');
       resetButton('mcpConfigureBtn', 'Connect Selected Orgs');
     },
@@ -207,9 +244,19 @@ function createMessageHandlers(deps) {
     integrationsConfigured(payload) {
       const el = document.getElementById('integrationsResult');
       el.style.display = '';
-      el.innerHTML = '<p class="success-text">Integrations configured: ' + payload.serversAdded.map(esc).join(', ') + '</p>';
+      el.innerHTML =
+        '<p class="success-text">Integrations configured: ' + payload.serversAdded.map(esc).join(', ') + '</p>';
       appendConsole('[ok] Integrations configured: ' + payload.serversAdded.join(', ') + '\n');
       resetButton('integrationsConfigureBtn', 'Connect Integrations');
+    },
+
+    customIntegrationAdded(payload) {
+      const resultEl = document.getElementById('customMcpResult');
+      resultEl.style.display = '';
+      resultEl.innerHTML =
+        '<p class="success-text">Server <strong>' + esc(payload.serverName) + '</strong> added to mcp.json.</p>';
+      appendConsole('[ok] Custom MCP server added: ' + payload.serverName + '\n');
+      resetButton('customMcpAddBtn', 'Add Server');
     },
 
     updateCheckResult(payload) {

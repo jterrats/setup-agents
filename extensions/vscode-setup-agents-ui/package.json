@@ -1,6 +1,6 @@
 {
   "name": "setup-agents-ui",
-  "displayName": "Setup Agents UI",
+  "displayName": "Salesforce Setup Agents",
   "description": "Configure AI coding assistants for Salesforce projects — profiles, rules, MCP integrations, and guided setup.",
   "version": "0.1.0",
   "publisher": "jterrats",
@@ -59,7 +59,7 @@
       "activitybar": [
         {
           "id": "setupAgentsUi",
-          "title": "Setup Agents",
+          "title": "Salesforce Setup Agents",
           "icon": "media/icon.svg"
         }
       ]

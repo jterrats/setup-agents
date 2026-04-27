@@ -8,7 +8,6 @@ type McpServerConfig = {
   args?: string[];
   env?: Record<string, string>;
   url?: string;
-  type?: string;
 };
 
 type McpConfig = {
@@ -69,8 +68,7 @@ export class McpConfigService {
     for (const org of orgs) {
       entries[`salesforce-${org}`] = {
         command: npxCmd,
-        args: ['@salesforce/mcp@latest', '--orgs', org, '--toolsets', toolsets.join(',')],
-        type: 'stdio',
+        args: ['-y', '--prefer-offline', '@salesforce/mcp@latest', '--orgs', org, '--toolsets', toolsets.join(',')],
       };
     }
     return this.mergeAndWrite(this.resolveMcpPath(global, workspacePath), entries);
@@ -90,8 +88,20 @@ export class McpConfigService {
       if (!existsSync(path)) continue;
       try {
         const config = JSON.parse(readFileSync(path, 'utf8')) as McpConfig;
-        for (const key of Object.keys(config.mcpServers ?? {})) {
+        for (const [key, cfg] of Object.entries(config.mcpServers ?? {})) {
           servers.add(key);
+          // Detect Salesforce MCP servers by inspecting args, regardless of key name.
+          // Adds a synthetic "salesforce-{alias}" entry so the UI can match by org alias.
+          const args = cfg.args ?? [];
+          const isSalesforceMcp = args.some((a) => a.includes('@salesforce/mcp'));
+          if (isSalesforceMcp) {
+            const orgsIdx = args.indexOf('--orgs');
+            if (orgsIdx !== -1 && args[orgsIdx + 1]) {
+              for (const org of args[orgsIdx + 1].split(',')) {
+                servers.add(`salesforce-${org.trim()}`);
+              }
+            }
+          }
         }
       } catch {
         // corrupt or unreadable mcp.json — skip
