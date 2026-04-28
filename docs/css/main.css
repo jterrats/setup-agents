@@ -250,6 +250,21 @@ pre code {
   margin: 0;
 }
 
+/* Cards that contain a code snippet: flex layout keeps snippets baseline-aligned */
+.card-snippet {
+  display: flex;
+  flex-direction: column;
+}
+
+.card-snippet .card-text {
+  flex: 1;
+}
+
+.card-snippet pre {
+  margin-top: 1rem;
+  margin-bottom: 0;
+}
+
 /* ── Status Metrics ──────────────────────────────────────────────────────── */
 
 .status-grid {
