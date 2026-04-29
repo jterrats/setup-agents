@@ -28,12 +28,14 @@
 import { backlogSyncSkillMd } from './backlog-sync-content.js';
 import { codeAnalyzerSkillMd } from './code-analyzer-content.js';
 import { diagramExportSkillMd, exportDiagramScript } from './diagram-export-content.js';
+import { elementsSyncSkillMd, pushToElementsScript } from './elements-sync-content.js';
 import { stripMdcFrontmatter } from './shared.js';
 
 export const STORY_MAP_PROFILES = new Set(['ba', 'architect', 'pm']);
 export const DEPLOY_PROFILES = new Set(['developer', 'devops', 'architect']);
 export const CODE_ANALYZER_PROFILES = new Set(['developer', 'qa', 'architect', 'devops']);
 export const BACKLOG_SYNC_PROFILES = new Set(['pm', 'ba']);
+export const ELEMENTS_SYNC_PROFILES = new Set(['pm', 'ba', 'architect']);
 
 // ─── Portable API (tool-agnostic) ──────────────────────────────────────────
 
@@ -79,6 +81,13 @@ export function getPortableSkillSections(profileIds: string[]): SkillSection[] {
     });
   }
 
+  if ([...ids].some((id) => ELEMENTS_SYNC_PROFILES.has(id))) {
+    sections.push({
+      title: 'Elements Sync',
+      body: stripMdcFrontmatter(elementsSyncSkillMd()).trim(),
+    });
+  }
+
   return sections;
 }
 
@@ -94,6 +103,10 @@ export function getSharedSkillAssets(profileIds: string[]): Record<string, strin
     assets['story-mapping/scripts/render-pdf.sh'] = renderPdfScript();
     assets['story-mapping/assets/mermaid-pdf.css'] = mermaidPdfCss();
     assets['diagram-export/scripts/export-diagram.sh'] = exportDiagramScript();
+  }
+
+  if ([...ids].some((id) => ELEMENTS_SYNC_PROFILES.has(id))) {
+    assets['elements-sync/scripts/push-to-elements.sh'] = pushToElementsScript();
   }
 
   return assets;
@@ -418,6 +431,13 @@ export function generateCodeAnalyzerSkill(): Record<string, string> {
 export function generateBacklogSyncSkill(): Record<string, string> {
   return {
     'SKILL.md': backlogSyncSkillMd(),
+  };
+}
+
+export function generateElementsSyncSkill(): Record<string, string> {
+  return {
+    'SKILL.md': elementsSyncSkillMd(),
+    'scripts/push-to-elements.sh': pushToElementsScript(),
   };
 }
 

@@ -39,9 +39,12 @@ export {
   generateStoryMappingSkill,
   generateDeploySkill,
   generateDiagramExportSkill,
+  generateElementsSyncSkill,
+  generateBacklogSyncSkill,
   getPortableSkillSections,
   getSharedSkillAssets,
   STORY_MAP_PROFILES,
   DEPLOY_PROFILES,
+  ELEMENTS_SYNC_PROFILES,
 } from './skill-generator.js';
 export type { SkillSection } from './skill-generator.js';

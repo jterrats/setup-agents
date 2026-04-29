@@ -236,6 +236,66 @@ const GITHUB: McpIntegration = {
   },
 };
 
+// ─── Elements.cloud ─────────────────────────────────────────────────────────
+
+const ELEMENTS: McpIntegration = {
+  id: 'elements',
+  label: 'Elements.cloud',
+  profiles: new Set<ProfileId>(['ba', 'pm', 'architect']),
+  config: {
+    transport: 'stdio',
+    command: 'bash',
+    args: ['.setup-agents/skills/elements-sync/scripts/push-to-elements.sh'],
+    env: {
+      ELEMENTS_API_KEY: '',
+      ELEMENTS_SPACE_NAME: '',
+    },
+  },
+  envVars: [
+    {
+      name: 'ELEMENTS_API_KEY',
+      label: 'API Key',
+      description: 'Your Elements.cloud API token (Space Management → Developer → API Tokens)',
+      secret: true,
+      obtainUrl: 'https://app.elements.cloud',
+    },
+    {
+      name: 'ELEMENTS_SPACE_NAME',
+      label: 'Space Name',
+      description: 'The name of your Elements.cloud Space (shown in the app)',
+      secret: false,
+    },
+  ],
+  setupGuide: {
+    steps: [
+      [
+        '**Step 1 — Open your Elements Space**',
+        '1. Go to [app.elements.cloud](https://app.elements.cloud)',
+        '2. Log in and open your Space',
+        '3. Note the **Space name** shown in the top-left (you will need it below)',
+      ].join('\n'),
+      [
+        '**Step 2 — Create an API Token**',
+        '1. In the Space, go to **Space Management** (gear icon) → **Developer** → **API Tokens**',
+        '2. Click **"Create API Token"**',
+        '3. Give it a name (e.g., "Cursor Agent") and select the required scopes',
+        '4. **Copy the token immediately** — it is shown only once',
+        '',
+        '*Keep this token safe. Store it in a password manager, not in code.*',
+      ].join('\n'),
+      [
+        '**Step 3 — Provide your credentials**',
+        'The agent will ask for:',
+        '- Your **API Key** (from Step 2)',
+        '- Your **Space Name** (from Step 1)',
+        '',
+        'These are stored locally in your editor environment and never uploaded.',
+      ].join('\n'),
+    ],
+    learnMore: 'https://developer.elements.cloud/docs/elements-api',
+  },
+};
+
 // ─── Registry ───────────────────────────────────────────────────────────────
 
-export const MCP_INTEGRATIONS: McpIntegration[] = [FIGMA, JIRA, DRAWIO, GITHUB];
+export const MCP_INTEGRATIONS: McpIntegration[] = [FIGMA, JIRA, DRAWIO, GITHUB, ELEMENTS];

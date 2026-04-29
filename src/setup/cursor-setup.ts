@@ -22,11 +22,13 @@ import {
   BACKLOG_SYNC_PROFILES,
   CODE_ANALYZER_PROFILES,
   DEPLOY_PROFILES,
+  ELEMENTS_SYNC_PROFILES,
   STORY_MAP_PROFILES,
   generateBacklogSyncSkill,
   generateCodeAnalyzerSkill,
   generateDeploySkill,
   generateDiagramExportSkill,
+  generateElementsSyncSkill,
   generateStoryMappingSkill,
 } from '../generators/skill-generator.js';
 import type { Profile } from '../profiles/index.js';
@@ -99,8 +101,9 @@ function setupSkills(cwd: string, profiles: Profile[], writer: FileWriter): void
   const needsDeploy = [...profileIds].some((id) => DEPLOY_PROFILES.has(id));
   const needsCodeAnalyzer = [...profileIds].some((id) => CODE_ANALYZER_PROFILES.has(id));
   const needsBacklogSync = [...profileIds].some((id) => BACKLOG_SYNC_PROFILES.has(id));
+  const needsElementsSync = [...profileIds].some((id) => ELEMENTS_SYNC_PROFILES.has(id));
 
-  if (!needsStoryMap && !needsDeploy && !needsCodeAnalyzer && !needsBacklogSync) return;
+  if (!needsStoryMap && !needsDeploy && !needsCodeAnalyzer && !needsBacklogSync && !needsElementsSync) return;
 
   ensureDir(skillsDir);
 
@@ -129,6 +132,10 @@ function setupSkills(cwd: string, profiles: Profile[], writer: FileWriter): void
 
   if (needsBacklogSync) {
     writeSkill(skillsDir, 'backlog-sync', generateBacklogSyncSkill(), writer);
+  }
+
+  if (needsElementsSync) {
+    writeSkill(skillsDir, 'elements-sync', generateElementsSyncSkill(), writer);
   }
 }
 

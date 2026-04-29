@@ -535,7 +535,7 @@ describe('setup-agents local', () => {
 
       const workflowsDir = join(tmpDir, '.a4drules', 'workflows');
       const baseFiles = ['deploy.md', 'run-tests.md', 'validate.md', 'code-quality.md'];
-      const skillFiles = ['story-mapping.md', 'diagram-export.md', 'backlog-sync.md'];
+      const skillFiles = ['story-mapping.md', 'diagram-export.md', 'backlog-sync.md', 'elements-sync.md'];
       const baWorkflows = ['refine-stories.md', 'groom-backlog.md'];
       const expectedFiles = [...baseFiles, ...skillFiles, ...baWorkflows];
       const allFiles = existsSync(workflowsDir) ? readdirSync(workflowsDir) : [];

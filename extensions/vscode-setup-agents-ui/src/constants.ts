@@ -179,4 +179,16 @@ export const MCP_INTEGRATIONS: McpIntegrationDescriptor[] = [
     command: 'npx',
     args: ['-y', '@modelcontextprotocol/server-github'],
   },
+  {
+    id: 'elements',
+    label: 'Elements.cloud',
+    profiles: ['ba', 'pm', 'architect'],
+    envVars: [
+      { name: 'ELEMENTS_API_KEY', label: 'API Key', secret: true },
+      { name: 'ELEMENTS_SPACE_NAME', label: 'Space Name', secret: false },
+    ],
+    transport: 'stdio',
+    command: 'bash',
+    args: ['.setup-agents/skills/elements-sync/scripts/push-to-elements.sh'],
+  },
 ];

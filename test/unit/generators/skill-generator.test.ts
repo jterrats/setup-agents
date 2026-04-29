@@ -430,13 +430,14 @@ describe('skill-generator', () => {
   });
 
   describe('getPortableSkillSections()', () => {
-    it('returns story mapping, diagram export and backlog sync sections for ba profile', () => {
+    it('returns story mapping, diagram export, backlog sync and elements sync sections for ba profile', () => {
       const sections = getPortableSkillSections(['ba']);
-      expect(sections).to.have.lengthOf(3);
+      expect(sections).to.have.lengthOf(4);
       const titles = sections.map((s) => s.title);
       expect(titles).to.include('Story Mapping');
       expect(titles).to.include('Diagram Export');
       expect(titles).to.include('Backlog Sync');
+      expect(titles).to.include('Elements Sync');
     });
 
     it('returns deploy and code-analyzer sections for developer profile', () => {
@@ -449,12 +450,13 @@ describe('skill-generator', () => {
 
     it('returns all sections for architect profile', () => {
       const sections = getPortableSkillSections(['architect']);
-      expect(sections).to.have.lengthOf(4);
+      expect(sections).to.have.lengthOf(5);
       const titles = sections.map((s) => s.title);
       expect(titles).to.include('Story Mapping');
       expect(titles).to.include('Diagram Export');
       expect(titles).to.include('Salesforce Deploy & Validate');
       expect(titles).to.include('Salesforce Code Analyzer');
+      expect(titles).to.include('Elements Sync');
     });
 
     it('returns code-analyzer section for qa profile', () => {
@@ -463,13 +465,14 @@ describe('skill-generator', () => {
       expect(sections[0].title).to.equal('Salesforce Code Analyzer');
     });
 
-    it('returns story mapping, diagram export and backlog sync sections for pm profile', () => {
+    it('returns story mapping, diagram export, backlog sync and elements sync sections for pm profile', () => {
       const sections = getPortableSkillSections(['pm']);
-      expect(sections).to.have.lengthOf(3);
+      expect(sections).to.have.lengthOf(4);
       const titles = sections.map((s) => s.title);
       expect(titles).to.include('Story Mapping');
       expect(titles).to.include('Diagram Export');
       expect(titles).to.include('Backlog Sync');
+      expect(titles).to.include('Elements Sync');
     });
 
     it('returns empty array for profiles without skills', () => {
@@ -484,23 +487,30 @@ describe('skill-generator', () => {
   });
 
   describe('getSharedSkillAssets()', () => {
-    it('returns render-pdf.sh, mermaid-pdf.css, and export-diagram.sh for ba profile', () => {
+    it('returns render-pdf.sh, mermaid-pdf.css, export-diagram.sh and push-to-elements.sh for ba profile', () => {
       const assets = getSharedSkillAssets(['ba']);
       expect(assets).to.include.keys([
         'story-mapping/scripts/render-pdf.sh',
         'story-mapping/assets/mermaid-pdf.css',
         'diagram-export/scripts/export-diagram.sh',
+        'elements-sync/scripts/push-to-elements.sh',
       ]);
     });
 
-    it('returns empty object for profiles without story-mapping assets', () => {
+    it('returns empty object for profiles without assets', () => {
       const assets = getSharedSkillAssets(['developer']);
       expect(Object.keys(assets)).to.be.empty;
     });
 
-    it('returns assets for architect profile', () => {
+    it('returns story-mapping and elements-sync assets for architect profile', () => {
       const assets = getSharedSkillAssets(['architect']);
       expect(assets).to.include.keys('story-mapping/scripts/render-pdf.sh');
+      expect(assets).to.include.keys('elements-sync/scripts/push-to-elements.sh');
+    });
+
+    it('returns push-to-elements.sh for pm profile', () => {
+      const assets = getSharedSkillAssets(['pm']);
+      expect(assets).to.include.keys('elements-sync/scripts/push-to-elements.sh');
     });
   });
 });
