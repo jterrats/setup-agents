@@ -18,9 +18,15 @@ import type { Profile } from '../profiles/index.js';
 import { stripMdcFrontmatter } from './shared.js';
 import { getPortableSkillSections } from './skill-generator.js';
 
-/** Generates `CLAUDE.md` content for Anthropic Claude Code. */
+/**
+ * Generates the slim root `CLAUDE.md` that uses `@` imports to load per-profile
+ * rule files from `.claude/rules/`. Claude Code reads all `@`-imported files at
+ * conversation start, keeping the root file short and each profile file focused.
+ */
 export function generateClaudeMd(profiles: Profile[], version: string): string {
-  const base = [
+  const imports = profiles.map((p) => `@.claude/rules/${p.id}.md`).join('\n');
+
+  const lines = [
     '# CLAUDE.md — Project Guidelines',
     `<!-- setup-agents: ${version} -->`,
     '',
@@ -42,9 +48,20 @@ export function generateClaudeMd(profiles: Profile[], version: string): string {
     '- Use environment variables or secret managers for sensitive values.',
   ];
 
-  const profileSections = profiles.flatMap((p) => ['', '---', '', stripMdcFrontmatter(p.ruleContent()).trimStart()]);
+  if (imports) {
+    lines.push('', '## Profile Rules', imports);
+  }
 
-  const skillSections = getPortableSkillSections(profiles.map((p) => p.id)).flatMap((s) => ['', '---', '', s.body]);
+  return lines.join('\n');
+}
 
-  return [...base, ...profileSections, ...skillSections].join('\n');
+/** Generates per-profile rule file content for `.claude/rules/<id>.md`. */
+export function generateClaudeProfileRule(profile: Profile, version: string): string {
+  const skillSections = getPortableSkillSections([profile.id])
+    .map((s) => s.body)
+    .join('\n\n---\n\n');
+  const profileBody = stripMdcFrontmatter(profile.ruleContent()).trimStart();
+  const parts = [`<!-- setup-agents: ${version} -->`, '', profileBody];
+  if (skillSections) parts.push('', '---', '', skillSections);
+  return parts.join('\n');
 }

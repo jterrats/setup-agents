@@ -203,18 +203,32 @@ describe('setup-agents local', () => {
   });
 
   describe('profile-aware content', () => {
-    it('injects developer profile content into AGENTS.md', async () => {
+    it('injects developer profile content into .codex/developer.md', async () => {
       await Local.run(['--rules', 'codex', '--profile', 'developer']);
 
-      const content = readFileSync(join(tmpDir, 'AGENTS.md'), 'utf8');
+      const content = readFileSync(join(tmpDir, '.codex', 'developer.md'), 'utf8');
       expect(content).to.include('Developer');
     });
 
-    it('injects developer profile content into CLAUDE.md', async () => {
+    it('AGENTS.md references .codex/developer.md', async () => {
+      await Local.run(['--rules', 'codex', '--profile', 'developer']);
+
+      const content = readFileSync(join(tmpDir, 'AGENTS.md'), 'utf8');
+      expect(content).to.include('.codex/developer.md');
+    });
+
+    it('injects developer profile content into .claude/rules/developer.md', async () => {
+      await Local.run(['--rules', 'claude', '--profile', 'developer']);
+
+      const content = readFileSync(join(tmpDir, '.claude', 'rules', 'developer.md'), 'utf8');
+      expect(content).to.include('Developer');
+    });
+
+    it('CLAUDE.md references .claude/rules/developer.md via @import', async () => {
       await Local.run(['--rules', 'claude', '--profile', 'developer']);
 
       const content = readFileSync(join(tmpDir, 'CLAUDE.md'), 'utf8');
-      expect(content).to.include('Developer');
+      expect(content).to.include('@.claude/rules/developer.md');
     });
 
     it('injects multiple profile sections into copilot-instructions.md', async () => {

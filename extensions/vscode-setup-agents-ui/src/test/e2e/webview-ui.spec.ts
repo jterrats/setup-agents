@@ -628,3 +628,201 @@ test.describe('Webview UI — Update Agent Rules (stale files)', () => {
     await expect(page.locator('#console')).toContainText('[ok] Agent rules updated.');
   });
 });
+
+// ── Health banner harness ────────────────────────────────────────────────────
+
+type BannerVariant = 'noWorkspace' | 'sfCliMissing' | 'pluginMissing' | 'installed';
+
+function buildBannerTestHtml(variant: BannerVariant): string {
+  const noWorkspace = variant === 'noWorkspace';
+  const sfCliMissing = variant === 'sfCliMissing';
+  const pluginMissing = variant === 'pluginMissing';
+  const installed = variant === 'installed';
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    :root {
+      --vscode-font-family: system-ui, sans-serif;
+      --vscode-foreground: #cccccc;
+      --vscode-input-background: #3c3c3c;
+      --vscode-input-foreground: #cccccc;
+      --vscode-input-border: #3c3c3c;
+      --vscode-errorForeground: #f48771;
+    }
+    body { font-family: var(--vscode-font-family); color: var(--vscode-foreground); padding: 12px; background: #1e1e1e; }
+    .banner-warning { background: rgba(255,200,0,.12); border: 1px solid #cc9900; border-radius:6px; padding:10px 14px; }
+    .banner-error   { background: rgba(244,135,113,.12); border: 1px solid var(--vscode-errorForeground); border-radius:6px; padding:10px 14px; }
+    .muted { opacity: 0.8; font-size: 0.9em; }
+    button { background: var(--vscode-input-background); color: var(--vscode-input-foreground); border: 1px solid var(--vscode-input-border); border-radius: 4px; padding: 6px 8px; cursor: pointer; }
+    code { background: #2d2d2d; padding: 1px 4px; border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <div id="cliCheckBanner" style="${installed ? '' : 'display:none'}">Checking...</div>
+  <div id="cliBannerMount"></div>
+
+  <script>
+    const payload = {
+      installed: ${installed},
+      noWorkspace: ${noWorkspace},
+      sfCliMissing: ${sfCliMissing},
+      installing: false,
+    };
+
+    const mount = document.getElementById('cliBannerMount');
+
+    if (!payload.installed) {
+      const banner = document.createElement('div');
+
+      if (payload.noWorkspace) {
+        banner.className = 'banner-warning';
+        banner.id = 'noWorkspaceBanner';
+        banner.innerHTML =
+          '<strong>No Workspace Open</strong>' +
+          '<p class="muted" style="margin:4px 0">Open a Salesforce project folder in VS Code to use Setup Agents.</p>' +
+          '<p class="muted" style="margin:4px 0;font-size:0.82em">File → Open Folder… and select your project root.</p>';
+        mount.appendChild(banner);
+      } else if (payload.sfCliMissing) {
+        banner.className = 'banner-error';
+        banner.id = 'sfCliBanner';
+        banner.innerHTML =
+          '<strong>Salesforce CLI Not Found</strong>' +
+          '<p class="muted" style="margin:4px 0">The Salesforce CLI (<code>sf</code>) must be installed before using this extension.</p>' +
+          '<p class="muted" style="margin:4px 0;font-size:0.82em">Install from <strong>https://developer.salesforce.com/tools/salesforcecli</strong> or run: <code>npm install -g @salesforce/cli</code></p>' +
+          '<button id="sfCliRetryBtn" style="margin-top:6px">Retry Detection</button>';
+        mount.appendChild(banner);
+        document.getElementById('sfCliRetryBtn').addEventListener('click', () => {
+          mount.innerHTML = '<p id="retryResult">Retrying...</p>';
+        });
+      } else if (${pluginMissing}) {
+        banner.className = 'banner-warning';
+        banner.id = 'pluginMissingBanner';
+        banner.innerHTML =
+          '<strong>CLI Plugin Not Installed</strong>' +
+          '<p class="muted" style="margin:4px 0">The <code>@jterrats/setup-agents</code> Salesforce CLI plugin is required.</p>' +
+          '<button id="installPluginBtn" style="margin-top:6px">Install Plugin</button>' +
+          '<span class="muted" id="pluginInstallStatus" style="margin-left:8px;display:none">This may take a minute...</span>';
+        mount.appendChild(banner);
+        document.getElementById('installPluginBtn').addEventListener('click', () => {
+          const btn = document.getElementById('installPluginBtn');
+          btn.disabled = true;
+          btn.textContent = 'Installing...';
+          document.getElementById('pluginInstallStatus').style.display = '';
+        });
+      }
+    }
+  </script>
+</body>
+</html>`;
+}
+
+test.describe('Webview UI — Health Banners: no workspace', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.setContent(buildBannerTestHtml('noWorkspace'));
+    await page.waitForSelector('#cliBannerMount');
+  });
+
+  test('shows warning banner when no workspace is open', async ({ page }) => {
+    const banner = page.locator('#noWorkspaceBanner');
+    await expect(banner).toBeVisible();
+    await expect(banner).toHaveClass(/banner-warning/);
+  });
+
+  test('banner contains "No Workspace Open" heading', async ({ page }) => {
+    await expect(page.locator('#noWorkspaceBanner strong')).toHaveText('No Workspace Open');
+  });
+
+  test('banner explains how to open a folder', async ({ page }) => {
+    await expect(page.locator('#noWorkspaceBanner')).toContainText('Open Folder');
+  });
+
+  test('no retry button is shown for noWorkspace', async ({ page }) => {
+    await expect(page.locator('#sfCliRetryBtn')).not.toBeVisible();
+  });
+});
+
+test.describe('Webview UI — Health Banners: SF CLI missing', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.setContent(buildBannerTestHtml('sfCliMissing'));
+    await page.waitForSelector('#sfCliBanner');
+  });
+
+  test('shows error banner when SF CLI is not found', async ({ page }) => {
+    const banner = page.locator('#sfCliBanner');
+    await expect(banner).toBeVisible();
+    await expect(banner).toHaveClass(/banner-error/);
+  });
+
+  test('banner contains "Salesforce CLI Not Found" heading', async ({ page }) => {
+    await expect(page.locator('#sfCliBanner strong').first()).toHaveText('Salesforce CLI Not Found');
+  });
+
+  test('banner shows install instructions', async ({ page }) => {
+    await expect(page.locator('#sfCliBanner')).toContainText('npm install -g @salesforce/cli');
+  });
+
+  test('Retry Detection button is visible', async ({ page }) => {
+    await expect(page.locator('#sfCliRetryBtn')).toBeVisible();
+    await expect(page.locator('#sfCliRetryBtn')).toHaveText('Retry Detection');
+  });
+
+  test('clicking Retry triggers re-bootstrap', async ({ page }) => {
+    await page.locator('#sfCliRetryBtn').click();
+    await expect(page.locator('#retryResult')).toBeVisible();
+    await expect(page.locator('#retryResult')).toContainText('Retrying');
+  });
+});
+
+test.describe('Webview UI — Health Banners: plugin missing', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.setContent(buildBannerTestHtml('pluginMissing'));
+    await page.waitForSelector('#pluginMissingBanner');
+  });
+
+  test('shows warning banner when plugin is not installed', async ({ page }) => {
+    const banner = page.locator('#pluginMissingBanner');
+    await expect(banner).toBeVisible();
+    await expect(banner).toHaveClass(/banner-warning/);
+  });
+
+  test('banner contains "CLI Plugin Not Installed" heading', async ({ page }) => {
+    await expect(page.locator('#pluginMissingBanner strong')).toHaveText('CLI Plugin Not Installed');
+  });
+
+  test('Install Plugin button is visible and enabled', async ({ page }) => {
+    const btn = page.locator('#installPluginBtn');
+    await expect(btn).toBeVisible();
+    await expect(btn).toBeEnabled();
+    await expect(btn).toHaveText('Install Plugin');
+  });
+
+  test('clicking Install Plugin shows installing state', async ({ page }) => {
+    await page.locator('#installPluginBtn').click();
+    await expect(page.locator('#installPluginBtn')).toBeDisabled();
+    await expect(page.locator('#installPluginBtn')).toHaveText('Installing...');
+    await expect(page.locator('#pluginInstallStatus')).toBeVisible();
+  });
+});
+
+test.describe('Webview UI — Health Banners: installed (no banner)', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.setContent(buildBannerTestHtml('installed'));
+    await page.waitForSelector('body');
+  });
+
+  test('no banner is injected into cliBannerMount when plugin is installed', async ({ page }) => {
+    const mount = page.locator('#cliBannerMount');
+    await expect(mount).toBeAttached();
+    const innerHTML = await mount.innerHTML();
+    expect(innerHTML.trim()).toBe('');
+  });
+
+  test('cliCheckBanner is present in DOM when installed', async ({ page }) => {
+    const banner = page.locator('#cliCheckBanner');
+    await expect(banner).toBeAttached();
+    await expect(banner).toContainText('Checking');
+  });
+});

@@ -15,8 +15,9 @@
  */
 
 import { join } from 'node:path';
-import { generateClaudeMd } from '../generators/claude-generator.js';
+import { generateClaudeMd, generateClaudeProfileRule } from '../generators/claude-generator.js';
 import type { Profile } from '../profiles/index.js';
+import { ensureDir } from '../services/file-writer.js';
 import type { FileWriter } from '../services/file-writer.js';
 import { PLUGIN_VERSION } from '../version.js';
 
@@ -28,5 +29,14 @@ export type ClaudeSetupOptions = {
 
 export function setupClaude(opts: ClaudeSetupOptions): void {
   const { cwd, profiles, writer } = opts;
+  const rulesDir = join(cwd, '.claude', 'rules');
+
   writer.write(join(cwd, 'CLAUDE.md'), generateClaudeMd(profiles, PLUGIN_VERSION));
+
+  if (profiles.length > 0) {
+    ensureDir(rulesDir);
+    for (const profile of profiles) {
+      writer.write(join(rulesDir, `${profile.id}.md`), generateClaudeProfileRule(profile, PLUGIN_VERSION));
+    }
+  }
 }

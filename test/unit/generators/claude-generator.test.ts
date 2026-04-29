@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { expect } from 'chai';
-import { generateClaudeMd } from '../../../src/generators/claude-generator.js';
+import { generateClaudeMd, generateClaudeProfileRule } from '../../../src/generators/claude-generator.js';
 import { baProfile } from '../../../src/profiles/ba.js';
 import { developerProfile } from '../../../src/profiles/index.js';
 import { qaProfile } from '../../../src/profiles/qa.js';
@@ -40,36 +40,49 @@ describe('claude-generator', () => {
       expect(content).to.include('## Security');
     });
 
-    it('includes profile sections when profiles are provided', () => {
+    it('emits @import lines for each profile', () => {
+      const content = generateClaudeMd([developerProfile, baProfile], VERSION);
+      expect(content).to.include('@.claude/rules/developer.md');
+      expect(content).to.include('@.claude/rules/ba.md');
+    });
+
+    it('does not emit @import section when no profiles given', () => {
+      const content = generateClaudeMd([], VERSION);
+      expect(content).to.not.include('@.claude/rules/');
+    });
+
+    it('does not inline profile body in root CLAUDE.md', () => {
       const content = generateClaudeMd([developerProfile], VERSION);
+      expect(content).to.not.match(/^---\n.*alwaysApply/m);
+      expect(content).to.not.include('Salesforce Deploy');
+    });
+  });
+
+  describe('generateClaudeProfileRule()', () => {
+    it('includes the setup-agents version comment', () => {
+      const content = generateClaudeProfileRule(developerProfile, VERSION);
+      expect(content).to.include(`<!-- setup-agents: ${VERSION} -->`);
+    });
+
+    it('includes profile content without mdc frontmatter', () => {
+      const content = generateClaudeProfileRule(developerProfile, VERSION);
+      expect(content).to.not.match(/^---\n.*alwaysApply/m);
       expect(content).to.include('Developer');
     });
 
-    it('does not include mdc frontmatter in profile sections', () => {
-      const content = generateClaudeMd([developerProfile], VERSION);
-      expect(content).to.not.match(/^---\n.*alwaysApply/m);
-    });
-
-    it('separates profiles with horizontal rules', () => {
-      const content = generateClaudeMd([developerProfile], VERSION);
-      expect(content).to.include('---');
-    });
-
-    it('includes deploy skill section for developer profile', () => {
-      const content = generateClaudeMd([developerProfile], VERSION);
+    it('includes skill sections for profiles that have them', () => {
+      const content = generateClaudeProfileRule(developerProfile, VERSION);
       expect(content).to.include('Salesforce Deploy & Validate');
-      expect(content).to.include('sf profiler retrieve');
-      expect(content).to.include('sf smart-deployment');
     });
 
-    it('includes story mapping skill section for ba profile', () => {
-      const content = generateClaudeMd([baProfile], VERSION);
+    it('includes story mapping skills for ba profile', () => {
+      const content = generateClaudeProfileRule(baProfile, VERSION);
       expect(content).to.include('Story Mapping');
       expect(content).to.include('Jeff Patton');
     });
 
     it('does not include skill sections for profiles without matching skills', () => {
-      const content = generateClaudeMd([qaProfile], VERSION);
+      const content = generateClaudeProfileRule(qaProfile, VERSION);
       expect(content).to.not.include('Story Mapping');
       expect(content).to.not.include('sf profiler retrieve');
     });

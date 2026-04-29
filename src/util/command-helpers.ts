@@ -51,8 +51,8 @@ export function detectTools(cwd: string): SupportedTool[] {
   const detected: SupportedTool[] = [];
   if (existsSync(join(cwd, '.cursor'))) detected.push('cursor');
   if (existsSync(join(cwd, '.vscode'))) detected.push('vscode');
-  if (existsSync(join(cwd, 'AGENTS.md'))) detected.push('codex');
-  if (existsSync(join(cwd, 'CLAUDE.md'))) detected.push('claude');
+  if (existsSync(join(cwd, 'AGENTS.md')) || existsSync(join(cwd, '.codex'))) detected.push('codex');
+  if (existsSync(join(cwd, 'CLAUDE.md')) || existsSync(join(cwd, '.claude', 'rules'))) detected.push('claude');
   if (existsSync(join(cwd, '.a4drules'))) detected.push('agentforce');
   return detected.length === 0 ? SUPPORTED_TOOLS : detected;
 }
@@ -116,8 +116,24 @@ export function findStaleFiles(cwd: string): Array<{ file: string; tool: Support
   }
 
   checkFile(join(cwd, '.github', 'copilot-instructions.md'), 'vscode', STALE_VERSION_FLAT);
+
   checkFile(join(cwd, 'AGENTS.md'), 'codex', STALE_VERSION_FLAT);
+  const codexDir = join(cwd, '.codex');
+  if (existsSync(codexDir)) {
+    for (const file of readdirSync(codexDir).filter((f) => f.endsWith('.md'))) {
+      checkFile(join(codexDir, file), 'codex', STALE_VERSION_FLAT);
+    }
+  }
+  const forceAppAgents = join(cwd, 'force-app', 'AGENTS.md');
+  checkFile(forceAppAgents, 'codex', STALE_VERSION_FLAT);
+
   checkFile(join(cwd, 'CLAUDE.md'), 'claude', STALE_VERSION_FLAT);
+  const claudeRulesDir = join(cwd, '.claude', 'rules');
+  if (existsSync(claudeRulesDir)) {
+    for (const file of readdirSync(claudeRulesDir).filter((f) => f.endsWith('.md'))) {
+      checkFile(join(claudeRulesDir, file), 'claude', STALE_VERSION_FLAT);
+    }
+  }
 
   const a4dDir = join(cwd, '.a4drules');
   if (existsSync(a4dDir)) {

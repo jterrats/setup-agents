@@ -18,9 +18,16 @@ import type { Profile } from '../profiles/index.js';
 import { stripMdcFrontmatter } from './shared.js';
 import { getPortableSkillSections } from './skill-generator.js';
 
-/** Generates `AGENTS.md` content for OpenAI Codex CLI. */
+/**
+ * Generates the slim root `AGENTS.md` for OpenAI Codex CLI.
+ * Per-profile rules live in `.codex/<id>.md` and are referenced via an
+ * explicit `read` instruction. When `force-app/` exists, a focused
+ * `force-app/AGENTS.md` is generated separately via `generateAgentsMdForceApp()`.
+ */
 export function generateAgentsMd(profiles: Profile[], version: string): string {
-  const base = [
+  const profileRefs = profiles.map((p) => `- \`.codex/${p.id}.md\` — ${p.label} rules`).join('\n');
+
+  const lines = [
     '# Agent Guidelines',
     `<!-- setup-agents: ${version} -->`,
     '',
@@ -40,9 +47,64 @@ export function generateAgentsMd(profiles: Profile[], version: string): string {
     '- Use environment variables or secret managers for sensitive values.',
   ];
 
-  const profileSections = profiles.flatMap((p) => ['', '---', '', stripMdcFrontmatter(p.ruleContent()).trimStart()]);
+  if (profileRefs) {
+    lines.push(
+      '',
+      '## Profile Rules',
+      'Read the following files for role-specific standards before generating code:',
+      profileRefs
+    );
+  }
 
-  const skillSections = getPortableSkillSections(profiles.map((p) => p.id)).flatMap((s) => ['', '---', '', s.body]);
+  return lines.join('\n');
+}
 
-  return [...base, ...profileSections, ...skillSections].join('\n');
+/** Generates per-profile rule file content for `.codex/<id>.md`. */
+export function generateCodexProfileRule(profile: Profile, version: string): string {
+  const skillSections = getPortableSkillSections([profile.id])
+    .map((s) => s.body)
+    .join('\n\n---\n\n');
+  const profileBody = stripMdcFrontmatter(profile.ruleContent()).trimStart();
+  const parts = [`<!-- setup-agents: ${version} -->`, '', profileBody];
+  if (skillSections) parts.push('', '---', '', skillSections);
+  return parts.join('\n');
+}
+
+/**
+ * Generates `force-app/AGENTS.md` focused on Salesforce-specific rules.
+ * Codex auto-loads AGENTS.md files from parent directories as it navigates
+ * into subdirectories, so this file is activated whenever Codex touches
+ * anything under `force-app/`.
+ */
+export function generateAgentsMdForceApp(profiles: Profile[], version: string): string {
+  const apexProfiles = profiles.filter((p) => ['developer', 'architect', 'qa', 'devops'].includes(p.id));
+  if (apexProfiles.length === 0) return '';
+
+  const lines = [
+    '# Salesforce Source Rules',
+    `<!-- setup-agents: ${version} -->`,
+    '',
+    '> Auto-loaded by Codex when working inside `force-app/`. Supplements the root `AGENTS.md`.',
+    '',
+    '## Apex',
+    '- Default: `with sharing`. Exception: `@RestResource` classes → `without sharing`.',
+    '- No SOQL or DML inside loops.',
+    '- One trigger per object. Zero logic in triggers — delegate to trigger handler.',
+    '- Always bulkify: handle 1 to N records.',
+    '',
+    '## LWC',
+    '- Prioritize SLDS Styling Hooks over custom CSS.',
+    '- Use LDS 2 and Lightning Data Service whenever possible.',
+    '- User feedback: Toasts with Custom Labels. Never hardcode strings.',
+    '',
+    '## Testing',
+    '- Exactly one Assert per test method using the modern `Assert` class.',
+    '- Use `@TestSetup` for shared test data.',
+    '- Target 90% code coverage.',
+  ];
+
+  const profileRefs = apexProfiles.map((p) => `- \`.codex/${p.id}.md\``).join('\n');
+  lines.push('', '## Full Standards', 'See profile files at root level:', profileRefs);
+
+  return lines.join('\n');
 }
