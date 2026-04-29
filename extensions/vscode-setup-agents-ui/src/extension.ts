@@ -104,6 +104,14 @@ class SetupAgentsViewProvider implements vscode.WebviewViewProvider {
         process.env.PATH ?? 'undefined'
       }`
     );
+    if (!vscode.workspace.workspaceFolders?.[0]) {
+      this.post({ type: 'pluginStatus', payload: { installed: false, noWorkspace: true } });
+      this.post({
+        type: 'bootstrapResult',
+        payload: { tools: [], profiles: ALL_PROFILES, activeProfiles: [] },
+      });
+      return;
+    }
     const sfCliInstalled = await this.isSfCliInstalled();
     this.log.appendLine(`[bootstrap] SF CLI detected: ${sfCliInstalled}`);
     if (!sfCliInstalled) {

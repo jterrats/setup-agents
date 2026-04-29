@@ -26,6 +26,16 @@ function createMessageHandlers(deps) {
 
       const banner = document.createElement('div');
 
+      if (payload.noWorkspace) {
+        banner.className = 'banner-warning';
+        banner.innerHTML =
+          '<strong>No Workspace Open</strong>' +
+          '<p class="muted" style="margin:4px 0">Open a Salesforce project folder in VS Code to use Setup Agents.</p>' +
+          '<p class="muted" style="margin:4px 0;font-size:0.82em">File → Open Folder… and select your project root.</p>';
+        mount.appendChild(banner);
+        return;
+      }
+
       if (payload.sfCliMissing) {
         banner.className = 'banner-error';
         banner.innerHTML =

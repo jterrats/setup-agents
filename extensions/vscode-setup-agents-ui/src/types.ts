@@ -130,5 +130,8 @@ export type HostToUiMessage =
   | { type: 'customIntegrationAdded'; payload: { serverName: string } }
   | { type: 'updateCheckResult'; payload: { staleFiles: string[] } }
   | { type: 'updateComplete'; payload: { updated: string[] } }
-  | { type: 'pluginStatus'; payload: { installed: boolean; installing?: boolean; sfCliMissing?: boolean } }
+  | {
+      type: 'pluginStatus';
+      payload: { installed: boolean; installing?: boolean; sfCliMissing?: boolean; noWorkspace?: boolean };
+    }
   | { type: 'mcpSyncResult'; payload: { configuredServers: string[] } };
