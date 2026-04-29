@@ -285,18 +285,16 @@ class SetupAgentsViewProvider implements vscode.WebviewViewProvider {
 
   private async handleRunUpdate(): Promise<void> {
     const workspacePath = this.requireWorkspacePath();
-    this.cliService.runSetupAgentsLocal(
-      workspacePath,
-      { profiles: [], force: true },
-      {
-        onStdout: (text) => this.post({ type: 'commandOutput', payload: { stream: 'stdout', text } }),
-        onStderr: (text) => this.post({ type: 'commandOutput', payload: { stream: 'stderr', text } }),
-        onClose: (code) => {
-          const updated = code === 0 ? ['update completed'] : [];
-          this.post({ type: 'updateComplete', payload: { updated } });
-        },
-      }
-    );
+    this.cliService.runSetupAgentsUpdate(workspacePath, {
+      onStdout: (text) => this.post({ type: 'commandOutput', payload: { stream: 'stdout', text } }),
+      onStderr: (text) => this.post({ type: 'commandOutput', payload: { stream: 'stderr', text } }),
+      onClose: (code) => {
+        const updated = code === 0 ? ['update completed'] : [];
+        this.post({ type: 'updateComplete', payload: { updated } });
+        // Re-run check so the UI reflects the actual post-update state
+        void this.handleCheckForUpdates();
+      },
+    });
   }
 
   // ─── Utilities ────────────────────────────────────────────────────────────

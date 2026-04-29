@@ -288,10 +288,14 @@ function createMessageHandlers(deps) {
     updateComplete() {
       const resultEl = document.getElementById('updateResult');
       const actionsEl = document.getElementById('updateActions');
+      const statusEl = document.getElementById('updateStatus');
       resetButton('updateNowBtn', 'Update Now');
       actionsEl.style.display = 'none';
       resultEl.style.display = '';
-      resultEl.innerHTML = '<p class="success-text">Update complete.</p>';
+      resultEl.innerHTML = '<p class="success-text">Update complete. Verifying…</p>';
+      statusEl.style.display = '';
+      statusEl.className = 'muted';
+      statusEl.textContent = 'Checking for remaining stale files…';
       appendConsole('[ok] Agent rules updated.\n');
     },
 

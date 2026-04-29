@@ -2,7 +2,7 @@
   "name": "setup-agents-ui",
   "displayName": "Salesforce Setup Agents",
   "description": "Configure AI coding assistants for Salesforce projects — profiles, rules, MCP integrations, and guided setup.",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "publisher": "jterrats",
   "license": "MIT",
   "icon": "media/icon.png",

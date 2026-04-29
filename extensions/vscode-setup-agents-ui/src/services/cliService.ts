@@ -8,6 +8,10 @@ export type CommandStreamHandlers = {
 };
 
 export class CliService {
+  public runSetupAgentsUpdate(cwd: string, handlers: CommandStreamHandlers): void {
+    this.run(cwd, ['setup-agents', 'update'], handlers);
+  }
+
   public runSetupAgentsLocal(cwd: string, request: RunLocalRequest, handlers: CommandStreamHandlers): void {
     const args = ['setup-agents', 'local'];
 
