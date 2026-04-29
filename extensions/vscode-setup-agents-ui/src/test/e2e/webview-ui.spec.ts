@@ -474,3 +474,157 @@ test.describe('Webview UI — MCP without orgs (login flow)', () => {
     await expect(page.locator('#mcpStatus')).toHaveText('1 org(s) found');
   });
 });
+
+function buildUpdateTestHtml(staleCount: number): string {
+  const hasStale = staleCount > 0;
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    :root {
+      --vscode-font-family: system-ui, sans-serif;
+      --vscode-foreground: #cccccc;
+      --vscode-input-background: #3c3c3c;
+      --vscode-input-foreground: #cccccc;
+      --vscode-input-border: #3c3c3c;
+      --vscode-charts-green: #89d185;
+    }
+    body { font-family: var(--vscode-font-family); color: var(--vscode-foreground); padding: 12px; background: #1e1e1e; }
+    .muted { opacity: 0.8; font-size: 0.9em; }
+    .success-text { color: var(--vscode-charts-green); }
+    button { background: var(--vscode-input-background); color: var(--vscode-input-foreground); border: 1px solid var(--vscode-input-border); border-radius: 4px; padding: 6px 8px; cursor: pointer; }
+    #console { white-space: pre-wrap; min-height: 60px; background: #1e1e1e; padding: 8px; }
+  </style>
+</head>
+<body>
+  <div id="updateCard">
+    <h3>Update Agent Rules</h3>
+    <p class="muted" id="updateStatus" style="${hasStale ? 'display:none' : ''}">All agent rules are up to date.</p>
+    <div id="updateActions" style="${hasStale ? '' : 'display:none'}">
+      <span id="updateCount" class="muted">${staleCount} stale file(s) detected.</span>
+      <button id="updateNowBtn">Update Now</button>
+    </div>
+    <div id="updateResult" style="display:none"></div>
+  </div>
+  <div id="console"></div>
+
+  <script>
+    let staleCount = ${staleCount};
+
+    function appendConsole(text, isError) {
+      document.getElementById('console').textContent += text;
+    }
+
+    function resetButton(id, label) {
+      const btn = document.getElementById(id);
+      if (btn) { btn.disabled = false; btn.textContent = label; }
+    }
+
+    document.getElementById('updateNowBtn').addEventListener('click', () => {
+      const btn = document.getElementById('updateNowBtn');
+      btn.disabled = true;
+      btn.textContent = 'Updating...';
+
+      // Simulate update completion
+      setTimeout(() => {
+        const resultEl = document.getElementById('updateResult');
+        const actionsEl = document.getElementById('updateActions');
+        const statusEl = document.getElementById('updateStatus');
+        resetButton('updateNowBtn', 'Update Now');
+        actionsEl.style.display = 'none';
+        resultEl.style.display = '';
+        resultEl.innerHTML = '<p class="success-text">Update complete. Verifying…</p>';
+        statusEl.style.display = '';
+        statusEl.className = 'muted';
+        statusEl.textContent = 'Checking for remaining stale files…';
+        appendConsole('[ok] Agent rules updated.\\n');
+
+        // Simulate re-check: no more stale files
+        setTimeout(() => {
+          statusEl.textContent = 'All agent rules are up to date.';
+          statusEl.className = 'muted success-text';
+          resultEl.style.display = 'none';
+          staleCount = 0;
+        }, 150);
+      }, 100);
+    });
+  </script>
+</body>
+</html>`;
+}
+
+test.describe('Webview UI — Update Agent Rules (up to date)', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.setContent(buildUpdateTestHtml(0));
+    await page.waitForSelector('#updateCard');
+  });
+
+  test('shows up-to-date message when no stale files', async ({ page }) => {
+    await expect(page.locator('#updateStatus')).toBeVisible();
+    await expect(page.locator('#updateStatus')).toHaveText('All agent rules are up to date.');
+  });
+
+  test('hides update actions when up to date', async ({ page }) => {
+    await expect(page.locator('#updateActions')).not.toBeVisible();
+  });
+
+  test('hides update result when up to date', async ({ page }) => {
+    await expect(page.locator('#updateResult')).not.toBeVisible();
+  });
+});
+
+test.describe('Webview UI — Update Agent Rules (stale files)', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.setContent(buildUpdateTestHtml(12));
+    await page.waitForSelector('#updateCard');
+  });
+
+  test('shows stale file count when files are outdated', async ({ page }) => {
+    await expect(page.locator('#updateActions')).toBeVisible();
+    await expect(page.locator('#updateCount')).toHaveText('12 stale file(s) detected.');
+  });
+
+  test('hides up-to-date status when stale files exist', async ({ page }) => {
+    await expect(page.locator('#updateStatus')).not.toBeVisible();
+  });
+
+  test('Update Now button is visible and enabled', async ({ page }) => {
+    const btn = page.locator('#updateNowBtn');
+    await expect(btn).toBeVisible();
+    await expect(btn).toBeEnabled();
+    await expect(btn).toHaveText('Update Now');
+  });
+
+  test('clicking Update Now shows updating state', async ({ page }) => {
+    await page.locator('#updateNowBtn').click();
+    await expect(page.locator('#updateNowBtn')).toBeDisabled();
+    await expect(page.locator('#updateNowBtn')).toHaveText('Updating...');
+  });
+
+  test('after update: shows complete message and verifying status', async ({ page }) => {
+    await page.locator('#updateNowBtn').click();
+    await expect(page.locator('#updateResult')).toBeVisible();
+    await expect(page.locator('#updateResult')).toContainText('Update complete');
+    await expect(page.locator('#updateStatus')).toBeVisible();
+    await expect(page.locator('#updateStatus')).toContainText('Checking for remaining stale files');
+  });
+
+  test('after update: stale actions are hidden', async ({ page }) => {
+    await page.locator('#updateNowBtn').click();
+    await expect(page.locator('#updateActions')).not.toBeVisible();
+  });
+
+  test('after re-check: shows up-to-date when no more stale files', async ({ page }) => {
+    await page.locator('#updateNowBtn').click();
+    await expect(page.locator('#updateStatus')).toContainText('Checking for remaining stale files');
+    await expect(page.locator('#updateStatus')).toHaveText('All agent rules are up to date.', { timeout: 1000 });
+    await expect(page.locator('#updateResult')).not.toBeVisible();
+  });
+
+  test('console logs success message after update', async ({ page }) => {
+    await page.locator('#updateNowBtn').click();
+    await page.waitForFunction(() => document.getElementById('console')?.textContent?.includes('[ok]'));
+    await expect(page.locator('#console')).toContainText('[ok] Agent rules updated.');
+  });
+});
