@@ -17,7 +17,13 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { generateFslWorkflows } from '../generators/workflows/fsl.js';
-import { consultativeDesign, deployment, interactionPreferences, semanticCommits } from './shared-sections.js';
+import {
+  consultativeDesign,
+  deployment,
+  interactionPreferences,
+  salesforceReferences,
+  semanticCommits,
+} from './shared-sections.js';
 import type { Profile } from './types.js';
 
 export const fslProfile: Profile = {
@@ -114,6 +120,8 @@ export const fslProfile: Profile = {
       ...deployment(),
       '',
       ...semanticCommits(),
+      '',
+      ...salesforceReferences(),
       '',
       ...interactionPreferences('Field Service configuration'),
     ].join('\n');

@@ -21,6 +21,7 @@ import {
   consultativeDesign,
   documentationStandards,
   interactionPreferences,
+  salesforceReferences,
   semanticCommits,
 } from './shared-sections.js';
 import type { Profile } from './types.js';
@@ -106,6 +107,8 @@ export const aiProfile: Profile = {
       ...documentationStandards(),
       '',
       ...semanticCommits(),
+      '',
+      ...salesforceReferences(),
       '',
       ...interactionPreferences('agent architecture'),
       '',

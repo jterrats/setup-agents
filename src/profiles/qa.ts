@@ -17,7 +17,12 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { generateQaWorkflows } from '../generators/workflows/qa.js';
-import { documentationStandards, interactionPreferences, semanticCommits } from './shared-sections.js';
+import {
+  documentationStandards,
+  interactionPreferences,
+  salesforceReferences,
+  semanticCommits,
+} from './shared-sections.js';
 import type { Profile } from './types.js';
 
 export const qaProfile: Profile = {
@@ -144,6 +149,8 @@ export const qaProfile: Profile = {
       '## Sub-agent Handover',
       '- Pass to sub-agents: the Page Object for the feature under test, the persona being tested,',
       '  the org/environment URL (from env var), and the test data setup approach.',
+      '',
+      ...salesforceReferences(),
       '',
       ...interactionPreferences(),
     ].join('\n');

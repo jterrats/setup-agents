@@ -20,6 +20,7 @@ import {
   deployment,
   documentationStandards,
   interactionPreferences,
+  salesforceReferences,
   semanticCommits,
 } from './shared-sections.js';
 import type { Profile } from './types.js';
@@ -143,6 +144,8 @@ export const developerProfile: Profile = {
       '- Pass to sub-agents: API version from `sfdx-project.json`, existing trigger handler pattern,',
       '  data layer strategy (JT_DynamicQueries vs DataSelector), and test user PSG names.',
       '- Sub-agents must follow: one Assert per test, zero logic in triggers.',
+      '',
+      ...salesforceReferences(),
       '',
       ...interactionPreferences(),
     ].join('\n');

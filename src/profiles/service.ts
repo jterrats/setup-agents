@@ -22,6 +22,7 @@ import {
   deployment,
   documentationStandards,
   interactionPreferences,
+  salesforceReferences,
   semanticCommits,
 } from './shared-sections.js';
 import type { Profile } from './types.js';
@@ -112,6 +113,8 @@ export const serviceProfile: Profile = {
       ...deployment(),
       '',
       ...semanticCommits(),
+      '',
+      ...salesforceReferences(),
       '',
       ...interactionPreferences('service configuration'),
     ].join('\n');

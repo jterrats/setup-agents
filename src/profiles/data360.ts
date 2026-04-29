@@ -17,7 +17,12 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { generateData360Workflows } from '../generators/workflows/data360.js';
-import { documentationStandards, interactionPreferences, semanticCommits } from './shared-sections.js';
+import {
+  documentationStandards,
+  interactionPreferences,
+  salesforceReferences,
+  semanticCommits,
+} from './shared-sections.js';
 import type { Profile } from './types.js';
 
 const DATA_CLOUD_METADATA_TYPES = [
@@ -133,6 +138,8 @@ export const data360Profile: Profile = {
       '## Sub-agent Handover',
       '- Pass to sub-agents: data lineage diagram, IR strategy document, DMO mapping,',
       '  segment business purpose, target activation system, and any known manual deployment steps.',
+      '',
+      ...salesforceReferences(),
       '',
       ...interactionPreferences(),
     ].join('\n');

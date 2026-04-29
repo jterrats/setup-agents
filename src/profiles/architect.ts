@@ -15,7 +15,13 @@
  */
 
 import { generateArchitectWorkflows } from '../generators/workflows/architect.js';
-import { deployment, documentationStandards, interactionPreferences, semanticCommits } from './shared-sections.js';
+import {
+  deployment,
+  documentationStandards,
+  interactionPreferences,
+  salesforceReferences,
+  semanticCommits,
+} from './shared-sections.js';
 import type { Profile } from './types.js';
 
 export const architectProfile: Profile = {
@@ -119,6 +125,8 @@ export const architectProfile: Profile = {
       '  flow strategy, data layer), sharing model, and any ADR references.',
       '- Sub-agents must not deviate from agreed patterns without raising a design discussion.',
       '- Sub-agents must follow: one Assert per test, zero logic in triggers.',
+      '',
+      ...salesforceReferences(),
       '',
       ...interactionPreferences(),
     ].join('\n');

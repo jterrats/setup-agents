@@ -17,7 +17,13 @@
 import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { generateCpqWorkflows } from '../generators/workflows/cpq.js';
-import { consultativeDesign, deployment, interactionPreferences, semanticCommits } from './shared-sections.js';
+import {
+  consultativeDesign,
+  deployment,
+  interactionPreferences,
+  salesforceReferences,
+  semanticCommits,
+} from './shared-sections.js';
 import type { Profile } from './types.js';
 
 function hasSbqqMetadata(dir: string): boolean {
@@ -121,6 +127,8 @@ export const cpqProfile: Profile = {
       ...deployment(),
       '',
       ...semanticCommits(),
+      '',
+      ...salesforceReferences(),
       '',
       ...interactionPreferences('CPQ configuration'),
     ].join('\n');

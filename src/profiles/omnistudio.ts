@@ -17,7 +17,13 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { generateOmnistudioWorkflows } from '../generators/workflows/omnistudio.js';
-import { consultativeDesign, deployment, interactionPreferences, semanticCommits } from './shared-sections.js';
+import {
+  consultativeDesign,
+  deployment,
+  interactionPreferences,
+  salesforceReferences,
+  semanticCommits,
+} from './shared-sections.js';
 import type { Profile } from './types.js';
 
 export const omnistudioProfile: Profile = {
@@ -116,6 +122,8 @@ export const omnistudioProfile: Profile = {
       ...deployment(),
       '',
       ...semanticCommits(),
+      '',
+      ...salesforceReferences(),
       '',
       ...interactionPreferences('OmniStudio configuration'),
     ].join('\n');

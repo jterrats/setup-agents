@@ -15,7 +15,12 @@
  */
 
 import { generateUxWorkflows } from '../generators/workflows/ux.js';
-import { documentationStandards, interactionPreferences, semanticCommits } from './shared-sections.js';
+import {
+  documentationStandards,
+  interactionPreferences,
+  salesforceReferences,
+  semanticCommits,
+} from './shared-sections.js';
 import type { Profile } from './types.js';
 
 export const uxProfile: Profile = {
@@ -143,6 +148,8 @@ export const uxProfile: Profile = {
       '- Pass to sub-agents: the SLDS component used as base, design token names,',
       '  accessibility requirements, Custom Label keys for all user-facing strings,',
       '  and a completed LWC Interaction Checklist (all 6 items verified).',
+      '',
+      ...salesforceReferences(),
       '',
       ...interactionPreferences(),
     ].join('\n');

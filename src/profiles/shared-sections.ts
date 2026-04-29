@@ -57,6 +57,33 @@ export function consultativeDesign(prosConsTopic = 'non-trivial technical decisi
   ];
 }
 
+export function salesforceReferences(): string[] {
+  return [
+    '## Salesforce Reference Documentation',
+    'Prefer these official sources when researching platform behavior, APIs, or standards:',
+    '',
+    '### Core Platform',
+    '- **Data Models:** https://developer.salesforce.com/docs/platform/data-models',
+    '- **Apex Developer Guide:** https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_dev_guide.htm',
+    '- **APIs:** https://developer.salesforce.com/docs/apis',
+    '- **Metadata Coverage:** https://developer.salesforce.com/docs/metadata-coverage',
+    '- **Salesforce Architect:** https://architect.salesforce.com/',
+    '',
+    '### Lightning & LWC',
+    '- **LWC Developer Center:** https://developer.salesforce.com/developer-centers/lightning-web-components',
+    '- **Lightning Types Guide:** https://developer.salesforce.com/docs/platform/lightning-types/guide',
+    '- **LWC for Mobile:** https://developer.salesforce.com/developer-centers/lwc-for-mobile',
+    '- **Mobile Developer Center:** https://developer.salesforce.com/developer-centers/mobile',
+    '- **Service SDK:** https://developer.salesforce.com/developer-centers/service-sdk',
+    '',
+    '### Design',
+    '- **SLDS 2:** https://www.lightningdesignsystem.com/2e1ef8501/p/85bd85-lightning-design-system-2',
+    '',
+    '### Updates & Blogs',
+    '- **Salesforce Developer Blog:** https://developer.salesforce.com/blogs',
+  ];
+}
+
 export function deployment(): string[] {
   return [
     '## Deployment',

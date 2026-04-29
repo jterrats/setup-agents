@@ -18,7 +18,12 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { generateCrmaWorkflows } from '../generators/workflows/crma.js';
 import type { Profile } from './types.js';
-import { documentationStandards, interactionPreferences, semanticCommits } from './shared-sections.js';
+import {
+  documentationStandards,
+  interactionPreferences,
+  salesforceReferences,
+  semanticCommits,
+} from './shared-sections.js';
 
 const CRMA_METADATA_TYPES = [
   'WaveApplication',
@@ -130,6 +135,8 @@ export const crmaProfile: Profile = {
       '## Sub-agent Handover',
       '- Pass to sub-agents: dataset lineage diagram, security predicate definitions,',
       '  recipe schedule, dashboard primary question, and the user personas being tested.',
+      '',
+      ...salesforceReferences(),
       '',
       ...interactionPreferences(),
     ].join('\n');

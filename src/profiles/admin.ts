@@ -22,6 +22,7 @@ import {
   deployment,
   documentationStandards,
   interactionPreferences,
+  salesforceReferences,
   semanticCommits,
 } from './shared-sections.js';
 import type { Profile } from './types.js';
@@ -126,6 +127,8 @@ export const adminProfile: Profile = {
       ...deployment(),
       '',
       ...semanticCommits(),
+      '',
+      ...salesforceReferences(),
       '',
       ...interactionPreferences('configuration'),
     ].join('\n');

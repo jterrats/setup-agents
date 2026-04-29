@@ -22,6 +22,7 @@ import {
   deployment,
   documentationStandards,
   interactionPreferences,
+  salesforceReferences,
   semanticCommits,
 } from './shared-sections.js';
 import type { Profile } from './types.js';
@@ -30,11 +31,7 @@ export const securityProfile: Profile = {
   id: 'security',
   label: 'Security / Compliance',
   ruleFile: 'security-standards.mdc',
-  extensions: [
-    'salesforce.salesforcedx-vscode',
-    'salesforce.sfdx-code-analyzer-vscode',
-    'financialforce.lana',
-  ],
+  extensions: ['salesforce.salesforcedx-vscode', 'salesforce.sfdx-code-analyzer-vscode', 'financialforce.lana'],
   detect(cwd: string): boolean {
     return existsSync(join(cwd, 'force-app'));
   },
@@ -72,7 +69,7 @@ export const securityProfile: Profile = {
       '',
       '## SOQL Security',
       '- **Always use `WITH SECURITY_ENFORCED`** in SOQL queries to enforce FLS and object-level security.',
-      '- Alternative: `WITH USER_MODE` for queries that should respect the running user\'s full permission set.',
+      "- Alternative: `WITH USER_MODE` for queries that should respect the running user's full permission set.",
       '- **Never use `WITHOUT SECURITY_ENFORCED`** unless in a clearly documented system-context operation.',
       '- Guard against **SOQL injection**: use bind variables (`:variable`) instead of string concatenation in dynamic SOQL.',
       '- When dynamic SOQL is unavoidable, use `String.escapeSingleQuotes()` on all user-supplied values.',
@@ -111,7 +108,7 @@ export const securityProfile: Profile = {
       '- Target a **Health Check score of 90+** at all times.',
       '- Address all **HIGH-risk** settings first: password policies, session settings, login restrictions.',
       '- Review Health Check quarterly. Document deviations with a risk-acceptance form signed by the Security Lead.',
-      '- Customize the **Health Check baseline** to match your org\'s compliance framework.',
+      "- Customize the **Health Check baseline** to match your org's compliance framework.",
       '',
       '## Named Credentials & External Callouts',
       '- **ALWAYS use Named Credentials** for external integrations — never hardcode endpoints, tokens, or credentials.',
@@ -120,7 +117,7 @@ export const securityProfile: Profile = {
       '- Validate that callout endpoints use HTTPS. Block HTTP endpoints via **CSP Trusted Sites**.',
       '',
       '## Custom Permissions for Feature Gates',
-      '- **Never hardcode Profile names** in Apex or validation rules. Use `FeatureManagement.checkPermission(\'Custom_Permission_Name\')`.',
+      "- **Never hardcode Profile names** in Apex or validation rules. Use `FeatureManagement.checkPermission('Custom_Permission_Name')`.",
       '- Create granular Custom Permissions: `BypassValidation`, `ExportSensitiveData`, `AdminOverride`, etc.',
       '- Assign Custom Permissions via **Permission Sets** — never directly on Profiles.',
       '',
@@ -169,6 +166,8 @@ export const securityProfile: Profile = {
       '## Sub-agent Handover',
       '- Pass to sub-agents: OWD baseline, encryption status, Permission Set Group naming convention, and compliance framework (SOC 2 / HIPAA / GDPR).',
       '- Sub-agents must follow: `WITH SECURITY_ENFORCED` in all SOQL, `stripInaccessible()` on all DML, Named Credentials for callouts.',
+      '',
+      ...salesforceReferences(),
       '',
       ...interactionPreferences('security'),
     ].join('\n');

@@ -17,7 +17,12 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { generateCgcloudWorkflows } from '../generators/workflows/cgcloud.js';
-import { documentationStandards, interactionPreferences, semanticCommits } from './shared-sections.js';
+import {
+  documentationStandards,
+  interactionPreferences,
+  salesforceReferences,
+  semanticCommits,
+} from './shared-sections.js';
 import type { Profile } from './types.js';
 
 function hasCGCloudNamespace(cwd: string): boolean {
@@ -115,6 +120,8 @@ export const cgcloudProfile: Profile = {
       '## Sub-agent Handover',
       '- Pass to sub-agents: which CGCloud product (TPM / Retail Execution / Route Optimization),',
       '  the extension point being used, the Modeler config already in place, and the PSG for test users.',
+      '',
+      ...salesforceReferences(),
       '',
       ...interactionPreferences(),
     ].join('\n');

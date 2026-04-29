@@ -19,6 +19,7 @@ import {
   consultativeDesign,
   documentationStandards,
   interactionPreferences,
+  salesforceReferences,
   semanticCommits,
 } from './shared-sections.js';
 import type { Profile } from './types.js';
@@ -138,6 +139,8 @@ export const baProfile: Profile = {
       '## Sub-agent Handover',
       '- Pass to sub-agents: the business process diagram, accepted user stories, persona definitions,',
       '  and the declarative-first constraint (Flow/Config before Apex).',
+      '',
+      ...salesforceReferences(),
       '',
       ...interactionPreferences(),
     ].join('\n');
