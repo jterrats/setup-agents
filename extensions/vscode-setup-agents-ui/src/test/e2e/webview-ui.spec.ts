@@ -826,3 +826,368 @@ test.describe('Webview UI — Health Banners: installed (no banner)', () => {
     await expect(banner).toContainText('Checking');
   });
 });
+
+// ── Integrations harness ─────────────────────────────────────────────────────
+
+type IntegrationDef = {
+  id: string;
+  label: string;
+  profiles: string[];
+  transport: string;
+  envVars: Array<{ name: string; label: string; secret: boolean }>;
+};
+
+function buildIntegrationsTestHtml(
+  activeProfiles: string[],
+  integrations: IntegrationDef[],
+  preSelected: string[] = []
+): string {
+  const integrationsJson = JSON.stringify(integrations);
+  const profilesJson = JSON.stringify(activeProfiles);
+  const selectedJson = JSON.stringify(preSelected);
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    :root {
+      --vscode-font-family: system-ui, sans-serif;
+      --vscode-foreground: #cccccc;
+      --vscode-editorWidget-border: #454545;
+      --vscode-focusBorder: #007fd4;
+      --vscode-list-activeSelectionBackground: rgba(4,57,94,.75);
+      --vscode-list-activeSelectionForeground: #fff;
+      --vscode-input-background: #3c3c3c;
+      --vscode-input-foreground: #cccccc;
+      --vscode-input-border: #3c3c3c;
+      --vscode-charts-green: #89d185;
+    }
+    body { font-family: var(--vscode-font-family); color: var(--vscode-foreground); padding: 12px; background: #1e1e1e; }
+    .profile-card { display: flex; align-items: flex-start; gap: 6px; padding: 6px 8px; border: 1px solid var(--vscode-editorWidget-border); border-radius: 6px; cursor: pointer; }
+    .profile-card.selected { border-color: var(--vscode-focusBorder); background: var(--vscode-list-activeSelectionBackground); }
+    .profile-card .profile-info { display: flex; flex-direction: column; }
+    .profile-card .profile-name { font-weight: bold; font-size: 0.92em; }
+    .profile-card .profile-desc { font-size: 0.8em; opacity: 0.75; }
+    .muted { opacity: 0.8; font-size: 0.9em; }
+    .row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+    button { background: var(--vscode-input-background); color: var(--vscode-input-foreground); border: 1px solid var(--vscode-input-border); border-radius: 4px; padding: 6px 8px; cursor: pointer; }
+    input { background: var(--vscode-input-background); color: var(--vscode-input-foreground); border: 1px solid var(--vscode-input-border); border-radius: 4px; padding: 4px 6px; }
+  </style>
+</head>
+<body>
+  <div id="integrationsHint" class="muted"></div>
+  <div id="integrationsGrid" style="display:none; display:grid; grid-template-columns:1fr 1fr; gap:6px"></div>
+  <div id="integrationsCreds" style="display:none"></div>
+  <div id="integrationsActions" style="display:none">
+    <button id="integrationsConfigureBtn" disabled>Connect Integrations</button>
+  </div>
+  <div id="integrationsResult" style="display:none"></div>
+
+  <script>
+    window.__INTEGRATIONS__ = ${integrationsJson};
+    const ACTIVE_PROFILES = ${profilesJson};
+    const state = { selectedIntegrations: ${selectedJson} };
+
+    function esc(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function createSelectableCard(container, { value, label, description, checked, onChange }) {
+      const card = document.createElement('label');
+      card.className = 'profile-card' + (checked ? ' selected' : '');
+      card.setAttribute('role', 'checkbox');
+      card.setAttribute('aria-checked', String(checked));
+      card.setAttribute('tabindex', '0');
+      card.innerHTML = '<input type="checkbox" value="' + esc(value) + '" ' + (checked ? 'checked' : '') + ' />'
+        + '<div class="profile-info"><span class="profile-name">' + esc(label) + '</span>'
+        + '<span class="profile-desc">' + esc(description) + '</span></div>';
+      const cb = card.querySelector('input');
+      cb.addEventListener('change', () => {
+        card.classList.toggle('selected', cb.checked);
+        card.setAttribute('aria-checked', String(cb.checked));
+        onChange(cb.checked);
+      });
+      card.addEventListener('keydown', (e) => {
+        if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); cb.checked = !cb.checked; cb.dispatchEvent(new Event('change')); }
+      });
+      container.appendChild(card);
+      return card;
+    }
+
+    function selectedProfiles() { return ACTIVE_PROFILES; }
+
+    const deps = { state, esc, createSelectableCard, selectedProfiles };
+    const { renderIntegrations, updateCredentialFields } = createIntegrationsUI(deps);
+    renderIntegrations();
+
+    document.getElementById('integrationsConfigureBtn').addEventListener('click', () => {
+      const result = document.getElementById('integrationsResult');
+      result.style.display = '';
+      result.innerHTML = '<p style="color:var(--vscode-charts-green)">Integrations configured: '
+        + state.selectedIntegrations.join(', ') + '</p>';
+    });
+  </script>
+  <script>
+    ${createIntegrationsUISource()}
+  </script>
+</body>
+</html>`;
+}
+
+// Inline the createIntegrationsUI function for the harness
+function createIntegrationsUISource(): string {
+  return `
+    function createIntegrationsUI(deps) {
+      const { state, esc, createSelectableCard, selectedProfiles } = deps;
+      const MCP_INTEGRATIONS = window.__INTEGRATIONS__ || [];
+
+      function updateCredentialFields() {
+        const creds = document.getElementById('integrationsCreds');
+        creds.innerHTML = '';
+        const selected = state.selectedIntegrations;
+        const withCreds = MCP_INTEGRATIONS.filter((i) => selected.includes(i.id) && i.envVars.length > 0);
+        if (withCreds.length === 0) { creds.style.display = 'none'; return; }
+        creds.style.display = '';
+        for (const integ of withCreds) {
+          const section = document.createElement('div');
+          section.style.marginBottom = '8px';
+          section.innerHTML = '<strong style="font-size:0.85em">' + esc(integ.label) + ' Credentials</strong>';
+          for (const v of integ.envVars) {
+            const row = document.createElement('div');
+            row.className = 'row';
+            row.innerHTML =
+              '<label style="font-size:0.82em;min-width:80px">' + esc(v.label) + '</label>' +
+              '<input type="' + (v.secret ? 'password' : 'text') + '" data-integration="' + esc(integ.id) +
+              '" data-env="' + esc(v.name) + '" placeholder="' + esc(v.label) + '" style="flex:1;min-width:160px" />';
+            section.appendChild(row);
+          }
+          creds.appendChild(section);
+        }
+      }
+
+      function renderIntegrations() {
+        const profiles = selectedProfiles();
+        const relevant = MCP_INTEGRATIONS.filter((i) => i.profiles.some((p) => profiles.includes(p)));
+        const grid = document.getElementById('integrationsGrid');
+        const creds = document.getElementById('integrationsCreds');
+        const actions = document.getElementById('integrationsActions');
+        const hint = document.getElementById('integrationsHint');
+        const btn = document.getElementById('integrationsConfigureBtn');
+
+        if (relevant.length === 0) {
+          grid.style.display = 'none';
+          creds.style.display = 'none';
+          actions.style.display = 'none';
+          hint.textContent = profiles.length === 0
+            ? 'Select profiles above to see available integrations.'
+            : 'No third-party integrations match the selected profiles.';
+          hint.style.display = '';
+          return;
+        }
+
+        hint.style.display = 'none';
+        grid.style.display = '';
+        actions.style.display = '';
+        grid.innerHTML = '';
+        creds.innerHTML = '';
+
+        for (const integ of relevant) {
+          const isChecked = state.selectedIntegrations.includes(integ.id);
+          const desc = integ.transport.toUpperCase()
+            + (integ.envVars.length ? ' · ' + integ.envVars.length + ' credential(s)' : ' · No credentials needed');
+          createSelectableCard(grid, {
+            value: integ.id, label: integ.label, description: desc, checked: isChecked,
+            onChange: () => {
+              state.selectedIntegrations = [...grid.querySelectorAll('input:checked')].map((n) => n.value);
+              updateCredentialFields();
+              btn.disabled = state.selectedIntegrations.length === 0;
+            },
+          });
+        }
+        updateCredentialFields();
+        btn.disabled = state.selectedIntegrations.length === 0;
+      }
+
+      return { renderIntegrations, updateCredentialFields };
+    }
+  `;
+}
+
+const TEST_INTEGRATIONS: IntegrationDef[] = [
+  {
+    id: 'jira',
+    label: 'Jira Cloud',
+    profiles: ['pm', 'ba', 'developer'],
+    transport: 'stdio',
+    envVars: [
+      { name: 'JIRA_BASE_URL', label: 'Jira URL', secret: false },
+      { name: 'JIRA_EMAIL', label: 'Email', secret: false },
+      { name: 'JIRA_API_TOKEN', label: 'API Token', secret: true },
+    ],
+  },
+  {
+    id: 'elements',
+    label: 'Elements.cloud',
+    profiles: ['ba', 'pm', 'architect'],
+    transport: 'stdio',
+    envVars: [
+      { name: 'ELEMENTS_API_KEY', label: 'API Key', secret: true },
+      { name: 'ELEMENTS_SPACE_NAME', label: 'Space Name', secret: false },
+    ],
+  },
+  {
+    id: 'figma',
+    label: 'Figma',
+    profiles: ['ux', 'ba'],
+    transport: 'http',
+    envVars: [],
+  },
+];
+
+test.describe('Webview UI — Integrations: no profiles selected', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.setContent(buildIntegrationsTestHtml([], TEST_INTEGRATIONS));
+    await page.waitForSelector('body');
+  });
+
+  test('shows hint to select profiles when none are active', async ({ page }) => {
+    await expect(page.locator('#integrationsHint')).toBeVisible();
+    await expect(page.locator('#integrationsHint')).toContainText('Select profiles');
+  });
+
+  test('grid and actions are hidden when no profiles', async ({ page }) => {
+    await expect(page.locator('#integrationsGrid')).not.toBeVisible();
+    await expect(page.locator('#integrationsActions')).not.toBeVisible();
+  });
+});
+
+test.describe('Webview UI — Integrations: ba profile active', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.setContent(buildIntegrationsTestHtml(['ba'], TEST_INTEGRATIONS));
+    await page.waitForSelector('#integrationsGrid');
+  });
+
+  test('renders integration cards for ba profile (jira, elements, figma)', async ({ page }) => {
+    const cards = page.locator('#integrationsGrid .profile-card');
+    await expect(cards).toHaveCount(3);
+  });
+
+  test('each card shows integration label', async ({ page }) => {
+    await expect(page.locator('#integrationsGrid .profile-card:has(input[value="jira"]) .profile-name')).toHaveText(
+      'Jira Cloud'
+    );
+    await expect(page.locator('#integrationsGrid .profile-card:has(input[value="elements"]) .profile-name')).toHaveText(
+      'Elements.cloud'
+    );
+    await expect(page.locator('#integrationsGrid .profile-card:has(input[value="figma"]) .profile-name')).toHaveText(
+      'Figma'
+    );
+  });
+
+  test('card description shows transport and credential count', async ({ page }) => {
+    const elementsDesc = page.locator('#integrationsGrid .profile-card:has(input[value="elements"]) .profile-desc');
+    await expect(elementsDesc).toContainText('STDIO');
+    await expect(elementsDesc).toContainText('2 credential(s)');
+  });
+
+  test('figma card shows no credentials needed', async ({ page }) => {
+    const figmaDesc = page.locator('#integrationsGrid .profile-card:has(input[value="figma"]) .profile-desc');
+    await expect(figmaDesc).toContainText('No credentials needed');
+  });
+
+  test('Connect Integrations button is disabled until one is selected', async ({ page }) => {
+    await expect(page.locator('#integrationsConfigureBtn')).toBeDisabled();
+  });
+
+  test('selecting an integration enables the Connect button', async ({ page }) => {
+    await page.locator('#integrationsGrid .profile-card:has(input[value="elements"])').click();
+    await expect(page.locator('#integrationsConfigureBtn')).toBeEnabled();
+  });
+
+  test('credential fields are hidden when nothing selected', async ({ page }) => {
+    await expect(page.locator('#integrationsCreds')).not.toBeVisible();
+  });
+});
+
+test.describe('Webview UI — Integrations: credential fields', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.setContent(buildIntegrationsTestHtml(['ba'], TEST_INTEGRATIONS));
+    await page.waitForSelector('#integrationsGrid');
+  });
+
+  test('selecting Elements shows API Key (password) and Space Name (text) fields', async ({ page }) => {
+    await page.locator('#integrationsGrid .profile-card:has(input[value="elements"])').click();
+    await expect(page.locator('#integrationsCreds')).toBeVisible();
+
+    const apiKeyInput = page.locator('input[data-env="ELEMENTS_API_KEY"]');
+    const spaceInput = page.locator('input[data-env="ELEMENTS_SPACE_NAME"]');
+    await expect(apiKeyInput).toBeVisible();
+    await expect(spaceInput).toBeVisible();
+    await expect(apiKeyInput).toHaveAttribute('type', 'password');
+    await expect(spaceInput).toHaveAttribute('type', 'text');
+  });
+
+  test('selecting Jira shows three credential fields', async ({ page }) => {
+    await page.locator('#integrationsGrid .profile-card:has(input[value="jira"])').click();
+    await expect(page.locator('#integrationsCreds')).toBeVisible();
+
+    await expect(page.locator('input[data-env="JIRA_BASE_URL"]')).toBeVisible();
+    await expect(page.locator('input[data-env="JIRA_EMAIL"]')).toBeVisible();
+    await expect(page.locator('input[data-env="JIRA_API_TOKEN"]')).toBeVisible();
+    await expect(page.locator('input[data-env="JIRA_API_TOKEN"]')).toHaveAttribute('type', 'password');
+  });
+
+  test('selecting Figma (no envVars) does not show credential section', async ({ page }) => {
+    await page.locator('#integrationsGrid .profile-card:has(input[value="figma"])').click();
+    await expect(page.locator('#integrationsCreds')).not.toBeVisible();
+  });
+
+  test('deselecting integration hides its credential fields', async ({ page }) => {
+    await page.locator('#integrationsGrid .profile-card:has(input[value="elements"])').click();
+    await expect(page.locator('input[data-env="ELEMENTS_API_KEY"]')).toBeVisible();
+
+    await page.locator('#integrationsGrid .profile-card:has(input[value="elements"])').click();
+    await expect(page.locator('#integrationsCreds')).not.toBeVisible();
+  });
+
+  test('credential fields have correct data-integration attribute', async ({ page }) => {
+    await page.locator('#integrationsGrid .profile-card:has(input[value="elements"])').click();
+    await expect(page.locator('input[data-env="ELEMENTS_API_KEY"]')).toHaveAttribute('data-integration', 'elements');
+    await expect(page.locator('input[data-env="ELEMENTS_SPACE_NAME"]')).toHaveAttribute('data-integration', 'elements');
+  });
+});
+
+test.describe('Webview UI — Integrations: profiles without integrations', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.setContent(buildIntegrationsTestHtml(['developer'], TEST_INTEGRATIONS));
+    await page.waitForSelector('body');
+  });
+
+  test('shows no-match hint when profile has no integrations', async ({ page }) => {
+    await expect(page.locator('#integrationsHint')).toBeVisible();
+    await expect(page.locator('#integrationsHint')).toContainText('No third-party integrations');
+  });
+});
+
+test.describe('Webview UI — Integrations: pre-selected state', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.setContent(buildIntegrationsTestHtml(['ba'], TEST_INTEGRATIONS, ['elements']));
+    await page.waitForSelector('#integrationsGrid');
+  });
+
+  test('pre-selected integration shows as checked', async ({ page }) => {
+    const card = page.locator('#integrationsGrid .profile-card:has(input[value="elements"])');
+    await expect(card).toHaveClass(/selected/);
+    await expect(card.locator('input[type="checkbox"]')).toBeChecked();
+  });
+
+  test('pre-selected integration shows credential fields immediately', async ({ page }) => {
+    await expect(page.locator('#integrationsCreds')).toBeVisible();
+    await expect(page.locator('input[data-env="ELEMENTS_API_KEY"]')).toBeVisible();
+  });
+
+  test('Connect button is enabled when integration is pre-selected', async ({ page }) => {
+    await expect(page.locator('#integrationsConfigureBtn')).toBeEnabled();
+  });
+});
